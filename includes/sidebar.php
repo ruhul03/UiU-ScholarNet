@@ -1,7 +1,7 @@
 <!-- Sidebar Component -->
 <aside class="sidebar">
     <div class="logo">UIU ScholarNet</div>
-    <div style="font-size: 0.6rem; opacity: 0.5; letter-spacing: 1px; margin-top: -5px;">RESEARCH & COLLABORATION</div>
+    <div class="sidebar-subtitle">RESEARCH & COLLABORATION</div>
 
     <nav class="sidebar-menu">
         <a href="index.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : ''; ?>">
@@ -16,9 +16,15 @@
         <a href="tasks.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'tasks.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-square-check"></i> Tasks
         </a>
-        <a href="#" class="menu-item"><i class="fa-solid fa-file-lines"></i> Document Editor</a>
-        <a href="#" class="menu-item"><i class="fa-solid fa-message"></i> Messages</a>
-        <a href="#" class="menu-item"><i class="fa-solid fa-paperclip"></i> File Upload</a>
+        <a href="document_editor.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'document_editor.php') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-file-lines"></i> Document Editor
+        </a>
+        <a href="messages.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'messages.php') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-message"></i> Messages
+        </a>
+        <a href="file_upload.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'file_upload.php') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-paperclip"></i> File Upload
+        </a>
         <a href="resources.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'resources.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-book"></i> Resource Hub
         </a>
@@ -31,11 +37,11 @@
         <a href="#" class="menu-item"><i class="fa-solid fa-gear"></i> Settings</a>
         <a href="../auth/logout.php" class="menu-item" style="color: #d32f2f;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         
-        <div class="user-profile-small" style="margin-top: 1rem;">
+        <div class="user-profile-small">
             <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" alt="User">
             <div>
-                <div style="font-weight: 700; font-size: 0.85rem;"><?php echo $user_data['full_name']; ?></div>
-                <div style="font-size: 0.7rem; opacity: 0.5;"><?php echo ucfirst($user_data['role']); ?></div>
+                <div style="font-weight: 700; font-size: 0.8rem;"><?php echo $user_data['full_name']; ?></div>
+                <div style="font-size: 0.65rem; opacity: 0.5;"><?php echo ucfirst($user_data['role']); ?></div>
             </div>
         </div>
     </div>

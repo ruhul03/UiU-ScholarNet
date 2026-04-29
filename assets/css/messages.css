@@ -1,0 +1,160 @@
+/* messages.css - Team Communication Styles */
+.messages-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    height: calc(100vh - 150px);
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+}
+
+/* Comm Sidebar */
+.comm-sidebar {
+    background: #fdfcf8;
+    border-right: 1px solid #eee;
+    padding: 2rem 1.5rem;
+}
+
+.comm-sidebar h4 {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #aaa;
+    letter-spacing: 1px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.channel-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.channel-item.active {
+    background: #e1ecf4;
+    color: var(--primary-color);
+}
+
+.channel-badge {
+    width: 32px;
+    height: 32px;
+    background: #ccc;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* Chat Area */
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+
+.chat-header {
+    padding: 1.5rem 2.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 2.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.msg-bubble {
+    display: flex;
+    gap: 1.2rem;
+    max-width: 80%;
+}
+
+.msg-bubble.self {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.msg-bubble img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+.msg-content-wrapper {
+    flex: 1;
+}
+
+.msg-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.msg-meta .name { font-weight: 700; }
+.msg-meta .time { opacity: 0.4; }
+
+.msg-text {
+    background: #f5f5f5;
+    padding: 1.2rem 1.5rem;
+    border-radius: 0 15px 15px 15px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.msg-bubble.self .msg-text {
+    background: var(--primary-color);
+    color: white;
+    border-radius: 15px 0 15px 15px;
+}
+
+.chat-input-wrapper {
+    padding: 2rem 2.5rem;
+    border-top: 1px solid #eee;
+}
+
+.chat-input-box {
+    background: #fdfcf8;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Profile/Info Sidebar */
+.info-sidebar {
+    border-left: 1px solid #eee;
+    padding: 2.5rem 1.5rem;
+    background: #fff;
+    overflow-y: auto;
+}
+
+.pinned-card {
+    background: #fdfcf8;
+    border: 1px solid #eee;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}

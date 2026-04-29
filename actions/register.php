@@ -1,33 +1,67 @@
 <?php
-session_start();
+require_once('../includes/session.php');
+start_secure_session();
 require_once('../includes/db_connect.php');
+require_once('../includes/csrf.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $full_name = mysqli_real_escape_string($conn, $_POST['full_name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $department = mysqli_real_escape_string($conn, $_POST['department']);
-    $skills = mysqli_real_escape_string($conn, $_POST['skills']);
+    csrf_validate_or_die();
 
-    // Check if email already exists
-    $check_query = "SELECT id FROM users WHERE email = '$email'";
-    $check_result = mysqli_query($conn, $check_query);
+    $full_name = trim((string)($_POST['full_name'] ?? ''));
+    $email = strtolower(trim((string)($_POST['email'] ?? '')));
+    $raw_password = (string)($_POST['password'] ?? '');
+    $department = trim((string)($_POST['department'] ?? ''));
+    $skills = trim((string)($_POST['skills'] ?? ''));
 
-    if (mysqli_num_rows($check_result) > 0) {
+    if ($full_name === '' || $email === '' || $raw_password === '' || $department === '') {
+        $_SESSION['error'] = "Please fill in all required fields.";
+        header("Location: ../auth/register.php");
+        exit();
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $_SESSION['error'] = "Please provide a valid email address.";
+        header("Location: ../auth/register.php");
+        exit();
+    }
+
+    $atPos = strrpos($email, '@');
+    $emailDomain = ($atPos !== false) ? substr($email, $atPos + 1) : '';
+    $suffix = "uiu.ac.bd";
+    if ($emailDomain === '' || substr($emailDomain, -strlen($suffix)) !== $suffix) {
+        $_SESSION['error'] = "Registration requires an email ending with uiu.ac.bd.";
+        header("Location: ../auth/register.php");
+        exit();
+    }
+
+    if (strlen($raw_password) < 8) {
+        $_SESSION['error'] = "Password must be at least 8 characters.";
+        header("Location: ../auth/register.php");
+        exit();
+    }
+
+    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $existing = $stmt->get_result();
+    if ($existing && $existing->num_rows > 0) {
         $_SESSION['error'] = "Email already registered!";
         header("Location: ../auth/register.php");
         exit();
     }
 
-    $query = "INSERT INTO users (full_name, email, password, department, skills) 
-              VALUES ('$full_name', '$email', '$password', '$department', '$skills')";
+    $password = password_hash($raw_password, PASSWORD_DEFAULT);
+    $insert = $conn->prepare("INSERT INTO users (full_name, email, password, department, skills) VALUES (?, ?, ?, ?, ?)");
+    $insert->bind_param("sssss", $full_name, $email, $password, $department, $skills);
 
-    if (mysqli_query($conn, $query)) {
+    if ($insert->execute()) {
         $_SESSION['success'] = "Registration successful! Please login.";
         header("Location: ../auth/login.php");
-    } else {
-        $_SESSION['error'] = "Registration failed. Please try again.";
-        header("Location: ../auth/register.php");
+        exit();
     }
+
+    $_SESSION['error'] = "Registration failed. Please try again.";
+    header("Location: ../auth/register.php");
+    exit();
 }
 ?>

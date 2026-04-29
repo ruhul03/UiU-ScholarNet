@@ -1,12 +1,42 @@
 <?php
-$host = "127.0.0.1";
-$user = "root";
-$pass = "salman7?";
-$dbname = "uiu_scholarnet";
+$envPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.env';
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if (is_array($lines)) {
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '' || strpos($line, '#') === 0) {
+                continue;
+            }
+            $pos = strpos($line, '=');
+            if ($pos === false) {
+                continue;
+            }
+            $key = trim(substr($line, 0, $pos));
+            $val = trim(substr($line, $pos + 1));
+            $val = trim($val, "\"'");
+            if ($key !== '' && getenv($key) === false) {
+                putenv($key . '=' . $val);
+                $_ENV[$key] = $val;
+            }
+        }
+    }
+}
+
+$host = getenv('DB_HOST') ?: "127.0.0.1";
+$user = getenv('DB_USER') ?: "root";
+$pass = getenv('DB_PASS');
+if ($pass === false) {
+    $pass = "";
+}
+$dbname = getenv('DB_NAME') ?: "uiu_scholarnet";
 
 $conn = mysqli_connect($host, $user, $pass, $dbname);
 
 if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+    http_response_code(500);
+    die("Database connection failed.");
 }
+
+mysqli_set_charset($conn, "utf8mb4");
 ?>

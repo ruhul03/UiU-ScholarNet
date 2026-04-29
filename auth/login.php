@@ -7,7 +7,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
@@ -75,6 +75,10 @@
                 </div>
 
                 <form action="../actions/login.php" method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php 
+                        require_once('../includes/csrf.php');
+                        echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8');
+                    ?>">
                     <div class="form-group">
                         <label>University Email</label>
                         <input type="email" name="email" placeholder="you@university.edu" required>

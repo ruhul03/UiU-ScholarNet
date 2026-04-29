@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    department VARCHAR(100),
+    visibility ENUM('public', 'institution', 'private') DEFAULT 'public',
     status ENUM('planning', 'active', 'review', 'completed') DEFAULT 'active',
     progress INT DEFAULT 0,
     creator_id INT,
@@ -54,21 +56,72 @@ CREATE TABLE IF NOT EXISTS collaboration_posts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 5. Resources Table (Resource Hub)
+-- 5. Resources Table (File Upload / Resource Hub)
 CREATE TABLE IF NOT EXISTS resources (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     title VARCHAR(255) NOT NULL,
-    resource_type ENUM('PDF', 'Dataset', 'Report', 'Paper') DEFAULT 'Paper',
+    resource_type ENUM('PDF', 'Dataset', 'Report', 'Paper', 'CSV', 'Image', 'Archive', 'Other') DEFAULT 'Paper',
     file_path VARCHAR(255),
     file_size VARCHAR(50),
+    category VARCHAR(100) DEFAULT 'General',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Insert Dummy Data for Testing
+-- 6. Messages Table
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id INT,
+    receiver_id INT,
+    channel VARCHAR(100) DEFAULT 'general',
+    message TEXT NOT NULL,
+    is_read TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 7. Documents Table
+CREATE TABLE IF NOT EXISTS documents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT,
+    title VARCHAR(255) NOT NULL,
+    content LONGTEXT,
+    visibility ENUM('public', 'institution', 'private') DEFAULT 'private',
+    created_by INT,
+    last_edited_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (last_edited_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- ===========================
+-- Seed Data (password is hashed version of 'password')
+-- Generated via: password_hash('password', PASSWORD_DEFAULT)
+-- ===========================
 INSERT INTO users (full_name, email, password, role, department, points) 
-VALUES ('Sabbir Ahmed', 'sabbir@uiu.ac.bd', 'password123', 'student', 'CSE', 1245);
+VALUES ('Sabbir Ahmed', 'sabbir@uiu.ac.bd', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student', 'CSE', 1245);
 
 INSERT INTO projects (title, description, status, progress, creator_id) 
-VALUES ('AI Research Platform', 'Deep learning for academic collab', 'active', 74, 1);
+VALUES 
+('AI Research Platform', 'Deep learning for academic collaboration tools', 'active', 68, 1),
+('Smart Campus IoT', 'Internet of Things for campus infrastructure monitoring', 'review', 35, 1),
+('Bangla NLP Dataset', 'Building a large-scale Bangla natural language processing corpus', 'active', 82, 1),
+('TechFest Hackathon', 'Logistics and team coordination for the annual tech festival', 'planning', 15, 1);
+
+INSERT INTO tasks (project_id, title, description, assigned_to, priority, status, due_date)
+VALUES
+(1, 'Analyze Historical Archive Data for Vellum Degradation', 'Cross-reference current humidity levels with archival storage logs from 1920-1950.', 1, 'high', 'todo', '2026-10-24'),
+(1, 'Refactor Collaboration Search Algorithm', 'Improve semantic matching for inter-departmental research requests.', 1, 'medium', 'todo', '2026-11-15'),
+(1, 'Update BibTeX Export Templates', 'Ensure export templates match latest IEEE and ACM citation formats.', 1, 'low', 'todo', '2026-12-01'),
+(1, 'Finalize Library Floorplan API', 'Complete the REST API for library space allocation and booking.', 1, 'medium', 'done', '2026-09-12'),
+(1, 'Manuscript Digitization Protocol', 'Updated documentation for high-res scanners.', 1, 'low', 'done', '2026-09-10'),
+(1, 'Database Index Migration', 'Migrate legacy database indexes to optimized B-tree structure.', 1, 'high', 'done', '2026-09-05');
+
+INSERT INTO collaboration_posts (user_id, title, department, description, skills_required)
+VALUES
+(1, 'AI Ethics Research Partner', 'Computer Science', 'Looking for a research partner to explore ethical implications of LLMs in academic settings. Focus on bias detection and mitigation strategies.', 'Python, NLP, Ethics'),
+(1, 'Cross-Campus Data Visualization', 'CSE', 'Need a skilled data visualization expert for our urban development research project. D3.js and Tableau experience preferred.', 'D3.js, Tableau, Statistics');

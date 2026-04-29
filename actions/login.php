@@ -1,30 +1,35 @@
 <?php
-session_start();
+require_once('../includes/session.php');
+start_secure_session();
 require_once('../includes/db_connect.php');
+require_once('../includes/csrf.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = $_POST['password'];
+    csrf_validate_or_die();
 
-    $query = "SELECT * FROM users WHERE email = '$email'";
-    $result = mysqli_query($conn, $query);
+    $email = trim((string)($_POST['email'] ?? ''));
+    $password = (string)($_POST['password'] ?? '');
 
-    if (mysqli_num_rows($result) == 1) {
-        $user = mysqli_fetch_assoc($result);
-        
+    $stmt = $conn->prepare("SELECT id, full_name, email, password, role FROM users WHERE email = ? LIMIT 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+
         if (password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
+            session_regenerate_id(true);
+            $_SESSION['user_id'] = (int)$user['id'];
             $_SESSION['user_name'] = $user['full_name'];
             $_SESSION['user_role'] = $user['role'];
             header("Location: ../dashboard/index.php");
             exit();
-        } else {
-            $_SESSION['error'] = "Invalid password!";
         }
-    } else {
-        $_SESSION['error'] = "Email not found!";
     }
-    
+
+    $_SESSION['error'] = "Invalid email or password.";
     header("Location: ../auth/login.php");
+    exit();
 }
 ?>

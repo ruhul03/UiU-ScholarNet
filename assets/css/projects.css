@@ -1,0 +1,102 @@
+/* projects.css - Project Management Horizontal List */
+.project-horizontal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+}
+
+.project-horizontal-card {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 0;
+    border-left: 4px solid var(--secondary-color);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    transition: var(--transition);
+}
+
+.project-horizontal-card:hover {
+    transform: translateX(5px);
+}
+
+.project-brand {
+    width: 60px;
+    height: 60px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--secondary-color);
+}
+
+.project-main-info {
+    flex: 1;
+}
+
+.project-main-info h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.project-stats-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-chip {
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.project-progress-block {
+    width: 300px;
+    text-align: right;
+}
+
+.progress-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+/* Empty State / Create Box */
+.create-project-box {
+    border: 2px dashed #ddd;
+    padding: 4rem;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.create-project-box:hover {
+    border-color: var(--secondary-color);
+    background: #fffdf5;
+}
+
+/* Insights Section */
+.insights-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 3rem;
+    background: #f5f5f5;
+    padding: 4rem;
+    border-radius: 12px;
+}

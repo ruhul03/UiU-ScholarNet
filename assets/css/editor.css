@@ -1,0 +1,134 @@
+/* editor.css - Premium Research Workspace Styles */
+.editor-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 4rem;
+}
+
+.editor-main {
+    background: var(--white);
+    padding: 5rem;
+    min-height: 1200px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+    position: relative;
+    border-left: 2px solid var(--secondary-color);
+}
+
+.editor-toolbar {
+    display: flex;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
+    background: #fdfcf8;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 4rem;
+    position: sticky;
+    top: 2rem;
+    z-index: 50;
+}
+
+.toolbar-btn {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.toolbar-btn:hover {
+    background: #eee;
+}
+
+/* Editor Content Typography */
+.editor-main h2 {
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+}
+
+.editor-main p {
+    font-size: 1.1rem;
+    opacity: 0.7;
+    margin-bottom: 2rem;
+    line-height: 1.8;
+}
+
+.quote-block {
+    margin: 4rem 0;
+    padding: 2.5rem 3.5rem;
+    background: #fdfcf8;
+    border-left: 4px solid var(--secondary-color);
+    font-style: italic;
+    font-size: 1.1rem;
+    opacity: 0.8;
+}
+
+/* Editor Sidebar */
+.editor-sidebar h4 {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #aaa;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+}
+
+.info-label {
+    opacity: 0.5;
+    font-weight: 600;
+}
+
+.info-value {
+    font-weight: 700;
+}
+
+.version-history {
+    margin-top: 4rem;
+}
+
+.version-item {
+    padding-left: 1.5rem;
+    border-left: 2px solid #eee;
+    position: relative;
+    padding-bottom: 2rem;
+}
+
+.version-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -6px;
+    width: 10px;
+    height: 10px;
+    background: #ccc;
+    border-radius: 50%;
+}
+
+.version-item.active::after {
+    background: var(--secondary-color);
+    box-shadow: 0 0 0 4px rgba(197, 160, 34, 0.2);
+}
+
+.version-info h5 {
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+}
+
+.version-info p {
+    font-size: 0.7rem;
+    opacity: 0.5;
+}
