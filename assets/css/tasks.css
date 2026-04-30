@@ -76,3 +76,212 @@
     opacity: 0.4;
     margin: 0;
 }
+
+/* Inline styles moved from tasks.php */
+.dash-header-xl {
+    margin-bottom: 3rem;
+}
+
+.section-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #aaa;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.page-title {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+}
+
+.team-avatars {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.avatars-mask {
+    display: flex;
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    mask-image: linear-gradient(to right, black 80%, transparent 100%);
+}
+
+.team-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid white;
+    margin-right: -10px;
+}
+
+.team-avatar:last-child {
+    margin-right: 0;
+}
+
+.share-board {
+    font-size: 0.85rem;
+    font-weight: 700;
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.column-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dot-gold {
+    color: var(--secondary-color);
+    font-size: 0.6rem;
+}
+
+.dot-green {
+    color: #4CAF50;
+    font-size: 0.6rem;
+}
+
+.column-options {
+    opacity: 0.3;
+}
+
+.priority-badge {
+    background: #fff3e0;
+    color: #ef6c00;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.task-desc {
+    font-size: 0.9rem;
+    opacity: 0.5;
+    margin-bottom: 2rem;
+}
+
+.task-assignee {
+    width: 20px;
+    height: 20px;
+    background: #000;
+    border-radius: 2px;
+}
+
+.add-task-box {
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border-style: dashed;
+    border-width: 1px;
+}
+
+.add-task-text {
+    font-size: 0.8rem;
+    font-weight: 800;
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.done-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 1rem;
+}
+
+.done-title {
+    margin-bottom: 0;
+    border: none;
+    padding: 0;
+}
+
+.clear-all {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.completed-check {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.check-icon {
+    color: #4CAF50;
+}
+
+.completed-date {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #aaa;
+    text-transform: uppercase;
+}
+
+.completed-reviewer {
+    font-size: 0.75rem;
+    opacity: 0.4;
+    margin-top: 0.5rem;
+}
+
+.show-more {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    opacity: 0.4;
+    cursor: pointer;
+}
+
+/* Modal styles from tasks.php */
+.modal-task {
+    max-width: 600px;
+    padding: 4rem;
+}
+
+.modal-task-title {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+}
+
+.textarea-task {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: #fdfcf8;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.cancel-btn {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.create-task-btn {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    padding: 1rem 3rem;
+    font-size: 0.9rem;
+    border-radius: 4px;
+}

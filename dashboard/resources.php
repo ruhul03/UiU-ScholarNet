@@ -30,25 +30,25 @@ $result = $stmt->get_result();
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header" style="margin-bottom: 2rem;">
+        <header class="dash-header dash-header-resources">
             <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass" style="opacity: 0.3;"></i>
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 <input type="text" placeholder="Search resources...">
             </div>
-            <div style="display: flex; gap: 1.5rem; align-items: center;">
-                <i class="fa-regular fa-bell" style="font-size: 1.2rem; opacity: 0.5;"></i>
-                <button class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color);">
+            <div class="header-actions">
+                <i class="fa-regular fa-bell header-icon"></i>
+                <button class="btn btn-primary btn-upload-resource">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resource
                 </button>
             </div>
         </header>
 
-        <section style="margin-bottom: 4rem;">
-            <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem;">Resource Hub</h1>
-            <p style="opacity: 0.5; max-width: 600px; font-size: 1.1rem; margin-bottom: 3rem;">Access shared thesis papers, datasets, lecture notes, and research materials from across the university.</p>
+        <section class="resources-section">
+            <h1 class="resources-title">Resource Hub</h1>
+            <p class="resources-desc">Access shared thesis papers, datasets, lecture notes, and research materials from across the university.</p>
 
             <div class="resource-filters">
-                <button class="btn btn-outline" style="background: var(--primary-color); color: white;">All Materials</button>
+                <button class="btn btn-outline filter-active">All Materials</button>
                 <button class="btn btn-outline">Thesis Papers</button>
                 <button class="btn btn-outline">Lecture Notes</button>
                 <button class="btn btn-outline">Research Datasets</button>
@@ -87,10 +87,10 @@ $result = $stmt->get_result();
                 </div>
                 <?php endwhile; ?>
             <?php else: ?>
-                <div style="grid-column: 1 / -1; text-align: center; padding: 5rem;">
-                    <i class="fa-solid fa-folder-open" style="font-size: 3rem; opacity: 0.15; margin-bottom: 1.5rem; display: block;"></i>
-                    <h3 style="opacity: 0.3;">No resources uploaded yet</h3>
-                    <p style="opacity: 0.3; font-size: 0.9rem;">Start sharing your research materials with the community.</p>
+                <div class="empty-state">
+                    <i class="fa-solid fa-folder-open empty-icon"></i>
+                    <h3 class="empty-title">No resources uploaded yet</h3>
+                    <p class="empty-desc">Start sharing your research materials with the community.</p>
                 </div>
             <?php endif; ?>
         </div>

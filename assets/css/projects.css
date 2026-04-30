@@ -100,3 +100,148 @@
     padding: 4rem;
     border-radius: 12px;
 }
+
+/* Inline styles moved from projects.php */
+.dash-header-lg {
+    margin-bottom: 2rem;
+}
+
+.projects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+}
+
+.projects-title {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.projects-desc {
+    opacity: 0.5;
+    max-width: 600px;
+    font-size: 1.1rem;
+}
+
+.btn-new-project {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    padding: 1rem 2rem;
+}
+
+.contributors-count {
+    opacity: 0.4;
+}
+
+.create-project-icon {
+    width: 50px;
+    height: 50px;
+    background: #eee;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.create-project-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.create-project-subtitle {
+    opacity: 0.4;
+    font-size: 0.85rem;
+}
+
+.insights-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+}
+
+.insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.insights-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.insights-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.insights-value {
+    font-weight: 800;
+}
+
+.stat-dot {
+    font-size: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.stat-dot-gold {
+    color: var(--secondary-color);
+}
+
+.stat-dot-blue {
+    color: #5c7c9c;
+}
+
+.stat-dot-brown {
+    color: #8b5d44;
+}
+
+.collab-heat-card {
+    background: var(--primary-color);
+    padding: 3rem;
+    border-radius: 8px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.collab-heat-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.1;
+    background: url('https://www.transparenttextures.com/patterns/cubes.png');
+}
+
+.collab-heat-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
+}
+
+.collab-heat-title {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.collab-heat-desc {
+    opacity: 0.5;
+    font-size: 0.8rem;
+}
+
+.options-icon {
+    cursor: pointer;
+    opacity: 0.3;
+}

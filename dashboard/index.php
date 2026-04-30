@@ -47,13 +47,13 @@ $projects_list_result = $listStmt->get_result();
         <!-- Header -->
         <header class="dash-header">
             <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass" style="opacity: 0.3;"></i>
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 <input type="text" placeholder="Search projects, researchers, or papers...">
             </div>
             <div class="nav-actions">
-                <a href="#" style="font-size: 1.2rem; margin-right: 1.5rem; position: relative;">
+                <a href="#" class="notification-icon">
                     <i class="fa-regular fa-bell"></i>
-                    <span style="position: absolute; top: -5px; right: -5px; width: 8px; height: 8px; background: red; border-radius: 50%; border: 2px solid var(--white);"></span>
+                    <span class="notification-dot"></span>
                 </a>
                 <a href="#" class="btn btn-outline"><i class="fa-regular fa-user"></i> Account</a>
             </div>
@@ -65,8 +65,8 @@ $projects_list_result = $listStmt->get_result();
             <p>You have 4 pending tasks and 2 new collaboration requests today.</p>
             
             <div class="dash-actions">
-                <a href="collaboration.php" class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color);"><i class="fa-solid fa-plus"></i> Post Collaboration</a>
-                <button class="btn btn-outline" onclick="openProjectsModal()" style="background: white; border-color: #000; font-weight: 700;">View My Projects</button>
+                <a href="collaboration.php" class="btn btn-primary btn-collab"><i class="fa-solid fa-plus"></i> Post Collaboration</a>
+                <button class="btn btn-outline btn-view-projects" onclick="openProjectsModal()">View My Projects</button>
             </div>
         </section>
 
@@ -80,21 +80,21 @@ $projects_list_result = $listStmt->get_result();
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon"><i class="fa-solid fa-check-double" style="color: #4CAF50;"></i></div>
+                <div class="stat-icon"><i class="fa-solid fa-check-double stat-icon-green"></i></div>
                 <div class="stat-info">
                     <h4>TASKS DONE</h4>
                     <div class="value"><?php echo $tasks; ?></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon"><i class="fa-solid fa-star" style="color: #FFC107;"></i></div>
+                <div class="stat-icon"><i class="fa-solid fa-star stat-icon-yellow"></i></div>
                 <div class="stat-info">
                     <h4>REPUTATION</h4>
                     <div class="value"><?php echo number_format($user_data['points']); ?></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon"><i class="fa-solid fa-cloud-arrow-up" style="color: #2196F3;"></i></div>
+                <div class="stat-icon"><i class="fa-solid fa-cloud-arrow-up stat-icon-blue"></i></div>
                 <div class="stat-info">
                     <h4>FILES UPLOADED</h4>
                     <div class="value"><?php echo $files; ?></div>
@@ -106,7 +106,7 @@ $projects_list_result = $listStmt->get_result();
         <div class="dash-grid">
             <!-- Left: Activity -->
             <section class="activity-feed">
-                <h3>Recent Activity <a href="#" style="font-size: 0.8rem; color: var(--secondary-color); font-weight: 600;">View Timeline</a></h3>
+                <h3>Recent Activity <a href="#" class="timeline-link">View Timeline</a></h3>
                 
                 <div class="activity-card">
                     <div class="activity-icon"><i class="fa-solid fa-user-plus"></i></div>
@@ -119,8 +119,8 @@ $projects_list_result = $listStmt->get_result();
                             "Quantum Computing & Ethics" project. Background in applied physics.
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem; background-color: var(--secondary-color); color: var(--primary-color);">Approve</button>
-                            <button class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem;">View Profile</button>
+                            <button class="btn btn-primary approve-btn">Approve</button>
+                            <button class="btn btn-outline view-btn-small">View Profile</button>
                         </div>
                     </div>
                 </div>
@@ -144,35 +144,35 @@ $projects_list_result = $listStmt->get_result();
                 <section class="quick-actions">
                     <h3>Quick Actions</h3>
                     <a href="resources.php" class="action-item">
-                        <span><i class="fa-solid fa-file-arrow-up" style="color: var(--secondary-color); margin-right: 0.5rem;"></i> Upload research paper</span>
-                        <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; opacity: 0.3;"></i>
+                        <span><i class="fa-solid fa-file-arrow-up action-icon"></i> Upload research paper</span>
+                        <i class="fa-solid fa-chevron-right chevron-icon"></i>
                     </a>
                     <a href="#" class="action-item">
-                        <span><i class="fa-solid fa-user-group" style="color: var(--secondary-color); margin-right: 0.5rem;"></i> Invite team members</span>
-                        <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; opacity: 0.3;"></i>
+                        <span><i class="fa-solid fa-user-group action-icon"></i> Invite team members</span>
+                        <i class="fa-solid fa-chevron-right chevron-icon"></i>
                     </a>
                 </section>
 
                 <div class="spotlight-card">
                     <div class="status">IN PROGRESS</div>
                     <h4>Sustainable Urban Design</h4>
-                    <div class="progress-bar" style="background: rgba(255,255,255,0.1); height: 4px;">
-                        <div class="progress-fill" style="width: 65%;"></div>
+                    <div class="progress-bar spotlight-progress-bar">
+                        <div class="progress-fill spotlight-progress"></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.6; margin-bottom: 1.5rem;">
+                    <div class="spotlight-progress-text">
                         <span>65% Completed</span>
                     </div>
-                    <button class="btn btn-primary" style="width: 100%; justify-content: center; background: var(--secondary-color); color: var(--primary-color);">Open Workspace</button>
+                    <button class="btn btn-primary spotlight-btn">Open Workspace</button>
                 </div>
             </aside>
         </div>
     </main>
 
     <!-- My Active Projects Modal -->
-    <div class="modal-overlay" id="projectsModal" style="display: none;">
-        <div class="modal-content" style="max-width: 700px; padding: 3rem;">
+    <div class="modal-overlay modal-hidden" id="projectsModal">
+        <div class="modal-content modal-wide">
             <i class="fa-solid fa-xmark modal-close" onclick="closeProjectsModal()"></i>
-            <h2 style="font-size: 1.8rem; margin-bottom: 1rem;">My Active Projects</h2>
+            <h2 class="modal-title">My Active Projects</h2>
             
             <div class="popup-project-list">
                 <?php while($proj = $projects_list_result->fetch_assoc()): ?>
@@ -190,18 +190,18 @@ $projects_list_result = $listStmt->get_result();
                         </div>
                     </div>
                     <div class="popup-project-progress">
-                        <div class="progress-bar" style="height: 4px; background: #eee;">
-                            <div class="progress-fill" style="width: <?php echo $proj['progress']; ?>%;"></div>
+                        <div class="progress-bar progress-height-sm progress-bg-light">
+                            <div class="progress-fill progress-fill-dynamic" style="width: <?php echo $proj['progress']; ?>%;"></div>
                         </div>
                         <div class="percentage"><?php echo $proj['progress']; ?>%</div>
                     </div>
-                    <a href="tasks.php?project_id=<?php echo (int)$proj['id']; ?>" class="popup-project-open">OPEN <i class="fa-solid fa-arrow-right" style="font-size: 0.6rem; margin-left: 0.5rem;"></i></a>
+                    <a href="tasks.php?project_id=<?php echo (int)$proj['id']; ?>" class="popup-project-open">OPEN <i class="fa-solid fa-arrow-right arrow-sm"></i></a>
                 </div>
                 <?php endwhile; ?>
             </div>
 
-            <div style="text-align: center; margin-top: 3rem;">
-                <button class="btn btn-primary" onclick="closeProjectsModal(); openCreateModal();" style="background-color: var(--secondary-color); color: var(--primary-color); padding: 0.8rem 2.5rem; font-size: 0.8rem;">
+            <div class="centered-actions">
+                <button class="btn btn-primary create-btn-small" onclick="closeProjectsModal(); openCreateModal();">
                     <i class="fa-solid fa-plus"></i> CREATE NEW PROJECT
                 </button>
             </div>
@@ -209,11 +209,11 @@ $projects_list_result = $listStmt->get_result();
     </div>
 
     <!-- Create Project Modal (High-Fidelity) -->
-    <div class="modal-overlay" id="createProjectModal" style="display: none;">
-        <div class="modal-content" style="max-width: 750px; padding: 4rem;">
+    <div class="modal-overlay modal-hidden" id="createProjectModal">
+        <div class="modal-content modal-wider">
             <i class="fa-solid fa-xmark modal-close" onclick="closeCreateModal()"></i>
-            <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Create New Project</h2>
-            <p style="font-size: 0.7rem; font-weight: 800; color: #aaa; letter-spacing: 1px; margin-bottom: 3rem; text-transform: uppercase;">INSTITUTIONAL ARCHIVE ENTRY</p>
+            <h2 class="modal-title-large">Create New Project</h2>
+            <p class="modal-subtitle">INSTITUTIONAL ARCHIVE ENTRY</p>
             
             <form action="../actions/create_project.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?php 
@@ -222,19 +222,19 @@ $projects_list_result = $listStmt->get_result();
                 ?>">
                 <div class="form-group">
                     <label>PROJECT TITLE</label>
-                    <input type="text" name="title" placeholder="e.g. AI in Sustainable Architecture" style="background: #fdfcf8;" required>
+                    <input type="text" name="title" placeholder="e.g. AI in Sustainable Architecture" class="form-input-light" required>
                 </div>
                 
-                <div class="form-row" style="align-items: flex-end; margin-bottom: 2rem;">
-                    <div class="form-group" style="flex: 1.5;">
+                <div class="form-row form-row-align-end">
+                    <div class="form-group form-group-wide">
                         <label>PRIMARY DEPARTMENT</label>
-                        <select name="department" style="background: #fdfcf8;" required>
+                        <select name="department" class="form-input-light" required>
                             <option value="">Select a Department</option>
                             <option value="Computer Science">Computer Science</option>
                             <option value="EEE">EEE</option>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 2; margin-bottom: 1.5rem;">
+                    <div class="form-group form-group-wider">
                         <label>VISIBILITY</label>
                         <div class="visibility-group">
                             <label class="visibility-item">
@@ -252,43 +252,29 @@ $projects_list_result = $listStmt->get_result();
 
                 <div class="form-group">
                     <label>PROJECT DESCRIPTION</label>
-                    <textarea name="description" rows="4" style="width: 100%; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; background: #fdfcf8;" placeholder="Briefly outline the scope and research objectives..."></textarea>
+                    <textarea name="description" rows="4" class="textarea-light" placeholder="Briefly outline the scope and research objectives..."></textarea>
                 </div>
 
                 <div class="invite-researchers">
-                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: #aaa; margin-bottom: 1rem;">INVITE RESEARCHERS</label>
+                    <label class="invite-label">INVITE RESEARCHERS</label>
                     <div class="researcher-tags">
                         <div class="researcher-tag">Dr. Julian Thorne <i class="fa-solid fa-xmark"></i></div>
                         <div class="researcher-tag">Prof. Elena Vance <i class="fa-solid fa-xmark"></i></div>
                     </div>
-                    <div class="search-container" style="max-width: 100%; background: #fff; border: 1px solid #ddd; padding: 0.6rem 1rem;">
+                    <div class="search-container search-container-wide">
                         <i class="fa-solid fa-user-plus" style="opacity: 0.3;"></i>
                         <input type="text" placeholder="Search by name or ORCID...">
                     </div>
                 </div>
 
-                <div class="modal-footer-actions">
-                    <a href="javascript:void(0)" onclick="closeCreateModal()" style="font-weight: 700; font-size: 0.8rem; color: var(--primary-color);">CANCEL</a>
-                    <button type="submit" class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color); padding: 1rem 2.5rem; font-size: 0.85rem; border-radius: 4px;">CREATE PROJECT +</button>
+                <div class="modal-footer">
+                    <a href="javascript:void(0)" onclick="closeCreateModal()" class="cancel-link">CANCEL</a>
+                    <button type="submit" class="btn btn-primary create-btn">CREATE PROJECT +</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
-        function openProjectsModal() {
-            document.getElementById('projectsModal').style.display = 'flex';
-        }
-        function closeProjectsModal() {
-            document.getElementById('projectsModal').style.display = 'none';
-        }
-        function openCreateModal() {
-            document.getElementById('createProjectModal').style.display = 'flex';
-        }
-        function closeCreateModal() {
-            document.getElementById('createProjectModal').style.display = 'none';
-        }
-    </script>
-
+    <script src="../assets/js/dashboard.js"></script>
 </body>
 </html>

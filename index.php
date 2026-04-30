@@ -13,7 +13,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body style="background-color: #f8f7f2;">
+<body class="landing-body">
 
     <!-- Header -->
     <header class="landing-header">
@@ -40,16 +40,16 @@
 
     <!-- Hero Section -->
     <section class="hero-section">
-        <div style="font-size: 0.85rem; font-weight: 700; opacity: 0.5; margin-bottom: 1.5rem;">UIU COLLABORATION PLATFORM</div>
+        <div class="hero-label">UIU COLLABORATION PLATFORM</div>
         <h1>What brilliant minds build together</h1>
         <p>Connect with researchers, form teams, manage projects, and share knowledge across your university — all in one place.</p>
         
         <div class="hero-btns">
-            <a href="auth/register.php" class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color); padding: 1rem 2.5rem; font-size: 1rem;">Get Started Free <i class="fa-solid fa-arrow-right" style="margin-left: 0.5rem;"></i></a>
-            <a href="auth/login.php" class="btn btn-secondary" style="background-color: var(--primary-color); color: white; padding: 1rem 2.5rem; font-size: 1rem;">Log In</a>
+            <a href="auth/register.php" class="btn btn-primary hero-btn-primary">Get Started Free <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="auth/login.php" class="btn btn-secondary hero-btn-secondary">Log In</a>
         </div>
 
-        <div style="width: 100%; height: 2px; background: #eee; margin-top: 4rem;"></div>
+        <div class="hero-divider"></div>
     </section>
 
     <!-- Features Section -->
@@ -57,11 +57,11 @@
         <div class="feature-block">
             <h2>Interdisciplinary Hub</h2>
             <p>Break the silos between departments. Our platform allows every majors to build their projects seamlessly.</p>
-            <div style="font-size: 3rem; color: var(--secondary-color);"><i class="fa-solid fa-folder-open"></i></div>
+            <div class="feature-icon"><i class="fa-solid fa-folder-open"></i></div>
         </div>
         <div class="feature-block">
-            <h2 style="opacity: 0.4;">Resource Vault</h2>
-            <p style="opacity: 0.4;">Shared institutional storage for data and papers.</p>
+            <h2 class="feature-faded">Resource Vault</h2>
+            <p class="feature-faded">Shared institutional storage for data and papers.</p>
         </div>
     </section>
 
@@ -86,9 +86,9 @@
         </div>
     </section>
 
-    <footer style="padding: 5rem; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-        <div style="font-size: 0.8rem; font-weight: 700; opacity: 0.4;">&copy; 2026 UIU ScholarNet. All rights reserved.</div>
-        <div style="display: flex; gap: 3rem; font-size: 0.75rem; font-weight: 800; opacity: 0.4; letter-spacing: 1px; text-transform: uppercase;">
+    <footer class="landing-footer">
+        <div class="footer-copyright">&copy; 2026 UIU ScholarNet. All rights reserved.</div>
+        <div class="footer-links">
             <a href="#">Privacy Policy</a>
             <a href="#">Terms of Service</a>
             <a href="#">Contact Us</a>

@@ -17,37 +17,36 @@
 
     <div class="auth-page">
         <!-- Left Side -->
-        <div class="auth-left" style="flex: 0.8; padding: 4rem;">
-            <div class="logo" style="color: white; margin-bottom: 2rem;">UIU ScholarNet</div>
-            <h2 style="font-size: 4.5rem;">Join the Academic Atelier</h2>
-            <p style="opacity: 0.8; font-size: 1.1rem; max-width: 400px; margin-bottom: 3rem;">
+        <div class="auth-left auth-left-narrow">
+            <div class="logo logo-white">UIU ScholarNet</div>
+            <h2 class="auth-left-title">Join the Academic Atelier</h2>
+            <p class="auth-left-desc">
                 Connect with 2,400+ Researchers in a curated environment built for scientific rigor and breakthrough collaboration.
             </p>
-            
+
             <div style="margin-top: auto;">
-                <div style="display: flex; gap: -10px; margin-bottom: 1rem;">
-                    <!-- Avatars placeholder -->
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #ddd; border: 2px solid var(--primary-color);"></div>
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #ccc; border: 2px solid var(--primary-color); margin-left: -15px;"></div>
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #bbb; border: 2px solid var(--primary-color); margin-left: -15px;"></div>
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--secondary-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; margin-left: -15px; border: 2px solid var(--primary-color);">+2K</div>
+                <div class="avatar-group">
+                    <div class="avatar-placeholder"></div>
+                    <div class="avatar-placeholder secondary"></div>
+                    <div class="avatar-placeholder tertiary"></div>
+                    <div class="avatar-count">+2K</div>
                 </div>
-                <p style="font-size: 0.75rem; font-weight: 700; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px;">
+                <p class="trusted-text">
                     TRUSTED BY FACULTY ACROSS ALL DEPARTMENTS
                 </p>
             </div>
         </div>
 
         <!-- Right Side -->
-        <div class="auth-right" style="flex: 1.4;">
-            <div class="auth-card" style="max-width: 600px;">
+        <div class="auth-right auth-right-wide">
+            <div class="auth-card auth-card-wide">
                 <h1>Scholar Registration</h1>
                 <p>Please provide your institutional credentials to begin.</p>
 
                 <?php 
                 session_start();
                 if(isset($_SESSION['error'])): ?>
-                    <div style="background: #fdecea; color: #d32f2f; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: 600;">
+                    <div class="alert-error">
                         <i class="fa-solid fa-circle-exclamation"></i> <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
                     </div>
                 <?php endif; ?>
@@ -65,7 +64,7 @@
                         <div class="form-group">
                             <label>Institutional Email</label>
                             <input type="email" name="email" placeholder="scholar@uiu.ac.bd" required>
-                            <small style="font-size: 0.65rem; opacity: 0.5;">Requires email ending with uiu.ac.bd (including subdomains)</small>
+                            <small class="helper-text">Requires email ending with uiu.ac.bd (including subdomains)</small>
                         </div>
                     </div>
 
@@ -99,14 +98,14 @@
                         <input type="text" name="skills" placeholder="e.g. Python, LaTeX, Data Mining, Statistical Analysis">
                     </div>
 
-                    <button type="submit" class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 1.2rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-secondary btn-full">
                         Register as Researcher <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
 
                 <div class="auth-footer">
                     Already part of the UIU ScholarNet? <a href="login.php">Back to Sign In</a>
-                    <div style="margin-top: 2rem; opacity: 0.4; font-size: 0.75rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <div class="terms-text">
                         By registering, you agree to our Institutional Repository Terms and Academic Integrity Policies.
                     </div>
                 </div>

@@ -158,3 +158,292 @@
     align-items: center;
     gap: 1rem;
 }
+
+/* Inline styles moved from messages.php */
+.dash-header-messages {
+    margin-bottom: 2rem;
+}
+
+.brand-title {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-link-item {
+    font-size: 0.9rem;
+    font-weight: 700;
+    opacity: 0.6;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1.5rem;
+    border-left: 1px solid #eee;
+    padding-left: 2rem;
+}
+
+.invite-btn {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.header-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+.channel-badge-blue {
+    background: #e1ecf4;
+    color: #39739d;
+}
+
+.channel-badge-orange {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+.channel-badge-lightblue {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.channel-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.channel-preview {
+    font-size: 0.65rem;
+    opacity: 0.5;
+}
+
+.dm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.dm-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.dm-item.inactive {
+    opacity: 0.6;
+}
+
+.dm-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.online-indicator {
+    width: 8px;
+    height: 8px;
+    background: #4CAF50;
+    border-radius: 50%;
+    margin-left: auto;
+}
+
+.chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.chat-title {
+    font-weight: 800;
+}
+
+.chat-meta {
+    font-size: 0.75rem;
+    opacity: 0.5;
+}
+
+.online-dot {
+    color: #4CAF50;
+    font-size: 0.5rem;
+}
+
+.chat-actions {
+    display: flex;
+    gap: 1.5rem;
+    opacity: 0.5;
+}
+
+.channel-tag {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    opacity: 0.3;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.empty-messages {
+    text-align: center;
+    opacity: 0.4;
+    padding: 2rem 0;
+}
+
+.chat-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.chat-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: var(--font-body);
+}
+
+.send-btn {
+    background: #007bff;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-shortcuts {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    opacity: 0.4;
+}
+
+.shortcut-hint {
+    margin-left: auto;
+}
+
+.info-badge {
+    width: 80px;
+    height: 80px;
+    font-size: 1.5rem;
+    margin: 0 auto 1.5rem;
+    position: relative;
+}
+
+.verified-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: #007bff;
+    border-radius: 50%;
+    border: 3px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: white;
+}
+
+.info-title {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.info-desc {
+    font-size: 0.8rem;
+    opacity: 0.5;
+}
+
+.pinned-icon-pdf {
+    font-size: 1.5rem;
+    color: #007bff;
+}
+
+.pinned-icon-link {
+    font-size: 1.5rem;
+    color: #ef6c00;
+}
+
+.pinned-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.pinned-meta {
+    font-size: 0.6rem;
+    opacity: 0.4;
+}
+
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.media-item {
+    aspect-ratio: 1;
+    background: #000;
+    border-radius: 4px;
+}
+
+.media-item.dark {
+    background: #333;
+}
+
+.media-item.gray {
+    background: #666;
+}
+
+.media-item.light {
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    opacity: 0.6;
+}
+
+.view-settings-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 3rem;
+}
+
+.floating-edit-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    background: #6b5b2a;
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    cursor: pointer;
+}

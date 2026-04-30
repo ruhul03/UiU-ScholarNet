@@ -153,3 +153,18 @@
     font-family: var(--font-body);
     font-size: 0.85rem;
 }
+
+/* Inline styles moved from sidebar.php */
+.logout-link {
+    color: #d32f2f;
+}
+
+.user-name {
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.user-role {
+    font-size: 0.65rem;
+    opacity: 0.5;
+}

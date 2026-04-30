@@ -59,16 +59,16 @@ if ($document_id > 0) {
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header" style="margin-bottom: 3rem;">
+        <header class="dash-header dash-header-editor">
             <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass" style="opacity: 0.3;"></i>
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 <input type="text" placeholder="Search research papers, collaborators...">
             </div>
-            <div style="display: flex; gap: 1.5rem; align-items: center;">
-                <i class="fa-regular fa-bell" style="font-size: 1.2rem; opacity: 0.5;"></i>
-                <div style="display: flex; align-items: center; gap: 0.8rem; background: #f5f5f5; padding: 0.5rem 1.2rem; border-radius: 50px;">
-                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" style="width: 25px; height: 25px; border-radius: 50%;">
-                    <span style="font-size: 0.85rem; font-weight: 700;"><?php echo $user_data['full_name']; ?></span>
+            <div class="header-actions">
+                <i class="fa-regular fa-bell header-icon"></i>
+                <div class="user-badge">
+                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" class="user-badge-img">
+                    <span class="user-badge-name"><?php echo $user_data['full_name']; ?></span>
                 </div>
             </div>
         </header>
@@ -77,13 +77,13 @@ if ($document_id > 0) {
             <!-- Left: Main Editor Area -->
             <div class="editor-container">
                 <?php if(isset($_SESSION['success'])): ?>
-                    <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem 1.5rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: 600;">
+                    <div class="alert-success-editor">
                         <i class="fa-solid fa-circle-check"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
                     </div>
                 <?php endif; ?>
 
                 <?php if(isset($_SESSION['error'])): ?>
-                    <div style="background: #fdecea; color: #d32f2f; padding: 1rem 1.5rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: 600;">
+                    <div class="alert-error-editor">
                         <i class="fa-solid fa-circle-exclamation"></i> <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
                     </div>
                 <?php endif; ?>
@@ -92,14 +92,14 @@ if ($document_id > 0) {
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="document_id" value="<?php echo (int)$doc['id']; ?>">
 
-                    <div style="display:flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem;">
-                        <div style="flex: 1;">
-                            <label style="display:block; font-size: 0.7rem; font-weight: 800; color: #aaa; letter-spacing: 1px; margin-bottom: 0.5rem;">DOCUMENT TITLE</label>
-                            <input name="title" value="<?php echo htmlspecialchars((string)$doc['title']); ?>" style="width:100%; padding: 0.9rem 1rem; border: 1px solid #ddd; border-radius: 6px; background: #fdfcf8; font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700;">
+                    <div class="form-row-editor">
+                        <div class="form-group-title">
+                            <label class="label-small">DOCUMENT TITLE</label>
+                            <input name="title" value="<?php echo htmlspecialchars((string)$doc['title']); ?>" class="input-editor">
                         </div>
-                        <div style="width: 280px;">
-                            <label style="display:block; font-size: 0.7rem; font-weight: 800; color: #aaa; letter-spacing: 1px; margin-bottom: 0.5rem;">PROJECT</label>
-                            <select name="project_id" required style="width:100%; padding: 0.9rem 1rem; border: 1px solid #ddd; border-radius: 6px; background: #fdfcf8;">
+                        <div class="form-group-project">
+                            <label class="label-small">PROJECT</label>
+                            <select name="project_id" required class="select-editor">
                                 <option value="">Select Project</option>
                                 <?php while($p = $projects_result->fetch_assoc()): ?>
                                     <option value="<?php echo (int)$p['id']; ?>" <?php echo ((int)$doc['project_id'] === (int)$p['id']) ? 'selected' : ''; ?>>
@@ -110,18 +110,18 @@ if ($document_id > 0) {
                         </div>
                     </div>
 
-                    <div style="display:flex; gap: 1rem; align-items: center; margin-bottom: 2rem;">
-                        <div style="display:flex; gap: 0.75rem; align-items:center; opacity: 0.6; font-weight: 700; font-size: 0.85rem;">
+                    <div class="form-row-meta">
+                        <div class="last-saved">
                             <i class="fa-regular fa-clock"></i>
                             <span>Last saved: <?php echo $doc['updated_at'] ? htmlspecialchars(date('M d, g:i A', strtotime($doc['updated_at']))) : '—'; ?></span>
                         </div>
-                        <div style="margin-left:auto; display:flex; gap: 0.75rem; align-items:center;">
-                            <select name="visibility" style="padding: 0.6rem 0.8rem; border: 1px solid #eee; border-radius: 6px; background:#fff;">
+                        <div class="meta-actions">
+                            <select name="visibility" class="visibility-select">
                                 <option value="private" <?php echo ($doc['visibility'] === 'private') ? 'selected' : ''; ?>>Private</option>
                                 <option value="institution" <?php echo ($doc['visibility'] === 'institution') ? 'selected' : ''; ?>>Institution</option>
                                 <option value="public" <?php echo ($doc['visibility'] === 'public') ? 'selected' : ''; ?>>Public</option>
                             </select>
-                            <button type="submit" class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color); padding: 0.8rem 1.4rem; border-radius: 6px;">
+                            <button type="submit" class="btn btn-primary save-btn">
                                 <i class="fa-solid fa-floppy-disk"></i> Save
                             </button>
                         </div>
@@ -144,8 +144,8 @@ if ($document_id > 0) {
 
                 <!-- Editor Body -->
                 <div class="editor-main">
-                    <label style="display:block; font-size: 0.7rem; font-weight: 800; color: #aaa; letter-spacing: 1px; margin-bottom: 0.75rem;">CONTENT</label>
-                    <textarea name="content" rows="18" style="width: 100%; padding: 1rem; border: 1px solid #eee; border-radius: 8px; background: #fff; font-family: var(--font-body); font-size: 1rem; line-height: 1.6;"><?php 
+                    <label class="editor-label">CONTENT</label>
+                    <textarea name="content" rows="18" class="textarea-editor"><?php
                         echo htmlspecialchars($doc['content'] !== '' ? (string)$doc['content'] : "## Introduction\n\nWrite your research notes, methodology, and draft sections here.\n\n## References\n\n- Add citations and links...");
                     ?></textarea>
                 </div>
@@ -162,7 +162,7 @@ if ($document_id > 0) {
                     </div>
                     <div class="info-item">
                         <span class="info-label">Visibility</span>
-                        <span class="info-value" style="background: #e1ecf4; color: #39739d; padding: 0.1rem 0.5rem; border-radius: 2px; font-size: 0.65rem;"><?php echo strtoupper(htmlspecialchars((string)$doc['visibility'])); ?></span>
+                        <span class="info-value info-value-badge"><?php echo strtoupper(htmlspecialchars((string)$doc['visibility'])); ?></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Last Saved</span>
@@ -170,28 +170,28 @@ if ($document_id > 0) {
                     </div>
                 </section>
 
-                <section style="margin-top: 4rem;">
-                    <h4>TEAM MEMBERS <a href="#" style="color: var(--secondary-color); font-size: 0.65rem;">Invite</a></h4>
-                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <img src="https://ui-avatars.com/api/?name=Sabbir+Ahmed&background=0a1128&color=fff" style="width: 35px; height: 35px; border-radius: 50%;">
+                <section class="version-section">
+                    <h4>TEAM MEMBERS <a href="#" class="invite-link">Invite</a></h4>
+                    <div class="team-list">
+                        <div class="team-member">
+                            <img src="https://ui-avatars.com/api/?name=Sabbir+Ahmed&background=0a1128&color=fff" class="team-member-img">
                             <div>
-                                <div style="font-size: 0.85rem; font-weight: 700;">Sabbir Ahmed</div>
-                                <div style="font-size: 0.7rem; opacity: 0.5;">Owner</div>
+                                <div class="team-member-name">Sabbir Ahmed</div>
+                                <div class="team-member-role">Owner</div>
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <img src="https://ui-avatars.com/api/?name=Dr+Mithila&background=000&color=fff" style="width: 35px; height: 35px; border-radius: 50%;">
+                        <div class="team-member">
+                            <img src="https://ui-avatars.com/api/?name=Dr+Mithila&background=000&color=fff" class="team-member-img">
                             <div>
-                                <div style="font-size: 0.85rem; font-weight: 700;">Dr. Mithila</div>
-                                <div style="font-size: 0.7rem; opacity: 0.5;">Editor</div>
+                                <div class="team-member-name">Dr. Mithila</div>
+                                <div class="team-member-role">Editor</div>
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <img src="https://ui-avatars.com/api/?name=K+H+Khan&background=ccc&color=fff" style="width: 35px; height: 35px; border-radius: 50%;">
+                        <div class="team-member">
+                            <img src="https://ui-avatars.com/api/?name=K+H+Khan&background=ccc&color=fff" class="team-member-img">
                             <div>
-                                <div style="font-size: 0.85rem; font-weight: 700;">K. H. Khan</div>
-                                <div style="font-size: 0.7rem; opacity: 0.5;">Viewer</div>
+                                <div class="team-member-name">K. H. Khan</div>
+                                <div class="team-member-role">Viewer</div>
                             </div>
                         </div>
                     </div>
@@ -218,7 +218,7 @@ if ($document_id > 0) {
                         </div>
                     </div>
                     
-                    <button class="btn btn-outline" style="width: 100%; justify-content: center; font-size: 0.75rem; font-weight: 700; margin-top: 1rem;">View All Versions</button>
+                    <button class="btn btn-outline view-all-btn">View All Versions</button>
                 </section>
             </aside>
         </div>

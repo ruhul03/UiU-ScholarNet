@@ -236,3 +236,238 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+
+/* Inline styles moved from dashboard/index.php */
+.search-icon {
+    opacity: 0.3;
+}
+
+.notification-icon {
+    font-size: 1.2rem;
+    margin-right: 1.5rem;
+    position: relative;
+}
+
+.notification-dot {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 8px;
+    height: 8px;
+    background: red;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+}
+
+.btn-collab {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+.btn-view-projects {
+    background: white;
+    border-color: #000;
+    font-weight: 700;
+}
+
+.stat-icon-green {
+    color: #4CAF50;
+}
+
+.stat-icon-yellow {
+    color: #FFC107;
+}
+
+.stat-icon-blue {
+    color: #2196F3;
+}
+
+.timeline-link {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.action-icon {
+    color: var(--secondary-color);
+    margin-right: 0.5rem;
+}
+
+.chevron-icon {
+    font-size: 0.7rem;
+    opacity: 0.3;
+}
+
+.spotlight-progress-bar {
+    background: rgba(255,255,255,0.1);
+    height: 4px;
+}
+
+.spotlight-progress {
+    width: 65%;
+}
+
+.spotlight-progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    opacity: 0.6;
+    margin-bottom: 1.5rem;
+}
+
+.spotlight-btn {
+    width: 100%;
+    justify-content: center;
+    background: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+/* Modal styles */
+.modal-hidden {
+    display: none;
+}
+
+.modal-wide {
+    max-width: 700px;
+    padding: 3rem;
+}
+
+.modal-title {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.modal-wider {
+    max-width: 750px;
+    padding: 4rem;
+}
+
+.modal-title-large {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.modal-subtitle {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #aaa;
+    letter-spacing: 1px;
+    margin-bottom: 3rem;
+    text-transform: uppercase;
+}
+
+.form-input-light {
+    background: #fdfcf8;
+}
+
+.form-row-align-end {
+    align-items: flex-end;
+    margin-bottom: 2rem;
+}
+
+.form-group-wide {
+    flex: 1.5;
+}
+
+.form-group-wider {
+    flex: 2;
+    margin-bottom: 1.5rem;
+}
+
+.textarea-light {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fdfcf8;
+}
+
+.invite-section {
+    background: #fdfcf8;
+    padding: 1.5rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    border-left: 4px solid var(--secondary-color);
+    margin-bottom: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.invite-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #aaa;
+    margin-bottom: 1rem;
+}
+
+.search-container-wide {
+    max-width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 0.6rem 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.cancel-link {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--primary-color);
+}
+
+.create-btn {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    padding: 1rem 2.5rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+}
+
+.create-btn-small {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    padding: 0.8rem 2.5rem;
+    font-size: 0.8rem;
+}
+
+.approve-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+.view-btn-small {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+}
+
+.progress-fill-dynamic {
+    background: var(--secondary-color);
+}
+
+.progress-height-sm {
+    height: 4px;
+}
+
+.progress-bg-light {
+    background: #eee;
+}
+
+.arrow-sm {
+    font-size: 0.6rem;
+    margin-left: 0.5rem;
+}
+
+.centered-actions {
+    text-align: center;
+    margin-top: 3rem;
+}

@@ -170,3 +170,148 @@
     color: var(--secondary-color);
     font-weight: 700;
 }
+
+/* Inline styles moved from auth pages */
+.logo-white {
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.auth-left-footer {
+    margin-top: auto;
+    opacity: 0.5;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.alert-error {
+    background: #fdecea;
+    color: #d32f2f;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.alert-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.form-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.forgot-link {
+    font-size: 0.7rem;
+    color: var(--secondary-color);
+    font-weight: 700;
+}
+
+.btn-full {
+    width: 100%;
+    justify-content: center;
+    padding: 1.2rem;
+    margin-top: 1rem;
+}
+
+.back-link {
+    margin-top: 1.5rem;
+    opacity: 0.5;
+}
+
+/* Register page specific */
+.auth-left-narrow {
+    flex: 0.8;
+    padding: 4rem;
+}
+
+.auth-left-title {
+    font-size: 4.5rem;
+}
+
+.auth-left-desc {
+    opacity: 0.8;
+    font-size: 1.1rem;
+    max-width: 400px;
+    margin-bottom: 3rem;
+}
+
+.avatar-group {
+    display: flex;
+    gap: -10px;
+    margin-bottom: 1rem;
+}
+
+.avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ddd;
+    border: 2px solid var(--primary-color);
+}
+
+.avatar-placeholder + .avatar-placeholder {
+    margin-left: -15px;
+}
+
+.avatar-placeholder.secondary {
+    background: #ccc;
+}
+
+.avatar-placeholder.tertiary {
+    background: #bbb;
+}
+
+.avatar-count {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--secondary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: -15px;
+    border: 2px solid var(--primary-color);
+}
+
+.trusted-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.auth-right-wide {
+    flex: 1.4;
+}
+
+.auth-card-wide {
+    max-width: 600px;
+}
+
+.helper-text {
+    font-size: 0.65rem;
+    opacity: 0.5;
+}
+
+.terms-text {
+    margin-top: 2rem;
+    opacity: 0.4;
+    font-size: 0.75rem;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}

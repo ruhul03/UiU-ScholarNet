@@ -35,13 +35,13 @@
 
     <div class="sidebar-footer">
         <a href="#" class="menu-item"><i class="fa-solid fa-gear"></i> Settings</a>
-        <a href="../auth/logout.php" class="menu-item" style="color: #d32f2f;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        <a href="../auth/logout.php" class="menu-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         
         <div class="user-profile-small">
             <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" alt="User">
             <div>
-                <div style="font-weight: 700; font-size: 0.8rem;"><?php echo $user_data['full_name']; ?></div>
-                <div style="font-size: 0.65rem; opacity: 0.5;"><?php echo ucfirst($user_data['role']); ?></div>
+                <div class="user-name"><?php echo $user_data['full_name']; ?></div>
+                <div class="user-role"><?php echo ucfirst($user_data['role']); ?></div>
             </div>
         </div>
     </div>
