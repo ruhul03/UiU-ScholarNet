@@ -12,78 +12,13 @@ require_once('../includes/auth_check.php');
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-        .policy-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            margin-top: 2rem;
-            margin-bottom: 2rem;
-        }
-        .policy-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .policy-header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            color: #0a1128;
-            margin-bottom: 1rem;
-        }
-        .policy-header p {
-            color: #64748b;
-            font-size: 1.1rem;
-        }
-        .policy-section {
-            margin-bottom: 2.5rem;
-        }
-        .policy-section h2 {
-            font-size: 1.4rem;
-            color: #1e293b;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-        .policy-section h2 i {
-            color: #3b82f6;
-        }
-        .policy-section p, .policy-section li {
-            color: #475569;
-            line-height: 1.7;
-            font-size: 1.05rem;
-        }
-        .policy-section ul {
-            padding-left: 1.5rem;
-            margin-top: 0.5rem;
-        }
-        .policy-section li {
-            margin-bottom: 0.5rem;
-        }
-        .highlight-box {
-            background: #f8fafc;
-            border-left: 4px solid #10b981;
-            padding: 1.5rem;
-            border-radius: 0 8px 8px 0;
-            margin: 1.5rem 0;
-        }
-        .highlight-box p {
-            margin: 0;
-            font-weight: 500;
-            color: #0f172a;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/preprints.css">
 </head>
 <body class="dashboard-page">
 
     <?php include('../includes/sidebar.php'); ?>
 
-    <main class="main-content" style="padding: 2rem;">
+    <main class="main-content policy-main-content">
         
         <div class="policy-container">
             <div class="policy-header">
@@ -92,7 +27,7 @@ require_once('../includes/auth_check.php');
             </div>
             
             <div class="highlight-box">
-                <p><i class="fa-solid fa-scale-balanced" style="color: #10b981; margin-right: 0.5rem;"></i> UIU ScholarNet is a hosting and sharing platform. We do not claim ownership of any content uploaded by our users.</p>
+                <p><i class="fa-solid fa-scale-balanced policy-icon-green"></i> UIU ScholarNet is a hosting and sharing platform. We do not claim ownership of any content uploaded by our users.</p>
             </div>
 
             <div class="policy-section">
@@ -130,7 +65,7 @@ require_once('../includes/auth_check.php');
                 </ul>
             </div>
 
-            <div style="text-align: center; margin-top: 3rem;">
+            <div class="policy-footer-center">
                 <a href="preprints.php" class="btn btn-primary">Back to Preprints</a>
             </div>
         </div>

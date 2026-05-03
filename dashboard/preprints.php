@@ -30,59 +30,7 @@ $proj_result = $proj_stmt->get_result();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-        .preprints-section { padding: 2rem; }
-        .preprints-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;
-            background: linear-gradient(135deg, #0a1128, #16425b); padding: 2.5rem; border-radius: 16px; color: white;
-            box-shadow: 0 10px 30px rgba(10, 17, 40, 0.15);
-            position: relative; overflow: hidden;
-        }
-        .preprints-header::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-            animation: rotate 20s linear infinite; pointer-events: none;
-        }
-        @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .preprints-header-text h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .preprints-header-text p { color: rgba(255,255,255,0.8); font-size: 1.1rem; max-width: 600px; }
-        
-        .preprint-feed { display: flex; flex-direction: column; gap: 1.5rem; }
-        .preprint-card {
-            background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            transition: all 0.3s ease; border-left: 5px solid #2f6690;
-            display: flex; flex-direction: column; gap: 1rem;
-        }
-        .preprint-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        .preprint-meta { display: flex; align-items: center; gap: 1rem; font-size: 0.9rem; color: #64748b; }
-        .preprint-meta span { display: flex; align-items: center; gap: 0.4rem; }
-        .preprint-title { font-size: 1.4rem; font-weight: 700; color: #0a1128; margin: 0; text-decoration: none; }
-        .preprint-title:hover { color: #2f6690; }
-        .preprint-abstract { color: #475569; font-size: 0.95rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .preprint-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .preprint-tag { background: #f1f5f9; color: #3b82f6; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-        .preprint-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
-        .preprint-stats { display: flex; gap: 1.5rem; color: #64748b; font-size: 0.9rem; }
-        .preprint-actions { display: flex; gap: 1rem; }
-        
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; padding: 2.5rem; border-radius: 16px; width: 100%; max-width: 600px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .modal-header h2 { font-family: 'Playfair Display', serif; color: #0a1128; margin: 0; }
-        .close-modal { background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; transition: color 0.2s; }
-        .close-modal:hover { color: #ef4444; }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #1e293b; }
-        .form-control { width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1rem; transition: border-color 0.2s; }
-        .form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-        textarea.form-control { resize: vertical; min-height: 100px; }
-        
-        .empty-state { text-align: center; padding: 4rem 2rem; background: white; border-radius: 12px; border: 2px dashed #cbd5e1; }
-        .empty-state i { font-size: 4rem; color: #94a3b8; margin-bottom: 1.5rem; }
-        .empty-state h3 { color: #0a1128; margin-bottom: 0.5rem; font-size: 1.5rem; }
-        .empty-state p { color: #64748b; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/preprints.css">
 </head>
 <body class="dashboard-page">
 
@@ -108,7 +56,7 @@ $proj_result = $proj_stmt->get_result();
                     <h1>Latest Preprints</h1>
                     <p>Discover and share early-stage research. Get feedback before formal publication.</p>
                 </div>
-                <button class="btn btn-primary" onclick="openModal()" style="background: white; color: #0a1128; font-weight: 600; padding: 0.8rem 1.5rem; font-size: 1.05rem;">
+                <button class="btn btn-primary btn-upload-white" onclick="openModal()">
                     <i class="fa-solid fa-upload"></i> Upload Preprint
                 </button>
             </div>
@@ -122,10 +70,10 @@ $proj_result = $proj_stmt->get_result();
                             <span><i class="fa-regular fa-calendar"></i> <?php echo date('M j, Y', strtotime($row['created_at'])); ?></span>
                             <span><i class="fa-solid fa-code-branch"></i> v<?php echo $row['version']; ?></span>
                             <?php if($row['project_title']): ?>
-                            <span style="color: #10b981;"><i class="fa-solid fa-folder"></i> <?php echo htmlspecialchars($row['project_title']); ?></span>
+                            <span class="text-success"><i class="fa-solid fa-folder"></i> <?php echo htmlspecialchars($row['project_title']); ?></span>
                             <?php endif; ?>
                             <?php if($row['visibility'] == 'private'): ?>
-                            <span style="color: #ef4444;"><i class="fa-solid fa-lock"></i> Private</span>
+                            <span class="text-danger"><i class="fa-solid fa-lock"></i> Private</span>
                             <?php endif; ?>
                         </div>
                         
@@ -181,7 +129,7 @@ $proj_result = $proj_stmt->get_result();
                         <i class="fa-solid fa-file-pdf"></i>
                         <h3>No Preprints Found</h3>
                         <p>Be the first to share your early-stage research with the community.</p>
-                        <button class="btn btn-primary" style="margin-top: 1rem;" onclick="openModal()">Upload Your Preprint</button>
+                        <button class="btn btn-primary mt-1-btn" onclick="openModal()">Upload Your Preprint</button>
                     </div>
                 <?php endif; ?>
             </div>
@@ -236,17 +184,17 @@ $proj_result = $proj_stmt->get_result();
                     <label>Upload PDF</label>
                     <input type="file" name="preprint_file" class="form-control" accept=".pdf" required>
                 </div>
-                <div class="form-group" style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 1rem;">
-                    <label style="display: flex; align-items: flex-start; gap: 0.8rem; font-weight: normal; cursor: pointer; margin: 0;">
-                        <input type="checkbox" name="accepted_copyright" required style="margin-top: 0.3rem; transform: scale(1.2);">
+                <div class="form-group agreement-box">
+                    <label class="agreement-label">
+                        <input type="checkbox" name="accepted_copyright" required class="agreement-checkbox">
                         <span>
                             <strong>Copyright Agreement:</strong> I confirm this is my original work or I have permission to upload it, and it is not under restricted publication copyright. By uploading, I grant UIU ScholarNet permission to display it.
                         </span>
                     </label>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
-                    <a href="copyright_policy.php" target="_blank" style="color: #3b82f6; font-size: 0.9rem; text-decoration: none;">Read Copyright Policy</a>
-                    <div style="display: flex; gap: 1rem;">
+                <div class="modal-footer-space">
+                    <a href="copyright_policy.php" target="_blank" class="policy-link">Read Copyright Policy</a>
+                    <div class="modal-actions">
                         <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
                         <button type="submit" class="btn btn-primary">Publish Preprint</button>
                     </div>

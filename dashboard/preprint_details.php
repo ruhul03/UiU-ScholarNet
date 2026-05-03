@@ -50,56 +50,7 @@ $comments = $c_stmt->get_result();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-        .p-details-section { padding: 2rem; max-width: 900px; margin: 0 auto; }
-        
-        .p-header {
-            background: white; border-radius: 16px; padding: 2.5rem; margin-bottom: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-top: 6px solid #2f6690;
-        }
-        .p-meta-top { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.95rem; }
-        .p-meta-top span { display: flex; align-items: center; gap: 0.5rem; }
-        .p-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #0a1128; margin-bottom: 1.5rem; line-height: 1.3; }
-        .p-authors { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
-        .p-author-avatar { width: 48px; height: 48px; border-radius: 50%; }
-        .p-author-info { display: flex; flex-direction: column; }
-        .p-author-name { font-weight: 600; color: #1e293b; font-size: 1.1rem; }
-        .p-author-role { color: #64748b; font-size: 0.85rem; text-transform: capitalize; }
-        
-        .p-abstract-box {
-            background: #f8fafc; border-radius: 12px; padding: 2rem; margin-bottom: 2rem;
-            border-left: 4px solid #3b82f6;
-        }
-        .p-abstract-title { font-size: 1.2rem; font-weight: 700; color: #0a1128; margin-bottom: 1rem; }
-        .p-abstract-content { color: #334155; line-height: 1.8; font-size: 1.05rem; }
-        
-        .p-actions { display: flex; gap: 1rem; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; margin-top: 1.5rem; }
-        
-        .comments-section {
-            background: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
-        .comments-header { font-size: 1.5rem; font-weight: 700; color: #0a1128; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.8rem; }
-        .comment-list { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem; }
-        .comment-item { display: flex; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; }
-        .comment-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .comment-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; }
-        .comment-content-wrap { flex-grow: 1; }
-        .comment-meta { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
-        .comment-author { font-weight: 600; color: #1e293b; }
-        .comment-time { color: #94a3b8; font-size: 0.85rem; }
-        .comment-text { color: #475569; line-height: 1.6; }
-        
-        .comment-form { display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; padding: 1.5rem; border-radius: 12px; }
-        .comment-form textarea {
-            width: 100%; padding: 1rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1rem;
-            resize: vertical; min-height: 100px; transition: all 0.2s;
-        }
-        .comment-form textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-        .comment-form .btn-submit { align-self: flex-end; }
-        
-        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #64748b; text-decoration: none; font-weight: 500; margin-bottom: 1.5rem; transition: color 0.2s; }
-        .back-link:hover { color: #2f6690; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/preprints.css">
 </head>
 <body class="dashboard-page">
 
@@ -127,7 +78,7 @@ $comments = $c_stmt->get_result();
                     <span><i class="fa-solid fa-code-branch"></i> Version <?php echo $preprint['version']; ?></span>
                     <span><i class="fa-solid fa-scale-balanced"></i> <?php echo htmlspecialchars($preprint['license_type']); ?></span>
                     <?php if($preprint['project_title']): ?>
-                    <span style="color: #10b981;"><i class="fa-solid fa-folder"></i> Project: <?php echo htmlspecialchars($preprint['project_title']); ?></span>
+                    <span class="text-success"><i class="fa-solid fa-folder"></i> Project: <?php echo htmlspecialchars($preprint['project_title']); ?></span>
                     <?php endif; ?>
                     <span><i class="fa-regular fa-eye"></i> <?php echo $preprint['views_count']; ?> Views</span>
                 </div>
@@ -143,13 +94,13 @@ $comments = $c_stmt->get_result();
                 </div>
                 
                 <?php if($preprint['keywords']): ?>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                <div class="tag-container">
                     <?php 
                     $tags = explode(',', $preprint['keywords']);
                     foreach($tags as $tag): 
                         if(trim($tag)):
                     ?>
-                        <span style="background: #f1f5f9; color: #3b82f6; padding: 0.3rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;"><?php echo htmlspecialchars(trim($tag)); ?></span>
+                        <span class="tag-keyword"><?php echo htmlspecialchars(trim($tag)); ?></span>
                     <?php 
                         endif;
                     endforeach; 
@@ -165,15 +116,15 @@ $comments = $c_stmt->get_result();
                 </div>
                 
                 <div class="p-actions">
-                    <a href="../actions/download_preprint.php?id=<?php echo $preprint['id']; ?>" class="btn btn-primary" style="padding: 0.8rem 2rem; font-size: 1.1rem;">
+                    <a href="../actions/download_preprint.php?id=<?php echo $preprint['id']; ?>" class="btn btn-primary btn-action-lg">
                         <i class="fa-solid fa-download"></i> Download PDF (<?php echo $preprint['downloads_count']; ?>)
                     </a>
                     <?php if($preprint['author_id'] == $user_id): ?>
-                    <button class="btn btn-outline" style="padding: 0.8rem 2rem; font-size: 1.1rem;">
+                    <button class="btn btn-outline btn-action-lg">
                         <i class="fa-solid fa-upload"></i> Upload New Version
                     </button>
                     <?php else: ?>
-                    <button class="btn btn-outline" style="padding: 0.8rem 2rem; font-size: 1.1rem; color: #ef4444; border-color: #fca5a5;" onclick="openReportModal()">
+                    <button class="btn btn-outline btn-action-danger" onclick="openReportModal()">
                         <i class="fa-regular fa-flag"></i> Report Content
                     </button>
                     <?php endif; ?>
@@ -181,7 +132,7 @@ $comments = $c_stmt->get_result();
             </div>
             
             <?php if(isset($_GET['reported']) && $_GET['reported'] == 1): ?>
-            <div style="background: #dcfce7; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; text-align: center; border: 1px solid #bbf7d0;">
+            <div class="bg-success-light">
                 <i class="fa-solid fa-circle-check"></i> Thank you. This content has been reported to the administration for review.
             </div>
             <?php endif; ?>
@@ -208,7 +159,7 @@ $comments = $c_stmt->get_result();
                         </div>
                         <?php endwhile; ?>
                     <?php else: ?>
-                        <div style="text-align: center; color: #64748b; padding: 2rem 0;">
+                        <div class="empty-comments">
                             No feedback yet. Be the first to provide suggestions or ask a question!
                         </div>
                     <?php endif; ?>
@@ -224,24 +175,24 @@ $comments = $c_stmt->get_result();
     </main>
 
     <!-- Report Modal -->
-    <div class="modal" id="reportModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
-        <div class="modal-content" style="background: white; padding: 2.5rem; border-radius: 16px; width: 100%; max-width: 500px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2 style="font-family: 'Playfair Display', serif; color: #0a1128; margin: 0;">Report Content</h2>
-                <button onclick="closeReportModal()" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+    <div class="modal modal-overlay" id="reportModal">
+        <div class="modal-content modal-content-sm">
+            <div class="modal-header">
+                <h2 class="modal-title">Report Content</h2>
+                <button onclick="closeReportModal()" class="modal-header-actions"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="color: #64748b; margin-bottom: 1.5rem; line-height: 1.5;">If you believe this content violates our Terms & Copyright Policy, please let us know. The administration will review it.</p>
+            <p class="modal-desc-text">If you believe this content violates our Terms & Copyright Policy, please let us know. The administration will review it.</p>
             <form action="../actions/report_content.php" method="POST">
                 <input type="hidden" name="item_id" value="<?php echo $preprint['id']; ?>">
                 <input type="hidden" name="item_type" value="preprint">
                 <input type="hidden" name="redirect_url" value="../dashboard/preprint_details.php?id=<?php echo $preprint['id']; ?>">
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Reason for Reporting</label>
-                    <textarea name="reason" required style="width: 100%; padding: 1rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; resize: vertical; min-height: 100px;" placeholder="e.g., This is my copyrighted work uploaded without permission..."></textarea>
+                <div class="form-group">
+                    <label class="form-label-bold">Reason for Reporting</label>
+                    <textarea name="reason" required class="form-textarea" placeholder="e.g., This is my copyrighted work uploaded without permission..."></textarea>
                 </div>
-                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <div class="modal-footer-actions">
                     <button type="button" class="btn btn-outline" onclick="closeReportModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;">Submit Report</button>
+                    <button type="submit" class="btn btn-primary btn-danger-solid">Submit Report</button>
                 </div>
             </form>
         </div>
