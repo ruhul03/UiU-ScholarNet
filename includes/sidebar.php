@@ -28,6 +28,9 @@
         <a href="resources.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'resources.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-book"></i> Resource Hub
         </a>
+        <a href="preprints.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'preprints.php' || basename($_SERVER['PHP_SELF']) == 'preprint_details.php') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-file-pdf"></i> Preprints
+        </a>
         <a href="#" class="menu-item"><i class="fa-solid fa-award"></i> Reputation</a>
         <a href="#" class="menu-item"><i class="fa-solid fa-comments"></i> Research Discussion</a>
         <a href="#" class="menu-item"><i class="fa-solid fa-user"></i> My Profile</a>

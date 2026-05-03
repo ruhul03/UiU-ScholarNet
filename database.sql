@@ -125,3 +125,46 @@ INSERT INTO collaboration_posts (user_id, title, department, description, skills
 VALUES
 (1, 'AI Ethics Research Partner', 'Computer Science', 'Looking for a research partner to explore ethical implications of LLMs in academic settings. Focus on bias detection and mitigation strategies.', 'Python, NLP, Ethics'),
 (1, 'Cross-Campus Data Visualization', 'CSE', 'Need a skilled data visualization expert for our urban development research project. D3.js and Tableau experience preferred.', 'D3.js, Tableau, Statistics');
+
+-- 8. Preprints Table
+CREATE TABLE IF NOT EXISTS preprints (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    abstract TEXT,
+    keywords VARCHAR(255),
+    file_path VARCHAR(255) NOT NULL,
+    author_id INT,
+    version INT DEFAULT 1,
+    visibility ENUM('public', 'private') DEFAULT 'public',
+    accepted_copyright TINYINT(1) DEFAULT 1,
+    license_type VARCHAR(50) DEFAULT 'All Rights Reserved',
+    views_count INT DEFAULT 0,
+    downloads_count INT DEFAULT 0,
+    project_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
+);
+
+-- 9. Preprint Comments Table
+CREATE TABLE IF NOT EXISTS preprint_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    preprint_id INT,
+    user_id INT,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (preprint_id) REFERENCES preprints(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 10. Reports Table (Copyright/Moderation)
+CREATE TABLE IF NOT EXISTS reports (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT NOT NULL,
+    item_type ENUM('preprint', 'resource') NOT NULL,
+    reported_by INT NOT NULL,
+    reason TEXT NOT NULL,
+    status ENUM('pending', 'reviewed', 'resolved') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reported_by) REFERENCES users(id) ON DELETE CASCADE
+);
