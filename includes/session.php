@@ -1,5 +1,5 @@
 <?php
-function start_secure_session(): void {
+function start_secure_session(int $lifetime = 0): void {
     if (session_status() !== PHP_SESSION_NONE) {
         return;
     }
@@ -10,7 +10,7 @@ function start_secure_session(): void {
     // Must be set before session_start()
     if (PHP_VERSION_ID >= 70300) {
         session_set_cookie_params([
-            'lifetime' => 0,
+            'lifetime' => $lifetime,
             'path' => '/',
             'httponly' => true,
             'secure' => $is_https,

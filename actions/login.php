@@ -30,6 +30,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = (int)$user['id'];
             $_SESSION['user_name'] = $user['full_name'];
             $_SESSION['user_role'] = $user['role'];
+
+            if (isset($_POST['remember_me'])) {
+                // Set session cookie to last for 30 days
+                $params = session_get_cookie_params();
+                setcookie(
+                    session_name(),
+                    session_id(),
+                    time() + (30 * 24 * 60 * 60), // 30 days
+                    $params["path"],
+                    $params["domain"],
+                    $params["secure"],
+                    $params["httponly"]
+                );
+            }
+
             header("Location: ../dashboard/index.php");
             exit();
         }
