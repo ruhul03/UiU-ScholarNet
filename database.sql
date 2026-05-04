@@ -61,7 +61,22 @@ CREATE TABLE IF NOT EXISTS collaboration_posts (
     department VARCHAR(100),
     description TEXT,
     skills_required TEXT,
+    opportunity_type VARCHAR(50) DEFAULT 'Research',
+    status VARCHAR(20) DEFAULT 'open',
+    slots_total INT DEFAULT 10,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS collaboration_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    user_id INT NOT NULL,
+    message TEXT NULL,
+    status ENUM('pending', 'accepted', 'declined') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_post_user (post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES collaboration_posts(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

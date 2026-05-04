@@ -442,3 +442,92 @@
     font-size: 0.7rem;
     margin-left: 0.5rem;
 }
+
+/* Dynamic collaboration enhancements */
+.collab-alert {
+    margin-bottom: 1rem;
+}
+
+.collab-search-form {
+    margin: 0;
+}
+
+.collab-search-form input {
+    width: 100%;
+}
+
+.btn-applied {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.collab-list-view {
+    grid-template-columns: 1fr;
+    gap: 1.3rem;
+}
+
+.spotlight-mb {
+    margin-bottom: 2rem;
+}
+
+.load-more-btn {
+    display: inline-block;
+}
+
+.pagination-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.collab-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    margin-top: 2rem;
+}
+
+.collab-empty-state i {
+    font-size: 2.4rem;
+    opacity: 0.2;
+    margin-bottom: 0.8rem;
+}
+
+.collab-empty-state h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+}
+
+.collab-empty-state p {
+    opacity: 0.6;
+}
+
+@media (max-width: 1300px) {
+    .collab-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .discovery-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .filter-group {
+        flex-direction: column;
+    }
+
+    .collab-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}

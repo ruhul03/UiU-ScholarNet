@@ -3,20 +3,50 @@
 function openModal() {
     const modal = document.getElementById('collabModal');
     if (modal) {
-        modal.style.display = 'flex';
+        modal.classList.remove('modal-hidden');
     }
 }
 
 function closeModal() {
     const modal = document.getElementById('collabModal');
     if (modal) {
-        modal.style.display = 'none';
+        modal.classList.add('modal-hidden');
     }
 }
 
-// Close modal when clicking outside
-window.onclick = function(event) {
-    if (event.target.classList.contains('modal-overlay')) {
-        event.target.style.display = 'none';
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('collabModal');
+    const filterForm = document.getElementById('collabFilterForm');
+    const viewInput = document.getElementById('viewInput');
+    const viewButtons = document.querySelectorAll('.view-btn[data-view]');
+
+    if (modal) {
+        window.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
     }
-};
+
+    if (filterForm) {
+        const selects = filterForm.querySelectorAll('select');
+        selects.forEach((select) => {
+            select.addEventListener('change', function () {
+                filterForm.submit();
+            });
+        });
+    }
+
+    if (viewInput && filterForm && viewButtons.length > 0) {
+        viewButtons.forEach((button) => {
+            button.addEventListener('click', function () {
+                const view = button.getAttribute('data-view');
+                if (!view) {
+                    return;
+                }
+                viewInput.value = view;
+                filterForm.submit();
+            });
+        });
+    }
+});
