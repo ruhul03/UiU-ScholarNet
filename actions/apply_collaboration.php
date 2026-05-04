@@ -48,10 +48,12 @@ if (!$post || (int)$post['user_id'] === $user_id) {
     exit();
 }
 
-$insert = $conn->prepare("INSERT IGNORE INTO collaboration_applications (post_id, user_id, status) VALUES (?, ?, 'pending')");
-$insert->bind_param("ii", $post_id, $user_id);
-$insert->execute();
+if ($insert->execute() && $conn->affected_rows > 0) {
+    $_SESSION['success'] = "Application submitted successfully! The project lead will review your profile.";
+} else {
+    $_SESSION['error'] = "You have already applied for this collaboration or an error occurred.";
+}
 
-header("Location: ../dashboard/collaboration.php?applied=1");
+header("Location: ../dashboard/collaboration.php");
 exit();
 ?>

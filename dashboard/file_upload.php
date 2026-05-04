@@ -118,17 +118,7 @@ $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
             <h1 class="filemanager-title">File Manager</h1>
             <p class="filemanager-desc">Manage your research assets, datasets, and collaborative publications in a secure archival environment.</p>
 
-            <?php if(isset($_SESSION['success'])): ?>
-                <div class="alert-success-editor">
-                    <i class="fa-solid fa-circle-check"></i> <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if(isset($_SESSION['error'])): ?>
-                <div class="alert-error-editor">
-                    <i class="fa-solid fa-circle-exclamation"></i> <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
-                </div>
-            <?php endif; ?>
+            <?php include('../includes/alerts.php'); ?>
 
             <!-- Upload Zone -->
             <form action="" method="POST" enctype="multipart/form-data" id="uploadForm">

@@ -94,17 +94,7 @@ $skillTags = array_values(
             <p>Registry Archive</p>
         </section>
 
-        <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert-error profile-alert">
-                <i class="fa-solid fa-circle-exclamation"></i> <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert-success profile-alert">
-                <i class="fa-solid fa-circle-check"></i> <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
-            </div>
-        <?php endif; ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <div class="profile-grid">
             <aside class="profile-summary-card">

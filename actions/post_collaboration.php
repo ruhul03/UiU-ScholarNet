@@ -19,12 +19,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $skills = trim((string)($_POST['skills'] ?? ''));
     $slots_total = (int)($_POST['slots_total'] ?? 10);
     $description = trim((string)($_POST['description'] ?? ''));
-    $status = 'open';
+    $project_id = isset($_POST['project_id']) && $_POST['project_id'] !== '' ? (int)$_POST['project_id'] : null;
 
     $columnsToEnsure = [
         'opportunity_type' => "ALTER TABLE collaboration_posts ADD COLUMN opportunity_type VARCHAR(50) NOT NULL DEFAULT 'Research'",
         'status' => "ALTER TABLE collaboration_posts ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'open'",
         'slots_total' => "ALTER TABLE collaboration_posts ADD COLUMN slots_total INT NOT NULL DEFAULT 10",
+        'project_id' => "ALTER TABLE collaboration_posts ADD COLUMN project_id INT NULL"
     ];
 
     foreach ($columnsToEnsure as $columnName => $alterSql) {
@@ -45,14 +46,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $slots_total = 100;
     }
 
-    $stmt = $conn->prepare("INSERT INTO collaboration_posts (user_id, title, department, description, skills_required, opportunity_type, status, slots_total) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issssssi", $user_id, $title, $department, $description, $skills, $opportunity_type, $status, $slots_total);
+    $stmt = $conn->prepare("INSERT INTO collaboration_posts (user_id, title, department, description, skills_required, opportunity_type, status, slots_total, project_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssssii", $user_id, $title, $department, $description, $skills, $opportunity_type, $status, $slots_total, $project_id);
 
     if ($stmt->execute()) {
-        header("Location: ../dashboard/collaboration.php?success=1");
+        $_SESSION['success'] = "Collaboration request posted successfully!";
     } else {
-        header("Location: ../dashboard/collaboration.php?error=1");
+        $_SESSION['error'] = "Database error. Please try again.";
     }
+    header("Location: ../dashboard/collaboration.php");
     exit();
 }
 ?>

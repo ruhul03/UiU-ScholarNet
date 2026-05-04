@@ -1,5 +1,6 @@
 <?php
 require_once('../includes/auth_check.php');
+require_once('../includes/csrf.php');
 
 // Fetch notification counts
 $ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
@@ -31,7 +32,8 @@ $peer_collaborators = (int)($collabStmt->get_result()->fetch_assoc()['total'] ??
 // Fetch Projects
 $stmt = $conn->prepare("
     SELECT p.*, 
-           (SELECT COUNT(DISTINCT assigned_to) FROM tasks WHERE project_id = p.id AND assigned_to IS NOT NULL) as contributors_count
+           (SELECT COUNT(DISTINCT assigned_to) FROM tasks WHERE project_id = p.id AND assigned_to IS NOT NULL) as contributors_count,
+           (SELECT COUNT(*) FROM collaboration_posts WHERE project_id = p.id AND status = 'open') as active_collabs
     FROM projects p 
     WHERE p.creator_id = ? 
     ORDER BY p.created_at DESC
@@ -64,7 +66,7 @@ $result = $stmt->get_result();
         <header class="dash-header dash-header-lg">
             <div class="search-container">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search archive, projects, or collaborators...">
+                <input type="text" placeholder="Search repository, projects, or collaborators...">
             </div>
             <div class="header-actions">
                 <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
@@ -74,7 +76,7 @@ $result = $stmt->get_result();
                     <?php endif; ?>
                 </a>
                 <a href="profile.php" class="user-info" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-regular fa-user header-icon"></i> Personal Archive
+                    <i class="fa-regular fa-user header-icon"></i>
                 </a>
             </div>
         </header>
@@ -90,6 +92,8 @@ $result = $stmt->get_result();
                 </button>
             </div>
 
+            <?php include('../includes/alerts.php'); ?>
+
             <div class="project-horizontal-list">
                 <?php while($row = $result->fetch_assoc()): ?>
                 <!-- Dynamic Horizontal Card -->
@@ -101,6 +105,9 @@ $result = $stmt->get_result();
                         <h3><?php echo htmlspecialchars($row['title']); ?></h3>
                         <div class="project-stats-row">
                             <span class="status-chip status-<?php echo $row['status']; ?>"><?php echo strtoupper($row['status']); ?></span>
+                            <?php if ($row['active_collabs'] > 0): ?>
+                                <span class="status-chip" style="background: #e3f2fd; color: #1565c0;"><i class="fa-solid fa-users-viewfinder"></i> COLLAB ACTIVE</span>
+                            <?php endif; ?>
                             <span class="contributors-count"><i class="fa-solid fa-user-group"></i> <?php echo (int)$row['contributors_count']; ?> Contributors</span>
                         </div>
                     </div>
@@ -115,7 +122,24 @@ $result = $stmt->get_result();
                     </div>
                     <div class="project-actions" style="position: relative; display: flex; align-items: center; gap: 1rem;">
                         <a href="preprints.php" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;"><i class="fa-solid fa-file-pdf"></i> Publish as Preprint</a>
-                        <div class="options-icon"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+                        <div class="options-wrapper">
+                            <div class="options-icon" onclick="toggleProjectOptions(event, <?php echo $row['id']; ?>)">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </div>
+                            <div class="options-dropdown" id="dropdown-<?php echo $row['id']; ?>">
+                                <a href="edit_project.php?id=<?php echo $row['id']; ?>"><i class="fa-regular fa-pen-to-square"></i> Edit Details</a>
+                                
+                                <div class="dropdown-divider"></div>
+                                
+                                <form action="../actions/delete_project.php" method="POST" id="delete-form-<?php echo $row['id']; ?>" style="display:none;">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                    <input type="hidden" name="project_id" value="<?php echo $row['id']; ?>">
+                                </form>
+                                <a href="javascript:void(0)" class="delete-option delete-trigger" style="color: #ff4d4d;" data-id="<?php echo $row['id']; ?>">
+                                    <i class="fa-regular fa-trash-can"></i> Remove Project
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <?php endwhile; ?>
@@ -126,7 +150,7 @@ $result = $stmt->get_result();
                         <i class="fa-solid fa-plus"></i>
                     </div>
                     <h3 class="create-project-title">Create New Project</h3>
-                    <p class="create-project-subtitle">ARCHIVE A NEW RESEARCH DOMAIN</p>
+                    <p class="create-project-subtitle">CREATE A NEW RESEARCH DOMAIN</p>
                 </div>
             </div>
         </section>
@@ -134,7 +158,7 @@ $result = $stmt->get_result();
         <!-- Insights Section -->
         <section class="insights-grid">
             <div>
-                <h2 class="insights-title">Archive Insights</h2>
+                <h2 class="insights-title">Project Insights</h2>
                 <div class="insights-list">
                     <div class="insights-item">
                         <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-gold"></i> Research Domains</span>
@@ -167,10 +191,7 @@ $result = $stmt->get_result();
             <p class="modal-subtitle">INSTITUTIONAL ARCHIVE ENTRY</p>
             
             <form action="../actions/create_project.php" method="POST">
-                <input type="hidden" name="csrf_token" value="<?php 
-                    require_once('../includes/csrf.php');
-                    echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8');
-                ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="form-group">
                     <label>PROJECT TITLE</label>
                     <input type="text" name="title" placeholder="e.g. AI in Sustainable Architecture" class="form-input-light" required>

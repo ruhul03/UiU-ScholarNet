@@ -146,6 +146,8 @@ function time_elapsed_string($datetime, $full = false) {
             </div>
         </header>
 
+        <?php include('../includes/alerts.php'); ?>
+
         <!-- Welcome -->
         <section class="greeting">
             <?php

@@ -21,12 +21,28 @@ $columnsToEnsure = [
     'opportunity_type' => "ALTER TABLE collaboration_posts ADD COLUMN opportunity_type VARCHAR(50) NOT NULL DEFAULT 'Research'",
     'status' => "ALTER TABLE collaboration_posts ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'open'",
     'slots_total' => "ALTER TABLE collaboration_posts ADD COLUMN slots_total INT NOT NULL DEFAULT 10",
+    'project_id' => "ALTER TABLE collaboration_posts ADD COLUMN project_id INT NULL"
 ];
 
 foreach ($columnsToEnsure as $columnName => $alterSql) {
     $check = $conn->query("SHOW COLUMNS FROM collaboration_posts LIKE '" . $conn->real_escape_string($columnName) . "'");
     if ($check && $check->num_rows === 0) {
         $conn->query($alterSql);
+        if ($columnName === 'project_id') {
+            $conn->query("ALTER TABLE collaboration_posts ADD FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL");
+        }
+    }
+}
+
+// Fetch user's projects for linking
+$userProjects = [];
+if (isset($_SESSION['user_id'])) {
+    $upStmt = $conn->prepare("SELECT id, title FROM projects WHERE creator_id = ? ORDER BY title ASC");
+    $upStmt->bind_param("i", $user_id);
+    $upStmt->execute();
+    $upRes = $upStmt->get_result();
+    while ($p = $upRes->fetch_assoc()) {
+        $userProjects[] = $p;
     }
 }
 
@@ -122,11 +138,12 @@ if ($page > $totalPages) {
     $offset = ($page - 1) * $perPage;
 }
 
-$postsSql = "SELECT cp.*, u.full_name,
+$postsSql = "SELECT cp.*, u.full_name, p.title AS linked_project_title,
                     COALESCE(a.total_applicants, 0) AS total_applicants,
                     ua.id AS user_applied
              FROM collaboration_posts cp
              JOIN users u ON cp.user_id = u.id
+             LEFT JOIN projects p ON cp.project_id = p.id
              LEFT JOIN (
                 SELECT post_id, COUNT(*) AS total_applicants
                 FROM collaboration_applications
@@ -161,24 +178,29 @@ $spotlightStmt = $conn->prepare(
 $spotlightStmt->execute();
 $spotlight = $spotlightStmt->get_result()->fetch_assoc();
 
-$deptResult = $conn->query("SELECT DISTINCT department FROM collaboration_posts WHERE department IS NOT NULL AND department <> '' ORDER BY department ASC");
-$departments = [];
-if ($deptResult) {
-    while ($d = $deptResult->fetch_assoc()) {
-        $departments[] = (string)$d['department'];
-    }
-}
+$departments = [
+    "Computer Science & Engineering",
+    "Electrical & Electronic Engineering",
+    "Civil Engineering",
+    "Business Administration",
+    "Economics",
+    "Data Science",
+    "Biotechnology",
+    "Pharmacy",
+    "Mathematics",
+    "English",
+    "Media Studies & Journalism"
+];
 
-$typeResult = $conn->query("SELECT DISTINCT opportunity_type FROM collaboration_posts WHERE opportunity_type IS NOT NULL AND opportunity_type <> '' ORDER BY opportunity_type ASC");
-$types = [];
-if ($typeResult) {
-    while ($t = $typeResult->fetch_assoc()) {
-        $types[] = (string)$t['opportunity_type'];
-    }
-}
+$types = [
+    "Research", "Software", "Dataset", "Paper", "Thesis", 
+    "Case Study", "Survey", "Experiment", "Analysis", 
+    "Prototyping", "Field Work"
+];
 
+$commonSkills = ["Python", "Java", "LaTeX", "SPSS", "R", "Machine Learning", "Data Analysis", "React", "Node.js", "PHP", "SQL"];
 $skillPool = [];
-$skillsResult = $conn->query("SELECT skills_required FROM collaboration_posts WHERE skills_required IS NOT NULL AND skills_required <> '' ORDER BY created_at DESC LIMIT 200");
+$skillsResult = $conn->query("SELECT skills_required FROM collaboration_posts WHERE skills_required IS NOT NULL AND skills_required <> '' ORDER BY created_at DESC LIMIT 100");
 if ($skillsResult) {
     while ($s = $skillsResult->fetch_assoc()) {
         $parts = explode(',', (string)$s['skills_required']);
@@ -190,6 +212,9 @@ if ($skillsResult) {
             }
         }
     }
+}
+foreach ($commonSkills as $cs) {
+    $skillPool[strtolower($cs)] = $cs;
 }
 $skills = array_values($skillPool);
 sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
@@ -250,16 +275,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                 </button>
             </div>
 
-            <?php if (isset($_GET['success']) && $_GET['success'] === '1'): ?>
-                <div class="alert-success collab-alert">
-                    <i class="fa-solid fa-circle-check"></i> Collaboration request posted successfully.
-                </div>
-            <?php endif; ?>
-            <?php if (isset($_GET['applied']) && $_GET['applied'] === '1'): ?>
-                <div class="alert-success collab-alert">
-                    <i class="fa-solid fa-circle-check"></i> Application submitted successfully.
-                </div>
-            <?php endif; ?>
+            <?php include('../includes/alerts.php'); ?>
             <?php if (isset($_GET['error']) && $_GET['error'] === '1'): ?>
                 <div class="alert-error collab-alert">
                     <i class="fa-solid fa-circle-exclamation"></i> Request failed. Please check your input and try again.
@@ -339,10 +355,27 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                             <span class="meta-label">Applicants</span>
                             <span class="meta-value"><?php echo (int)$row['total_applicants']; ?> people</span>
                         </div>
+                        <?php if ($row['linked_project_title']): ?>
+                        <div class="meta-block" style="grid-column: span 2;">
+                            <span class="meta-label">Linked Project</span>
+                            <span class="meta-value" style="color: var(--secondary-color); font-weight: 700;">
+                                <i class="fa-solid fa-link" style="font-size: 0.7rem;"></i> <?php echo htmlspecialchars((string)$row['linked_project_title']); ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
                     </div>
 
                     <?php if ((int)$row['user_id'] === (int)$user_id): ?>
-                        <button class="btn btn-apply" type="button" disabled>Your Post</button>
+                        <div class="owner-actions" style="display: flex; gap: 0.5rem; width: 100%;">
+                            <button class="btn btn-apply" style="flex: 1;" type="button" disabled>Your Post</button>
+                            <form action="../actions/delete_collaboration_post.php" method="POST" style="flex: 0 0 auto;" onsubmit="return confirm('Permanently delete this collaboration request?');">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
+                                <button class="btn btn-outline" type="submit" style="color: #ff4d4d; border-color: #ff4d4d; padding: 0.8rem 1rem;">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </form>
+                        </div>
                     <?php elseif (!empty($row['user_applied'])): ?>
                         <button class="btn btn-apply btn-applied" type="button" disabled>Applied</button>
                     <?php else: ?>
@@ -382,9 +415,19 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                         </div>
                     </div>
 
-                    <div class="spotlight-actions">
-                        <a href="?q=<?php echo urlencode((string)$spotlight['title']); ?>" class="btn btn-primary btn-view-details">VIEW DETAILS</a>
-                        <button class="btn btn-outline btn-edit-white" type="button" disabled><i class="fa-solid fa-pen-nib"></i></button>
+                    <div class="spotlight-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <a href="?q=<?php echo urlencode((string)$spotlight['title']); ?>" class="btn btn-primary btn-view-details" style="flex: 1;">VIEW DETAILS</a>
+                        <?php if ((int)$spotlight['user_id'] === (int)$user_id): ?>
+                            <form action="../actions/delete_collaboration_post.php" method="POST" onsubmit="return confirm('Permanently delete this spotlight request?');" style="flex: 0 0 auto;">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="hidden" name="post_id" value="<?php echo (int)$spotlight['id']; ?>">
+                                <button class="btn btn-outline" type="submit" style="color: #ff4d4d; border-color: rgba(255,77,77,0.3); padding: 0.8rem 1rem; background: rgba(255,255,255,0.1);">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <button class="btn btn-outline btn-edit-white" type="button" disabled><i class="fa-solid fa-pen-nib"></i></button>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endif; ?>
@@ -435,8 +478,18 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
             <form action="../actions/post_collaboration.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="form-group">
-                    <label>Project Title</label>
-                    <input type="text" name="title" placeholder="e.g. AI in Sustainable Architecture" class="form-input-bordered" required>
+                    <label>Collaboration Title</label>
+                    <input type="text" name="title" placeholder="e.g. Seeking Data Scientist for AI Ethics Project" class="form-input-bordered" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label>Link to Existing Project (Optional)</label>
+                    <select name="project_id" class="form-input-bordered">
+                        <option value="">None (Standalone Request)</option>
+                        <?php foreach ($userProjects as $p): ?>
+                            <option value="<?php echo $p['id']; ?>"><?php echo htmlspecialchars($p['title']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="form-row">

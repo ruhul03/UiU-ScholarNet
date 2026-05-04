@@ -1,5 +1,6 @@
 <?php
 require_once('../includes/auth_check.php');
+require_once('../includes/csrf.php');
 
 $project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : null;
 
@@ -80,7 +81,7 @@ while ($task = $task_result->fetch_assoc()) {
         <header class="dash-header dash-header-xl">
             <div class="search-container">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search archives and projects...">
+                <input type="text" placeholder="Search tasks and projects...">
             </div>
             <div class="header-actions">
                 <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
@@ -93,7 +94,7 @@ while ($task = $task_result->fetch_assoc()) {
                     <i class="fa-regular fa-user header-icon"></i>
                 </a>
                 <div class="divider-v"></div>
-                <button class="btn btn-primary btn-new-project" onclick="openModal()">+ NEW TASKS</button>
+                <button class="btn btn-primary btn-new-task" onclick="openModal()">+ NEW TASKS</button>
             </div>
         </header>
 
@@ -101,25 +102,9 @@ while ($task = $task_result->fetch_assoc()) {
             <div class="section-label">PROJECT LOGISTICS / ACTIVE SPRINT</div>
             <h1 class="page-title">Tasks</h1>
 
-            <div class="team-avatars">
-                <div class="avatars-mask">
-                    <?php 
-                    $colors = ['eee', 'ddd', 'ccc', 'bbb', 'aaa'];
-                    $i = 0;
-                    while ($member = $team_members->fetch_assoc()): 
-                        $bg = $colors[$i % count($colors)];
-                    ?>
-                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($member['full_name']); ?>&background=<?php echo $bg; ?>&color=0a1128" class="team-avatar" title="<?php echo htmlspecialchars($member['full_name']); ?>">
-                    <?php 
-                        $i++;
-                    endwhile; 
-                    if ($i === 0) {
-                        echo '<img src="https://ui-avatars.com/api/?name=Team&background=eee&color=0a1128" class="team-avatar">';
-                    }
-                    ?>
-                </div>
-                <a href="collaboration.php" class="share-board" style="text-decoration:none; color:inherit;"><i class="fa-solid fa-user-plus"></i> Share Board</a>
-            </div>
+            <?php include('../includes/alerts.php'); ?>
+
+
 
             <div class="kanban-board">
                 <!-- To Do Column -->
@@ -142,7 +127,7 @@ while ($task = $task_result->fetch_assoc()) {
                                     <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;"><i class="fa-solid fa-check"></i> Finish</button>
                                 </form>
                             </div>
-                            <div class="task-assignee"></div>
+
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -158,7 +143,14 @@ while ($task = $task_result->fetch_assoc()) {
                 <div class="kanban-column">
                     <div class="done-header">
                         <h3 class="done-title"><span class="column-badge"><i class="fa-solid fa-circle dot-green"></i> Done (<?php echo count($tasks_done); ?>)</span></h3>
-                        <span class="clear-all">CLEAR ALL</span>
+                        
+                        <form action="../actions/clear_completed_tasks.php" method="POST" id="clearTasksForm" style="display:none;">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                            <?php if ($project_id): ?>
+                                <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
+                            <?php endif; ?>
+                        </form>
+                        <span class="clear-all" onclick="if(confirm('Clear all completed tasks?')) document.getElementById('clearTasksForm').submit();">CLEAR ALL</span>
                     </div>
 
                     <?php foreach($tasks_done as $task): ?>
@@ -185,23 +177,42 @@ while ($task = $task_result->fetch_assoc()) {
             <h2 class="modal-task-title">Add New Task</h2>
             
             <form action="../actions/add_task.php" method="POST">
-                <input type="hidden" name="csrf_token" value="<?php 
-                    require_once('../includes/csrf.php');
-                    echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8');
-                ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="form-group">
                     <label>TASK TITLE</label>
                     <input type="text" name="title" placeholder="e.g., Finalize Literature Review" class="form-input-light" required>
                 </div>
                 
-                <div class="form-group">
-                    <label>PROJECT SELECTION</label>
-                    <select name="project_id" class="form-input-light" required>
-                        <option value="">Select Project</option>
-                        <?php while($p = $projects_result->fetch_assoc()): ?>
-                            <option value="<?php echo (int)$p['id']; ?>"><?php echo htmlspecialchars($p['title']); ?></option>
-                        <?php endwhile; ?>
-                    </select>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>PROJECT SELECTION</label>
+                        <select name="project_id" class="form-input-light" required>
+                            <option value="">Select Project</option>
+                            <?php 
+                            // Reset the pointer if needed, though it's the first time we use it here
+                            $projects_result->data_seek(0);
+                            while($p = $projects_result->fetch_assoc()): 
+                            ?>
+                                <option value="<?php echo (int)$p['id']; ?>"><?php echo htmlspecialchars($p['title']); ?></option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>ASSIGN TO COLLABORATOR</label>
+                        <select name="assigned_to" class="form-input-light">
+                            <option value="<?php echo $user_id; ?>">Assign to Myself</option>
+                            <?php 
+                            // Re-fetch or reuse team members
+                            $team_members->data_seek(0);
+                            while($m = $team_members->fetch_assoc()): 
+                                if($m['id'] != $user_id):
+                            ?>
+                                <option value="<?php echo (int)$m['id']; ?>"><?php echo htmlspecialchars($m['full_name']); ?></option>
+                            <?php 
+                                endif;
+                            endwhile; ?>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-row">

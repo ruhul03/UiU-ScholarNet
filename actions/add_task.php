@@ -17,7 +17,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $priority = (string)($_POST['priority'] ?? 'medium');
     $due_date = (string)($_POST['due_date'] ?? '');
     $description = trim((string)($_POST['description'] ?? ''));
-    $assigned_to = (int)$_SESSION['user_id']; // Self-assign by default for now
+    $current_user = (int)$_SESSION['user_id'];
+    $assigned_to = isset($_POST['assigned_to']) ? (int)$_POST['assigned_to'] : $current_user;
 
     if ($title === '' || $project_id <= 0 || $due_date === '') {
         header("Location: ../dashboard/tasks.php?project_id=$project_id&error=1");
@@ -31,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Ensure project belongs to current user (basic access control)
     $pstmt = $conn->prepare("SELECT id FROM projects WHERE id = ? AND creator_id = ? LIMIT 1");
-    $pstmt->bind_param("ii", $project_id, $assigned_to);
+    $pstmt->bind_param("ii", $project_id, $current_user);
     $pstmt->execute();
     $pRes = $pstmt->get_result();
     if (!$pRes || $pRes->num_rows !== 1) {
