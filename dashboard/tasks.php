@@ -3,6 +3,30 @@ require_once('../includes/auth_check.php');
 
 $project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : null;
 
+// Fetch notification counts
+$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
+$ptStmt->bind_param("i", $user_id);
+$ptStmt->execute();
+$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
+$crStmt->bind_param("i", $user_id);
+$crStmt->execute();
+$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+// Fetch team members
+$teamStmt = $conn->prepare("
+    SELECT DISTINCT u.id, u.full_name 
+    FROM tasks t 
+    JOIN projects p ON t.project_id = p.id 
+    JOIN users u ON t.assigned_to = u.id 
+    WHERE p.creator_id = ? AND t.assigned_to IS NOT NULL 
+    LIMIT 5
+");
+$teamStmt->bind_param("i", $user_id);
+$teamStmt->execute();
+$team_members = $teamStmt->get_result();
+
 // Fetch Projects for the dropdown
 $pstmt = $conn->prepare("SELECT id, title FROM projects WHERE creator_id = ? ORDER BY created_at DESC");
 $pstmt->bind_param("i", $user_id);
@@ -59,8 +83,15 @@ while ($task = $task_result->fetch_assoc()) {
                 <input type="text" placeholder="Search archives and projects...">
             </div>
             <div class="header-actions">
-                <i class="fa-regular fa-bell header-icon"></i>
-                <i class="fa-regular fa-user header-icon"></i>
+                <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
+                    <i class="fa-regular fa-bell header-icon"></i>
+                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
+                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
+                    <?php endif; ?>
+                </a>
+                <a href="profile.php" style="color: inherit; text-decoration: none;">
+                    <i class="fa-regular fa-user header-icon"></i>
+                </a>
                 <div class="divider-v"></div>
                 <button class="btn btn-primary btn-new-project" onclick="openModal()">+ NEW TASKS</button>
             </div>
@@ -72,11 +103,22 @@ while ($task = $task_result->fetch_assoc()) {
 
             <div class="team-avatars">
                 <div class="avatars-mask">
-                    <img src="https://ui-avatars.com/api/?name=User+1&background=eee&color=0a1128" class="team-avatar">
-                    <img src="https://ui-avatars.com/api/?name=User+2&background=ddd&color=0a1128" class="team-avatar">
-                    <img src="https://ui-avatars.com/api/?name=User+3&background=ccc&color=0a1128" class="team-avatar">
+                    <?php 
+                    $colors = ['eee', 'ddd', 'ccc', 'bbb', 'aaa'];
+                    $i = 0;
+                    while ($member = $team_members->fetch_assoc()): 
+                        $bg = $colors[$i % count($colors)];
+                    ?>
+                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($member['full_name']); ?>&background=<?php echo $bg; ?>&color=0a1128" class="team-avatar" title="<?php echo htmlspecialchars($member['full_name']); ?>">
+                    <?php 
+                        $i++;
+                    endwhile; 
+                    if ($i === 0) {
+                        echo '<img src="https://ui-avatars.com/api/?name=Team&background=eee&color=0a1128" class="team-avatar">';
+                    }
+                    ?>
                 </div>
-                <div class="share-board"><i class="fa-solid fa-user-plus"></i> Share Board</div>
+                <a href="collaboration.php" class="share-board" style="text-decoration:none; color:inherit;"><i class="fa-solid fa-user-plus"></i> Share Board</a>
             </div>
 
             <div class="kanban-board">
@@ -92,6 +134,14 @@ while ($task = $task_result->fetch_assoc()) {
                         
                         <div class="task-meta-footer">
                             <span><i class="fa-regular fa-clock"></i> <?php echo date('M d', strtotime($task['due_date'])); ?></span>
+                            <div class="task-actions" style="margin-left:auto;">
+                                <form method="POST" action="../actions/update_task_status.php" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                    <input type="hidden" name="task_id" value="<?php echo $task['id']; ?>">
+                                    <input type="hidden" name="status" value="done">
+                                    <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;"><i class="fa-solid fa-check"></i> Finish</button>
+                                </form>
+                            </div>
                             <div class="task-assignee"></div>
                         </div>
                     </div>
@@ -115,10 +165,10 @@ while ($task = $task_result->fetch_assoc()) {
                     <div class="task-completed-card">
                         <div class="completed-check">
                             <i class="fa-solid fa-circle-check check-icon"></i>
-                            <span class="completed-date">COMPLETED SEP 12</span>
+                            <span class="completed-date">COMPLETED <?php echo strtoupper(date('M d', strtotime($task['created_at'] ?? 'now'))); ?></span>
                         </div>
                         <h4><?php echo htmlspecialchars($task['title']); ?></h4>
-                        <div class="completed-reviewer">Reviewed by Dr. Henderson</div>
+                        <div class="completed-reviewer">Project: <?php echo htmlspecialchars($task['project_title']); ?></div>
                     </div>
                     <?php endforeach; ?>
 

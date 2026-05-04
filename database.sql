@@ -126,10 +126,10 @@ CREATE TABLE IF NOT EXISTS documents (
 -- Seed Data (password is hashed version of 'password')
 -- Generated via: password_hash('password', PASSWORD_DEFAULT)
 -- ===========================
-INSERT INTO users (full_name, email, password, role, department, points) 
+INSERT INTO users (full_name, email, password, role, department, points)
 VALUES ('Sabbir Ahmed', 'sabbir@uiu.ac.bd', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student', 'CSE', 1245);
 
-INSERT INTO projects (title, description, status, progress, creator_id) 
+INSERT INTO projects (title, description, status, progress, creator_id)
 VALUES 
 ('AI Research Platform', 'Deep learning for academic collaboration tools', 'active', 68, 1),
 ('Smart Campus IoT', 'Internet of Things for campus infrastructure monitoring', 'review', 35, 1),

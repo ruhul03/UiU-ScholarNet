@@ -2,7 +2,8 @@
 require_once('../includes/auth_check.php');
 require_once('../includes/csrf.php');
 
-$conn->query(
+// Fetch Collaboration Posts
+$stmt = $conn->query(
     "CREATE TABLE IF NOT EXISTS collaboration_applications (
         id INT AUTO_INCREMENT PRIMARY KEY,
         post_id INT NOT NULL,
@@ -35,12 +36,24 @@ $skill = trim((string)($_GET['skill'] ?? ''));
 $type = trim((string)($_GET['type'] ?? ''));
 $view = trim((string)($_GET['view'] ?? 'grid'));
 $view = ($view === 'list') ? 'list' : 'grid';
+$tab = trim((string)($_GET['tab'] ?? 'discovery'));
 $page = (int)($_GET['page'] ?? 1);
 $perPage = 9;
 if ($page < 1) {
     $page = 1;
 }
 $offset = ($page - 1) * $perPage;
+
+// Fetch notification counts
+$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
+$ptStmt->bind_param("i", $user_id);
+$ptStmt->execute();
+$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
+$crStmt->bind_param("i", $user_id);
+$crStmt->execute();
+$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
 $bindStmt = static function (mysqli_stmt $stmt, string $types, array $params): void {
     if ($types === '' || count($params) === 0) {
@@ -83,6 +96,13 @@ if ($type !== '' && $type !== 'all') {
     $where[] = "cp.opportunity_type = ?";
     $whereTypes .= 's';
     $whereValues[] = $type;
+}
+
+if ($tab === 'network') {
+    $where[] = "(cp.user_id = ? OR cp.id IN (SELECT post_id FROM collaboration_applications WHERE user_id = ?))";
+    $whereTypes .= 'ii';
+    $whereValues[] = $user_id;
+    $whereValues[] = $user_id;
 }
 
 $whereSql = '';
@@ -198,15 +218,23 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                 <input type="hidden" name="skill" value="<?php echo htmlspecialchars($skill); ?>">
                 <input type="hidden" name="type" value="<?php echo htmlspecialchars($type); ?>">
                 <input type="hidden" name="view" value="<?php echo htmlspecialchars($view); ?>">
+                <input type="hidden" name="tab" value="<?php echo htmlspecialchars($tab); ?>">
             </form>
             <div class="header-actions">
                 <div class="nav-links-row">
-                    <a href="#" class="nav-link-active">Discovery</a>
-                    <a href="#" class="nav-link-inactive">My Network</a>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'discovery', 'page' => 1])); ?>" class="<?php echo ($tab === 'discovery') ? 'nav-link-active' : 'nav-link-inactive'; ?>">Discovery</a>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'network', 'page' => 1])); ?>" class="<?php echo ($tab === 'network') ? 'nav-link-active' : 'nav-link-inactive'; ?>">My Network</a>
                 </div>
                 <div class="header-icons">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                    <i class="fa-regular fa-user header-icon"></i>
+                    <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative;">
+                        <i class="fa-regular fa-bell header-icon"></i>
+                        <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
+                            <span class="notification-dot" style="top: 0px; right: 2px;"></span>
+                        <?php endif; ?>
+                    </a>
+                    <a href="profile.php" style="color: inherit; text-decoration: none;">
+                        <i class="fa-regular fa-user header-icon"></i>
+                    </a>
                 </div>
             </div>
         </header>
@@ -242,6 +270,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                 <div class="filter-group">
                     <input type="hidden" name="q" value="<?php echo htmlspecialchars($search); ?>">
                     <input type="hidden" name="view" id="viewInput" value="<?php echo htmlspecialchars($view); ?>">
+                    <input type="hidden" name="tab" value="<?php echo htmlspecialchars($tab); ?>">
                     <select class="filter-select" name="department">
                         <option value="all">All Departments</option>
                         <?php foreach ($departments as $dep): ?>
@@ -277,7 +306,6 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                 </div>
             </form>
         </section>
-
         <div class="collaboration-grid collab-grid-3 <?php echo ($view === 'list') ? 'collab-list-view' : ''; ?>">
             <?php while ($row = $postsResult->fetch_assoc()): ?>
                 <div class="collab-card">
@@ -289,8 +317,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
 
                     <h3 class="card-title"><?php echo htmlspecialchars((string)$row['title']); ?></h3>
                     <p class="card-desc">
-                        <?php
-                        $desc = (string)($row['description'] ?? '');
+                        <?php                        $desc = (string)($row['description'] ?? '');
                         echo htmlspecialchars((strlen($desc) > 150) ? substr($desc, 0, 150) . '...' : $desc);
                         ?>
                     </p>
@@ -381,6 +408,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                         'skill' => $skill,
                         'type' => $type,
                         'view' => $view,
+                        'tab' => $tab,
                         'page' => $page - 1,
                     ]); ?>">Previous</a>
                 <?php endif; ?>
@@ -391,6 +419,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                         'skill' => $skill,
                         'type' => $type,
                         'view' => $view,
+                        'tab' => $tab,
                         'page' => $page + 1,
                     ]); ?>">Next</a>
                 <?php endif; ?>

@@ -57,7 +57,7 @@
 /* Modal Refinements - Premium Entry */
 .visibility-group {
     display: flex;
-    gap: 2rem;
+    gap: 1rem;
     margin-bottom: 2rem;
 }
 
@@ -68,6 +68,7 @@
     font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .visibility-item input[type="radio"] {

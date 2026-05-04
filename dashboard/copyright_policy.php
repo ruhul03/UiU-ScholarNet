@@ -19,13 +19,13 @@ require_once('../includes/auth_check.php');
     <?php include('../includes/sidebar.php'); ?>
 
     <main class="main-content policy-main-content">
-        
+
         <div class="policy-container">
             <div class="policy-header">
                 <h1>Terms & Copyright Policy</h1>
                 <p>Understanding content ownership, licensing, and sharing on UIU ScholarNet.</p>
             </div>
-            
+
             <div class="highlight-box">
                 <p><i class="fa-solid fa-scale-balanced policy-icon-green"></i> UIU ScholarNet is a hosting and sharing platform. We do not claim ownership of any content uploaded by our users.</p>
             </div>
@@ -69,7 +69,7 @@ require_once('../includes/auth_check.php');
                 <a href="preprints.php" class="btn btn-primary">Back to Preprints</a>
             </div>
         </div>
-        
+
     </main>
 
 </body>
