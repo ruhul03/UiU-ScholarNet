@@ -86,10 +86,11 @@
 
                     <div class="form-group">
                         <label>Research Interests</label>
-                        <div class="tags-container">
-                            <div class="tag">Artificial Intelligence <i class="fa-solid fa-xmark"></i></div>
-                            <div class="tag">Machine Learning <i class="fa-solid fa-xmark"></i></div>
-                            <div class="tag-add">+ Add Interest</div>
+                        <input type="hidden" name="interests" id="interestsHidden" value="Artificial Intelligence,Machine Learning">
+                        <div class="tags-container" id="interestsContainer"></div>
+                        <div class="interest-input-row">
+                            <input type="text" id="interestInput" placeholder="Add an interest (e.g. NLP)">
+                            <button type="button" class="tag-add" id="addInterestBtn">+ Add Interest</button>
                         </div>
                     </div>
 
@@ -113,5 +114,6 @@
         </div>
     </div>
 
+    <script src="../assets/js/auth.js"></script>
 </body>
 </html>

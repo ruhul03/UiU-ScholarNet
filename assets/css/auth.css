@@ -151,6 +151,11 @@
     gap: 0.5rem;
 }
 
+.tag-button {
+    border: none;
+    cursor: pointer;
+}
+
 .tag-add {
     border: 1px dashed #ccc;
     color: #999;
@@ -158,6 +163,17 @@
     border-radius: 50px;
     font-size: 0.85rem;
     cursor: pointer;
+    background: transparent;
+}
+
+.interest-input-row {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.8rem;
+}
+
+.interest-input-row input {
+    flex: 1;
 }
 
 .auth-footer {

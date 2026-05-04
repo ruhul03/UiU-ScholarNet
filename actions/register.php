@@ -11,7 +11,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = strtolower(trim((string)($_POST['email'] ?? '')));
     $raw_password = (string)($_POST['password'] ?? '');
     $department = trim((string)($_POST['department'] ?? ''));
+    $raw_interests = trim((string)($_POST['interests'] ?? ''));
     $skills = trim((string)($_POST['skills'] ?? ''));
+
+    $interests_list = array_filter(array_map('trim', explode(',', $raw_interests)), static function ($value) {
+        return $value !== '';
+    });
+    $interests_list = array_slice(array_values($interests_list), 0, 20);
+    $interests = implode(', ', $interests_list);
 
     if ($full_name === '' || $email === '' || $raw_password === '' || $department === '') {
         $_SESSION['error'] = "Please fill in all required fields.";
@@ -51,8 +58,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $password = password_hash($raw_password, PASSWORD_DEFAULT);
-    $insert = $conn->prepare("INSERT INTO users (full_name, email, password, department, skills) VALUES (?, ?, ?, ?, ?)");
-    $insert->bind_param("sssss", $full_name, $email, $password, $department, $skills);
+    $insert = $conn->prepare("INSERT INTO users (full_name, email, password, department, interests, skills) VALUES (?, ?, ?, ?, ?, ?)");
+    $insert->bind_param("ssssss", $full_name, $email, $password, $department, $interests, $skills);
 
     if ($insert->execute()) {
         $_SESSION['success'] = "Registration successful! Please login.";
