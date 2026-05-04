@@ -246,10 +246,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                 <input type="hidden" name="tab" value="<?php echo htmlspecialchars($tab); ?>">
             </form>
             <div class="header-actions">
-                <div class="nav-links-row">
-                    <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'discovery', 'page' => 1])); ?>" class="<?php echo ($tab === 'discovery') ? 'nav-link-active' : 'nav-link-inactive'; ?>">Discovery</a>
-                    <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'network', 'page' => 1])); ?>" class="<?php echo ($tab === 'network') ? 'nav-link-active' : 'nav-link-inactive'; ?>">My Network</a>
-                </div>
+
                 <div class="header-icons">
                     <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative;">
                         <i class="fa-regular fa-bell header-icon"></i>
