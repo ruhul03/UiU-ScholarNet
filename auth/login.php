@@ -1,3 +1,8 @@
+<?php
+require_once('../includes/session.php');
+start_secure_session();
+require_once('../includes/csrf.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,7 +25,7 @@
         <div class="auth-left">
             <div class="logo logo-white">UIU ScholarNet</div>
             <h2>Welcome back to your research hub</h2>
-            
+
             <div class="auth-features">
                 <div class="auth-feature-item">
                     <div class="auth-feature-icon"><i class="fa-solid fa-rocket"></i></div>
@@ -51,34 +56,30 @@
                 <h1>Sign In</h1>
                 <p>Enter your credentials to continue</p>
 
-                <?php 
-                session_start();
-                if(isset($_SESSION['error'])): ?>
+                <?php if (isset($_SESSION['error'])): ?>
                     <div class="alert-error">
                         <i class="fa-solid fa-circle-exclamation"></i> <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
                     </div>
                 <?php endif; ?>
 
-                <?php if(isset($_SESSION['success'])): ?>
+                <?php if (isset($_SESSION['success'])): ?>
                     <div class="alert-success">
                         <i class="fa-solid fa-circle-check"></i> <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
                     </div>
                 <?php endif; ?>
 
                 <div class="auth-toggle">
-                    <button class="toggle-btn active" id="studentToggle">
+                    <button type="button" class="toggle-btn active" id="studentToggle" data-role="student">
                         <i class="fa-solid fa-graduation-cap"></i> Student
                     </button>
-                    <button class="toggle-btn" id="facultyToggle">
+                    <button type="button" class="toggle-btn" id="facultyToggle" data-role="faculty">
                         <i class="fa-solid fa-user-tie"></i> Faculty
                     </button>
                 </div>
 
                 <form action="../actions/login.php" method="POST">
-                    <input type="hidden" name="csrf_token" value="<?php 
-                        require_once('../includes/csrf.php');
-                        echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8');
-                    ?>">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="role" id="roleInput" value="student">
                     <div class="form-group">
                         <label>University Email</label>
                         <input type="email" name="email" placeholder="you@university.edu" required>
@@ -86,9 +87,9 @@
                     <div class="form-group">
                         <div class="form-label-row">
                             <label>Password</label>
-                            <a href="#" class="forgot-link">FORGOT PASSWORD?</a>
+                            <a href="forgot_password.php" class="forgot-link">FORGOT PASSWORD?</a>
                         </div>
-                        <input type="password" name="password" placeholder="••••••••" required>
+                        <input type="password" name="password" placeholder="********" required>
                     </div>
 
                     <button type="submit" class="btn btn-secondary btn-full">

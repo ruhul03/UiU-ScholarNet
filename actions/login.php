@@ -9,9 +9,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $email = trim((string)($_POST['email'] ?? ''));
     $password = (string)($_POST['password'] ?? '');
+    $role = trim((string)($_POST['role'] ?? 'student'));
 
-    $stmt = $conn->prepare("SELECT id, full_name, email, password, role FROM users WHERE email = ? LIMIT 1");
-    $stmt->bind_param("s", $email);
+    if (!in_array($role, ['student', 'faculty'], true)) {
+        $_SESSION['error'] = "Invalid login role selected.";
+        header("Location: ../auth/login.php");
+        exit();
+    }
+
+    $stmt = $conn->prepare("SELECT id, full_name, email, password, role FROM users WHERE email = ? AND role = ? LIMIT 1");
+    $stmt->bind_param("ss", $email, $role);
     $stmt->execute();
     $result = $stmt->get_result();
 

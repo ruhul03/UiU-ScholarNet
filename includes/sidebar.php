@@ -33,7 +33,9 @@
         </a>
         <a href="#" class="menu-item"><i class="fa-solid fa-award"></i> Reputation</a>
         <a href="#" class="menu-item"><i class="fa-solid fa-comments"></i> Research Discussion</a>
-        <a href="#" class="menu-item"><i class="fa-solid fa-user"></i> My Profile</a>
+        <a href="profile.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'profile.php') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-user"></i> My Profile
+        </a>
     </nav>
 
     <div class="sidebar-footer">

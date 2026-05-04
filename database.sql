@@ -15,6 +15,15 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 1.1 User Profile Extensions
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id INT PRIMARY KEY,
+    institution VARCHAR(150),
+    biography TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- 2. Projects Table
 CREATE TABLE IF NOT EXISTS projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -52,7 +61,22 @@ CREATE TABLE IF NOT EXISTS collaboration_posts (
     department VARCHAR(100),
     description TEXT,
     skills_required TEXT,
+    opportunity_type VARCHAR(50) DEFAULT 'Research',
+    status VARCHAR(20) DEFAULT 'open',
+    slots_total INT DEFAULT 10,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS collaboration_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    user_id INT NOT NULL,
+    message TEXT NULL,
+    status ENUM('pending', 'accepted', 'declined') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_post_user (post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES collaboration_posts(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
