@@ -58,6 +58,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('fileInput');
 
     if (dropZone && fileInput) {
+        // Trigger file input when dropZone or select button is clicked
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        // Find the Select Files button specifically
+        const selectBtn = document.querySelector('.upload-btn-primary');
+        if (selectBtn) {
+            selectBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation(); // Prevent double triggering if it's inside dropZone
+                fileInput.click();
+            });
+        }
+
+        // Show preview when file is selected via dialog
+        fileInput.addEventListener('change', () => showFilePreview(fileInput));
+
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, (ev) => {
                 ev.preventDefault();

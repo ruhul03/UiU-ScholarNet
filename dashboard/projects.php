@@ -181,8 +181,17 @@ $result = $stmt->get_result();
                         <label>PRIMARY DEPARTMENT</label>
                         <select name="department" class="form-input-light" required>
                             <option value="">Select a Department</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="EEE">EEE</option>
+                            <option value="Computer Science & Engineering">Computer Science & Engineering (CSE)</option>
+                            <option value="Electrical & Electronic Engineering">Electrical & Electronic Engineering (EEE)</option>
+                            <option value="Civil Engineering">Civil Engineering (CE)</option>
+                            <option value="Business Administration">Business Administration (BBA)</option>
+                            <option value="Economics">Economics</option>
+                            <option value="Data Science">Data Science</option>
+                            <option value="Biotechnology">Biotechnology</option>
+                            <option value="Pharmacy">Pharmacy</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="English">English</option>
+                            <option value="Media Studies & Journalism">Media Studies & Journalism (MSJ)</option>
                         </select>
                     </div>
                     <div class="form-group form-group-wider">

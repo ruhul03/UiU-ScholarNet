@@ -444,10 +444,17 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                         <label>Department</label>
                         <select name="department" class="form-input-bordered" required>
                             <option value="">Select Department</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="EEE">EEE</option>
-                            <option value="BBA">BBA</option>
+                            <option value="Computer Science & Engineering">Computer Science & Engineering (CSE)</option>
+                            <option value="Electrical & Electronic Engineering">Electrical & Electronic Engineering (EEE)</option>
+                            <option value="Civil Engineering">Civil Engineering (CE)</option>
+                            <option value="Business Administration">Business Administration (BBA)</option>
                             <option value="Economics">Economics</option>
+                            <option value="Data Science">Data Science</option>
+                            <option value="Biotechnology">Biotechnology</option>
+                            <option value="Pharmacy">Pharmacy</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="English">English</option>
+                            <option value="Media Studies & Journalism">Media Studies & Journalism (MSJ)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -457,6 +464,13 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                             <option value="Software">Software</option>
                             <option value="Dataset">Dataset</option>
                             <option value="Paper">Paper</option>
+                            <option value="Thesis">Thesis</option>
+                            <option value="Case Study">Case Study</option>
+                            <option value="Survey">Survey</option>
+                            <option value="Experiment">Experiment</option>
+                            <option value="Analysis">Analysis</option>
+                            <option value="Prototyping">Prototyping</option>
+                            <option value="Field Work">Field Work</option>
                         </select>
                     </div>
                 </div>
@@ -464,7 +478,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                 <div class="form-row">
                     <div class="form-group">
                         <label>Required Skills</label>
-                        <input type="text" name="skills" placeholder="e.g. Python, UI/UX, Research" class="form-input-bordered">
+                        <input type="text" name="skills" placeholder="e.g. Python, LaTeX, SPSS, Qualitative Analysis, Prototyping" class="form-input-bordered">
                     </div>
                     <div class="form-group">
                         <label>Total Slots</label>

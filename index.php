@@ -21,11 +21,7 @@
             <div class="logo">UIU ScholarNet</div>
         </div>
 
-        <nav class="landing-header-center" aria-label="Primary">
-            <a href="index.php" class="active">Home</a>
-            <a href="#" >Resources</a>
-            <a href="#">Directory</a>
-        </nav>
+        <!-- Navigation Removed -->
 
         <div class="landing-header-right">
             <div class="landing-header-icons" aria-label="Actions">
