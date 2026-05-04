@@ -43,7 +43,7 @@
         <div class="hero-label">UIU COLLABORATION PLATFORM</div>
         <h1>What brilliant minds build together</h1>
         <p>Connect with researchers, form teams, manage projects, and share knowledge across your university — all in one place.</p>
-        
+
         <div class="hero-btns">
             <a href="auth/register.php" class="btn btn-primary hero-btn-primary">Get Started Free <i class="fa-solid fa-arrow-right"></i></a>
             <a href="auth/login.php" class="btn btn-secondary hero-btn-secondary">Log In</a>

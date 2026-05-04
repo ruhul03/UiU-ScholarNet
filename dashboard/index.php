@@ -22,6 +22,91 @@ $listStmt = $conn->prepare("SELECT * FROM projects WHERE creator_id = ? ORDER BY
 $listStmt->bind_param("i", $user_id);
 $listStmt->execute();
 $projects_list_result = $listStmt->get_result();
+
+// Pending tasks
+$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
+$ptStmt->bind_param("i", $user_id);
+$ptStmt->execute();
+$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+// Collaboration requests
+$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
+$crStmt->bind_param("i", $user_id);
+$crStmt->execute();
+$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+// Spotlight project
+$spotlightStmt = $conn->prepare("SELECT * FROM projects WHERE creator_id = ? AND status != 'completed' ORDER BY progress DESC LIMIT 1");
+$spotlightStmt->bind_param("i", $user_id);
+$spotlightStmt->execute();
+$spotlightProject = $spotlightStmt->get_result()->fetch_assoc();
+
+// Recent Activity (Applications)
+$actStmt = $conn->prepare("SELECT ca.created_at, u.full_name, cp.title 
+                           FROM collaboration_applications ca 
+                           JOIN collaboration_posts cp ON ca.post_id = cp.id 
+                           JOIN users u ON ca.user_id = u.id 
+                           WHERE cp.user_id = ? 
+                           ORDER BY ca.created_at DESC LIMIT 2");
+$actStmt->bind_param("i", $user_id);
+$actStmt->execute();
+$recent_activities = $actStmt->get_result();
+
+// Recent Tasks
+$recentTaskStmt = $conn->prepare("SELECT title, created_at, status FROM tasks WHERE assigned_to = ? ORDER BY created_at DESC LIMIT 2");
+$recentTaskStmt->bind_param("i", $user_id);
+$recentTaskStmt->execute();
+$recent_tasks = $recentTaskStmt->get_result();
+// Merge activities
+$activities = [];
+while ($row = $recent_activities->fetch_assoc()) {
+    $activities[] = [
+        'type' => 'collab',
+        'title' => htmlspecialchars($row['full_name']) . ' requested to join',
+        'desc' => 'Applied to "' . htmlspecialchars($row['title']) . '"',
+        'time' => $row['created_at']
+    ];
+}
+while ($row = $recent_tasks->fetch_assoc()) {
+    $activities[] = [
+        'type' => 'task',
+        'title' => 'Task Updated',
+        'desc' => htmlspecialchars($row['title']) . ' is now ' . htmlspecialchars($row['status']),
+        'time' => $row['created_at']
+    ];
+}
+usort($activities, function($a, $b) {
+    return strtotime($b['time']) - strtotime($a['time']);
+});
+
+function time_elapsed_string($datetime, $full = false) {
+    $now = new DateTime;
+    $ago = new DateTime($datetime);
+    $diff = $now->diff($ago);
+
+    $diff->w = floor($diff->d / 7);
+    $diff->d -= $diff->w * 7;
+
+    $string = array(
+        'y' => 'year',
+        'm' => 'month',
+        'w' => 'week',
+        'd' => 'day',
+        'h' => 'hour',
+        'i' => 'minute',
+        's' => 'second',
+    );
+    foreach ($string as $k => &$v) {
+        if ($diff->$k) {
+            $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
+        } else {
+            unset($string[$k]);
+        }
+    }
+
+    if (!$full) $string = array_slice($string, 0, 1);
+    return $string ? implode(', ', $string) . ' ago' : 'just now';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -53,16 +138,28 @@ $projects_list_result = $listStmt->get_result();
             <div class="nav-actions">
                 <a href="#" class="notification-icon">
                     <i class="fa-regular fa-bell"></i>
-                    <span class="notification-dot"></span>
+                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
+                        <span class="notification-dot"></span>
+                    <?php endif; ?>
                 </a>
-                <a href="#" class="btn btn-outline"><i class="fa-regular fa-user"></i> Account</a>
+                <a href="profile.php" class="btn btn-outline"><i class="fa-regular fa-user"></i> Account</a>
             </div>
         </header>
 
         <!-- Welcome -->
         <section class="greeting">
-            <h1>Good morning, <?php echo htmlspecialchars(explode(' ', $user_data['full_name'])[0]); ?> 👋</h1>
-            <p>You have 4 pending tasks and 2 new collaboration requests today.</p>
+            <?php
+            $hour = date('H');
+            if ($hour < 12) {
+                $greeting = "Good morning";
+            } elseif ($hour < 18) {
+                $greeting = "Good afternoon";
+            } else {
+                $greeting = "Good evening";
+            }
+            ?>
+            <h1><?php echo $greeting; ?>, <?php echo htmlspecialchars(explode(' ', $user_data['full_name'])[0]); ?> 👋</h1>
+            <p>You have <?php echo $pending_tasks; ?> pending tasks and <?php echo $collab_requests; ?> new collaboration requests today.</p>
             
             <div class="dash-actions">
                 <a href="collaboration.php" class="btn btn-primary btn-collab"><i class="fa-solid fa-plus"></i> Post Collaboration</a>
@@ -106,63 +203,70 @@ $projects_list_result = $listStmt->get_result();
         <div class="dash-grid">
             <!-- Left: Activity -->
             <section class="activity-feed">
-                <h3>Recent Activity <a href="#" class="timeline-link">View Timeline</a></h3>
+                <h3>Recent Activity <a href="tasks.php" class="timeline-link">View Timeline</a></h3>
                 
-                <div class="activity-card">
-                    <div class="activity-icon"><i class="fa-solid fa-user-plus"></i></div>
-                    <div class="activity-body">
-                        <div class="activity-header">
-                            <h4>Sarah Khan requested to join</h4>
-                            <span class="time">2h ago</span>
+                <?php if (empty($activities)): ?>
+                    <p class="text-muted" style="color: var(--text-light); margin-top: 1rem;">No recent activity to show.</p>
+                <?php else: ?>
+                    <?php foreach (array_slice($activities, 0, 4) as $activity): ?>
+                        <div class="activity-card">
+                            <div class="activity-icon">
+                                <?php if ($activity['type'] === 'collab'): ?>
+                                    <i class="fa-solid fa-user-plus"></i>
+                                <?php else: ?>
+                                    <i class="fa-solid fa-tasks"></i>
+                                <?php endif; ?>
+                            </div>
+                            <div class="activity-body">
+                                <div class="activity-header">
+                                    <h4><?php echo $activity['title']; ?></h4>
+                                    <span class="time"><?php echo time_elapsed_string($activity['time']); ?></span>
+                                </div>
+                                <div class="activity-content">
+                                    <?php echo $activity['desc']; ?>
+                                </div>
+                                <?php if ($activity['type'] === 'collab'): ?>
+                                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                    <a href="collaboration.php" class="btn btn-primary approve-btn" style="text-decoration:none;">View Request</a>
+                                </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <div class="activity-content">
-                            "Quantum Computing & Ethics" project. Background in applied physics.
-                        </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-primary approve-btn">Approve</button>
-                            <button class="btn btn-outline view-btn-small">View Profile</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="activity-card">
-                    <div class="activity-icon"><i class="fa-solid fa-file-pen"></i></div>
-                    <div class="activity-body">
-                        <div class="activity-header">
-                            <h4>Document Updated</h4>
-                            <span class="time">5h ago</span>
-                        </div>
-                        <div class="activity-content">
-                            Draft_v2_Methodology.docx was edited by <strong>Dr. Marcus Thorne</strong> in Global Climate Modeling.
-                        </div>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </section>
 
             <!-- Right: Quick Actions & Spotlight -->
             <aside class="dash-sidebar">
                 <section class="quick-actions">
                     <h3>Quick Actions</h3>
-                    <a href="resources.php" class="action-item">
+                    <a href="file_upload.php" class="action-item">
                         <span><i class="fa-solid fa-file-arrow-up action-icon"></i> Upload research paper</span>
                         <i class="fa-solid fa-chevron-right chevron-icon"></i>
                     </a>
-                    <a href="#" class="action-item">
+                    <a href="collaboration.php" class="action-item">
                         <span><i class="fa-solid fa-user-group action-icon"></i> Invite team members</span>
                         <i class="fa-solid fa-chevron-right chevron-icon"></i>
                     </a>
                 </section>
 
                 <div class="spotlight-card">
-                    <div class="status">IN PROGRESS</div>
-                    <h4>Sustainable Urban Design</h4>
-                    <div class="progress-bar spotlight-progress-bar">
-                        <div class="progress-fill spotlight-progress"></div>
-                    </div>
-                    <div class="spotlight-progress-text">
-                        <span>65% Completed</span>
-                    </div>
-                    <button class="btn btn-primary spotlight-btn">Open Workspace</button>
+                    <?php if ($spotlightProject): ?>
+                        <div class="status"><?php echo strtoupper(htmlspecialchars($spotlightProject['status'])); ?></div>
+                        <h4><?php echo htmlspecialchars($spotlightProject['title']); ?></h4>
+                        <div class="progress-bar spotlight-progress-bar">
+                            <div class="progress-fill spotlight-progress" style="width: <?php echo (int)$spotlightProject['progress']; ?>%;"></div>
+                        </div>
+                        <div class="spotlight-progress-text">
+                            <span><?php echo (int)$spotlightProject['progress']; ?>% Completed</span>
+                        </div>
+                        <a href="tasks.php?project_id=<?php echo $spotlightProject['id']; ?>" class="btn btn-primary spotlight-btn" style="text-decoration:none; display:inline-block; text-align:center;">Open Workspace</a>
+                    <?php else: ?>
+                        <div class="status">NO ACTIVE PROJECT</div>
+                        <h4>Start something new</h4>
+                        <p style="color: var(--text-light); font-size: 0.9rem; margin-top:0.5rem;">You don't have any active projects right now.</p>
+                        <button class="btn btn-primary spotlight-btn" onclick="openCreateModal()" style="margin-top: 1rem;">Create Project</button>
+                    <?php endif; ?>
                 </div>
             </aside>
         </div>
@@ -185,7 +289,7 @@ $projects_list_result = $listStmt->get_result();
                             <h4><?php echo htmlspecialchars($proj['title']); ?></h4>
                             <div class="project-sub">
                                 <span class="status"><?php echo strtoupper($proj['status']); ?></span>
-                                <span class="time">Last edit 2h ago</span>
+                                <span class="time"><?php echo time_elapsed_string($proj['created_at']); ?></span>
                             </div>
                         </div>
                     </div>
@@ -257,9 +361,8 @@ $projects_list_result = $listStmt->get_result();
 
                 <div class="invite-researchers">
                     <label class="invite-label">INVITE RESEARCHERS</label>
-                    <div class="researcher-tags">
-                        <div class="researcher-tag">Dr. Julian Thorne <i class="fa-solid fa-xmark"></i></div>
-                        <div class="researcher-tag">Prof. Elena Vance <i class="fa-solid fa-xmark"></i></div>
+                    <div class="researcher-tags" id="invitedResearchers">
+                        <!-- Dynamic tags will appear here -->
                     </div>
                     <div class="search-container search-container-wide">
                         <i class="fa-solid fa-user-plus" style="opacity: 0.3;"></i>

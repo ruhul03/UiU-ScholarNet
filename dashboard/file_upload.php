@@ -63,6 +63,17 @@ $files_stmt = $conn->prepare("SELECT * FROM resources WHERE user_id = ? ORDER BY
 $files_stmt->bind_param("i", $user_id);
 $files_stmt->execute();
 $files_result = $files_stmt->get_result();
+
+// Fetch notification counts
+$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
+$ptStmt->bind_param("i", $user_id);
+$ptStmt->execute();
+$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
+$crStmt->bind_param("i", $user_id);
+$crStmt->execute();
+$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,8 +102,15 @@ $files_result = $files_stmt->get_result();
                 <input type="text" placeholder="Search archive...">
             </div>
             <div class="header-actions">
-                <i class="fa-regular fa-bell header-icon"></i>
-                <span class="user-info">Workspace <i class="fa-solid fa-chevron-down"></i></span>
+                <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
+                    <i class="fa-regular fa-bell header-icon"></i>
+                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
+                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
+                    <?php endif; ?>
+                </a>
+                <a href="profile.php" style="color: inherit; text-decoration: none;">
+                    <span class="user-info">Workspace <i class="fa-solid fa-chevron-down"></i></span>
+                </a>
             </div>
         </header>
 

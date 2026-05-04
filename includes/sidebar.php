@@ -31,15 +31,15 @@
         <a href="preprints.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'preprints.php' || basename($_SERVER['PHP_SELF']) == 'preprint_details.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-file-pdf"></i> Preprints
         </a>
-        <a href="#" class="menu-item"><i class="fa-solid fa-award"></i> Reputation</a>
-        <a href="#" class="menu-item"><i class="fa-solid fa-comments"></i> Research Discussion</a>
+        <a href="profile.php" class="menu-item"><i class="fa-solid fa-award"></i> Reputation</a>
+        <a href="messages.php" class="menu-item"><i class="fa-solid fa-comments"></i> Research Discussion</a>
         <a href="profile.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'profile.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-user"></i> My Profile
         </a>
     </nav>
 
     <div class="sidebar-footer">
-        <a href="#" class="menu-item"><i class="fa-solid fa-gear"></i> Settings</a>
+        <a href="profile.php" class="menu-item"><i class="fa-solid fa-gear"></i> Settings</a>
         <a href="../auth/logout.php" class="menu-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         
         <div class="user-profile-small">

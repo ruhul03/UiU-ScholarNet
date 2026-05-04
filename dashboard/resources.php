@@ -1,13 +1,37 @@
 <?php
 require_once('../includes/auth_check.php');
 
+$filter = $_GET['filter'] ?? 'all';
+$whereSql = '';
+
+if ($filter === 'thesis') {
+    $whereSql = "WHERE r.category = 'Paper'";
+} elseif ($filter === 'lecture') {
+    $whereSql = "WHERE r.category = 'Report' OR r.category = 'General'";
+} elseif ($filter === 'dataset') {
+    $whereSql = "WHERE r.resource_type IN ('Dataset', 'CSV')";
+}
+
 // Fetch Resources
-$stmt = $conn->prepare("SELECT r.*, u.full_name 
-                        FROM resources r 
-                        JOIN users u ON r.user_id = u.id 
-                        ORDER BY r.created_at DESC");
+$sql = "SELECT r.*, u.full_name 
+        FROM resources r 
+        JOIN users u ON r.user_id = u.id 
+        $whereSql
+        ORDER BY r.created_at DESC";
+$stmt = $conn->prepare($sql);
 $stmt->execute();
 $result = $stmt->get_result();
+
+// Fetch notification counts
+$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
+$ptStmt->bind_param("i", $user_id);
+$ptStmt->execute();
+$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
+$crStmt->bind_param("i", $user_id);
+$crStmt->execute();
+$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,10 +60,18 @@ $result = $stmt->get_result();
                 <input type="text" placeholder="Search resources...">
             </div>
             <div class="header-actions">
-                <i class="fa-regular fa-bell header-icon"></i>
-                <button class="btn btn-primary btn-upload-resource">
+                <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
+                    <i class="fa-regular fa-bell header-icon"></i>
+                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
+                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
+                    <?php endif; ?>
+                </a>
+                <a href="profile.php" style="color: inherit; text-decoration: none; margin-right: 15px;">
+                    <i class="fa-regular fa-user header-icon"></i>
+                </a>
+                <a href="file_upload.php" class="btn btn-primary btn-upload-resource" style="text-decoration: none;">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resource
-                </button>
+                </a>
             </div>
         </header>
 
@@ -48,10 +80,10 @@ $result = $stmt->get_result();
             <p class="resources-desc">Access shared thesis papers, datasets, lecture notes, and research materials from across the university.</p>
 
             <div class="resource-filters">
-                <button class="btn btn-outline filter-active">All Materials</button>
-                <button class="btn btn-outline">Thesis Papers</button>
-                <button class="btn btn-outline">Lecture Notes</button>
-                <button class="btn btn-outline">Research Datasets</button>
+                <a href="?filter=all" class="btn btn-outline <?php echo ($filter === 'all') ? 'filter-active' : ''; ?>" style="text-decoration: none;">All Materials</a>
+                <a href="?filter=thesis" class="btn btn-outline <?php echo ($filter === 'thesis') ? 'filter-active' : ''; ?>" style="text-decoration: none;">Thesis Papers</a>
+                <a href="?filter=lecture" class="btn btn-outline <?php echo ($filter === 'lecture') ? 'filter-active' : ''; ?>" style="text-decoration: none;">Lecture Notes</a>
+                <a href="?filter=dataset" class="btn btn-outline <?php echo ($filter === 'dataset') ? 'filter-active' : ''; ?>" style="text-decoration: none;">Research Datasets</a>
             </div>
         </section>
 

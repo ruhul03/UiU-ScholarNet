@@ -1,8 +1,41 @@
 <?php
 require_once('../includes/auth_check.php');
 
+// Fetch notification counts
+$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
+$ptStmt->bind_param("i", $user_id);
+$ptStmt->execute();
+$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
+$crStmt->bind_param("i", $user_id);
+$crStmt->execute();
+$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+// Insights queries
+$activeProjStmt = $conn->prepare("SELECT COUNT(*) as total FROM projects WHERE creator_id = ? AND status = 'active'");
+$activeProjStmt->bind_param("i", $user_id);
+$activeProjStmt->execute();
+$active_projects = (int)($activeProjStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
+$collabStmt = $conn->prepare("
+    SELECT COUNT(DISTINCT t.assigned_to) as total 
+    FROM tasks t 
+    JOIN projects p ON t.project_id = p.id 
+    WHERE p.creator_id = ? AND t.assigned_to != ? AND t.assigned_to IS NOT NULL
+");
+$collabStmt->bind_param("ii", $user_id, $user_id);
+$collabStmt->execute();
+$peer_collaborators = (int)($collabStmt->get_result()->fetch_assoc()['total'] ?? 0);
+
 // Fetch Projects
-$stmt = $conn->prepare("SELECT * FROM projects WHERE creator_id = ? ORDER BY created_at DESC");
+$stmt = $conn->prepare("
+    SELECT p.*, 
+           (SELECT COUNT(DISTINCT assigned_to) FROM tasks WHERE project_id = p.id AND assigned_to IS NOT NULL) as contributors_count
+    FROM projects p 
+    WHERE p.creator_id = ? 
+    ORDER BY p.created_at DESC
+");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -34,10 +67,15 @@ $result = $stmt->get_result();
                 <input type="text" placeholder="Search archive, projects, or collaborators...">
             </div>
             <div class="header-actions">
-                <i class="fa-regular fa-bell header-icon"></i>
-                <div class="user-info">
+                <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
+                    <i class="fa-regular fa-bell header-icon"></i>
+                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
+                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
+                    <?php endif; ?>
+                </a>
+                <a href="profile.php" class="user-info" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-regular fa-user header-icon"></i> Personal Archive
-                </div>
+                </a>
             </div>
         </header>
 
@@ -63,7 +101,7 @@ $result = $stmt->get_result();
                         <h3><?php echo htmlspecialchars($row['title']); ?></h3>
                         <div class="project-stats-row">
                             <span class="status-chip status-<?php echo $row['status']; ?>"><?php echo strtoupper($row['status']); ?></span>
-                            <span class="contributors-count"><i class="fa-solid fa-user-group"></i> 12 Contributors</span>
+                            <span class="contributors-count"><i class="fa-solid fa-user-group"></i> <?php echo (int)$row['contributors_count']; ?> Contributors</span>
                         </div>
                     </div>
                     <div class="project-progress-block">
@@ -100,15 +138,15 @@ $result = $stmt->get_result();
                 <div class="insights-list">
                     <div class="insights-item">
                         <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-gold"></i> Research Domains</span>
-                        <span class="insights-value">4 Active</span>
+                        <span class="insights-value"><?php echo $active_projects; ?> Active</span>
                     </div>
                     <div class="insights-item">
                         <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-blue"></i> Peer Collaborators</span>
-                        <span class="insights-value">42 Scientists</span>
+                        <span class="insights-value"><?php echo $peer_collaborators; ?> Scientists</span>
                     </div>
                     <div class="insights-item">
-                        <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-brown"></i> Documentation Velocity</span>
-                        <span class="insights-value">+12% this month</span>
+                        <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-brown"></i> Platform Updates</span>
+                        <span class="insights-value">Syncing</span>
                     </div>
                 </div>
             </div>
@@ -170,9 +208,8 @@ $result = $stmt->get_result();
 
                 <div class="invite-researchers">
                     <label class="invite-label">INVITE RESEARCHERS</label>
-                    <div class="researcher-tags">
-                        <div class="researcher-tag">Dr. Julian Thorne <i class="fa-solid fa-xmark"></i></div>
-                        <div class="researcher-tag">Prof. Elena Vance <i class="fa-solid fa-xmark"></i></div>
+                    <div class="researcher-tags" id="invitedResearchersProject">
+                        <!-- Dynamic tags will appear here -->
                     </div>
                     <div class="search-container search-container-wide">
                         <i class="fa-solid fa-user-plus" style="opacity: 0.3;"></i>
