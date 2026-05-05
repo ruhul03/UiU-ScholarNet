@@ -20,13 +20,7 @@ function redirect_forgot_password(): void
 
 function is_allowed_email(string $email): bool
 {
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return false;
-    }
-
-    $atPos = strrpos($email, '@');
-    $domain = ($atPos !== false) ? substr($email, $atPos + 1) : '';
-    return $domain === 'uiu.ac.bd';
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 $action = trim((string)($_POST['action'] ?? 'request_code'));
@@ -34,7 +28,7 @@ $action = trim((string)($_POST['action'] ?? 'request_code'));
 if ($action === 'request_code') {
     $email = strtolower(trim((string)($_POST['email'] ?? '')));
     if ($email === '' || !is_allowed_email($email)) {
-        $_SESSION['error'] = 'Please provide a valid university email (uiu.ac.bd).';
+        $_SESSION['error'] = 'Please provide a valid email address.';
         redirect_forgot_password();
     }
 

@@ -23,14 +23,14 @@ $showResetForm = ($pendingEmail !== '');
         <div class="auth-left">
             <div class="logo logo-white">UIU ScholarNet</div>
             <h2>Recover your account access</h2>
-            <p class="auth-left-desc">Enter your institutional email and we will process a password reset request.</p>
+            <p class="auth-left-desc">Enter your email and we will process a password reset request.</p>
             <div class="auth-left-footer">ACCOUNT RECOVERY PORTAL</div>
         </div>
 
         <div class="auth-right">
             <div class="auth-card">
                 <h1>Forgot Password</h1>
-                <p>Submit your university email to continue.</p>
+                <p>Submit your email to continue.</p>
 
                 <?php if (isset($_SESSION['error'])): ?>
                     <div class="alert-error">
@@ -48,8 +48,8 @@ $showResetForm = ($pendingEmail !== '');
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="action" value="request_code">
                     <div class="form-group">
-                        <label>University Email</label>
-                        <input type="email" name="email" placeholder="you@uiu.ac.bd" value="<?php echo htmlspecialchars($pendingEmail, ENT_QUOTES, 'UTF-8'); ?>" required>
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="you@example.com" value="<?php echo htmlspecialchars($pendingEmail, ENT_QUOTES, 'UTF-8'); ?>" required>
                     </div>
                     <button type="submit" class="btn btn-secondary btn-full">
                         Send Reset Code <i class="fa-solid fa-arrow-right"></i>
