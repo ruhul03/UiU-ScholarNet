@@ -252,8 +252,8 @@ function time_elapsed_string($datetime, $full = false) {
                     </a>
                 </section>
 
+                <?php if ($spotlightProject): ?>
                 <div class="spotlight-card">
-                    <?php if ($spotlightProject): ?>
                         <div class="status"><?php echo strtoupper(htmlspecialchars($spotlightProject['status'])); ?></div>
                         <h4><?php echo htmlspecialchars($spotlightProject['title']); ?></h4>
                         <div class="progress-bar spotlight-progress-bar">
@@ -263,13 +263,8 @@ function time_elapsed_string($datetime, $full = false) {
                             <span><?php echo (int)$spotlightProject['progress']; ?>% Completed</span>
                         </div>
                         <a href="tasks.php?project_id=<?php echo $spotlightProject['id']; ?>" class="btn btn-primary spotlight-btn" style="text-decoration:none; display:inline-block; text-align:center;">Open Workspace</a>
-                    <?php else: ?>
-                        <div class="status">NO ACTIVE PROJECT</div>
-                        <h4>Start something new</h4>
-                        <p style="color: var(--text-light); font-size: 0.9rem; margin-top:0.5rem;">You don't have any active projects right now.</p>
-                        <button class="btn btn-primary spotlight-btn" onclick="openCreateModal()" style="margin-top: 1rem;">Create Project</button>
-                    <?php endif; ?>
                 </div>
+                <?php endif; ?>
             </aside>
         </div>
     </main>

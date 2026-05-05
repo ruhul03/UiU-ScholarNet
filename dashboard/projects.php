@@ -155,32 +155,6 @@ $result = $stmt->get_result();
             </div>
         </section>
 
-        <!-- Insights Section -->
-        <section class="insights-grid">
-            <div>
-                <h2 class="insights-title">Project Insights</h2>
-                <div class="insights-list">
-                    <div class="insights-item">
-                        <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-gold"></i> Research Domains</span>
-                        <span class="insights-value"><?php echo $active_projects; ?> Active</span>
-                    </div>
-                    <div class="insights-item">
-                        <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-blue"></i> Peer Collaborators</span>
-                        <span class="insights-value"><?php echo $peer_collaborators; ?> Scientists</span>
-                    </div>
-                    <div class="insights-item">
-                        <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-brown"></i> Platform Updates</span>
-                        <span class="insights-value">Syncing</span>
-                    </div>
-                </div>
-            </div>
-            <div class="collab-heat-card">
-                <div class="collab-heat-pattern"></div>
-                <div class="collab-heat-label">COLLABORATION HEAT</div>
-                <h3 class="collab-heat-title">High Intensity</h3>
-                <p class="collab-heat-desc">Peak interaction at 14:00 GMT</p>
-            </div>
-        </section>
     </main>
 
     <!-- Create Project Modal (High-Fidelity) -->
