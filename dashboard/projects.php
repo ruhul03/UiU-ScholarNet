@@ -121,7 +121,6 @@ $result = $stmt->get_result();
                         </div>
                     </div>
                     <div class="project-actions" style="position: relative; display: flex; align-items: center; gap: 1rem;">
-                        <a href="preprints.php" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;"><i class="fa-solid fa-file-pdf"></i> Publish as Preprint</a>
                         <div class="options-wrapper">
                             <div class="options-icon" onclick="toggleProjectOptions(event, <?php echo $row['id']; ?>)">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
