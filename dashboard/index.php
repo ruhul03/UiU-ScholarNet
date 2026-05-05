@@ -205,7 +205,7 @@ function time_elapsed_string($datetime, $full = false) {
         <div class="dash-grid">
             <!-- Left: Activity -->
             <section class="activity-feed">
-                <h3>Recent Activity <a href="tasks.php" class="timeline-link">View Timeline</a></h3>
+                <h3>Recent Activity</h3>
                 
                 <?php if (empty($activities)): ?>
                     <p class="text-muted" style="color: var(--text-light); margin-top: 1rem;">No recent activity to show.</p>
