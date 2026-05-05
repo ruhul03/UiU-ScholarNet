@@ -20,6 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $slots_total = (int)($_POST['slots_total'] ?? 10);
     $description = trim((string)($_POST['description'] ?? ''));
     $project_id = isset($_POST['project_id']) && $_POST['project_id'] !== '' ? (int)$_POST['project_id'] : null;
+    $status = 'open';
 
     $columnsToEnsure = [
         'opportunity_type' => "ALTER TABLE collaboration_posts ADD COLUMN opportunity_type VARCHAR(50) NOT NULL DEFAULT 'Research'",
