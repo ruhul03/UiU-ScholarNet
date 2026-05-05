@@ -309,14 +309,6 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="view-toggles">
-                    <button type="button" class="view-btn <?php echo ($view === 'grid') ? 'active' : ''; ?>" data-view="grid" aria-label="Grid view">
-                        <i class="fa-solid fa-table-cells-large"></i>
-                    </button>
-                    <button type="button" class="view-btn <?php echo ($view === 'list') ? 'active' : ''; ?>" data-view="list" aria-label="List view">
-                        <i class="fa-solid fa-list"></i>
-                    </button>
-                </div>
             </form>
         </section>
         <div class="collaboration-grid collab-grid-3 <?php echo ($view === 'list') ? 'collab-list-view' : ''; ?>">
