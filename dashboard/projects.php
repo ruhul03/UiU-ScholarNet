@@ -217,7 +217,7 @@ $result = $stmt->get_result();
                     </div>
                     <div class="search-container search-container-wide">
                         <i class="fa-solid fa-user-plus" style="opacity: 0.3;"></i>
-                        <input type="text" placeholder="Search by name or ORCID...">
+                        <input type="text" placeholder="Search by name or Student ID...">
                     </div>
                 </div>
 
