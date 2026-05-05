@@ -29,6 +29,10 @@ A full-stack academic research collaboration platform built for UIU students and
    - `DB_USER` (default `root`)
    - `DB_PASS` (default empty)
    - `DB_NAME` (default `uiu_scholarnet`)
+   - `EMAIL_USER` (Gmail address for password reset emails)
+   - `EMAIL_PASS` (Gmail App Password)
+   - `EMAIL_HOST` (default `smtp.gmail.com`)
+   - `EMAIL_PORT` (default `587`)
 
 4. **Access the site**:
    ```

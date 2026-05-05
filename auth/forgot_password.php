@@ -2,6 +2,9 @@
 require_once('../includes/session.php');
 start_secure_session();
 require_once('../includes/csrf.php');
+
+$pendingEmail = strtolower(trim((string)($_SESSION['password_reset_pending_email'] ?? '')));
+$showResetForm = ($pendingEmail !== '');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,16 +38,50 @@ require_once('../includes/csrf.php');
                     </div>
                 <?php endif; ?>
 
-                <form action="../actions/forgot_password.php" method="POST">
+                <?php if (isset($_SESSION['success'])): ?>
+                    <div class="alert-success">
+                        <i class="fa-solid fa-circle-check"></i> <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+                    </div>
+                <?php endif; ?>
+
+                <form action="../actions/forgot_password.php" method="POST" style="margin-bottom: 1.25rem;">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="action" value="request_code">
                     <div class="form-group">
                         <label>University Email</label>
-                        <input type="email" name="email" placeholder="you@uiu.ac.bd" required>
+                        <input type="email" name="email" placeholder="you@uiu.ac.bd" value="<?php echo htmlspecialchars($pendingEmail, ENT_QUOTES, 'UTF-8'); ?>" required>
                     </div>
                     <button type="submit" class="btn btn-secondary btn-full">
-                        Request Reset <i class="fa-solid fa-arrow-right"></i>
+                        Send Reset Code <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
+
+                <?php if ($showResetForm): ?>
+                    <form action="../actions/forgot_password.php" method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                        <input type="hidden" name="action" value="reset_password">
+                        <input type="hidden" name="email" value="<?php echo htmlspecialchars($pendingEmail, ENT_QUOTES, 'UTF-8'); ?>">
+
+                        <div class="form-group">
+                            <label>Reset Code</label>
+                            <input type="text" name="code" placeholder="Enter 6-digit code" pattern="[0-9]{6}" maxlength="6" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" name="password" placeholder="Minimum 8 characters" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" name="confirm_password" placeholder="Retype new password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-secondary btn-full">
+                            Verify Code & Reset <i class="fa-solid fa-check"></i>
+                        </button>
+                    </form>
+                <?php endif; ?>
 
                 <div class="auth-footer">
                     <a href="login.php">Back to Sign In</a>
