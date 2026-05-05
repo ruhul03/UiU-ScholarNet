@@ -16,10 +16,10 @@
         <a href="tasks.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'tasks.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-square-check"></i> Tasks
         </a>
-        <a href="document_editor.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'document_editor.php') ? 'active' : ''; ?>">
+        <a href="javascript:void(0)" class="menu-item">
             <i class="fa-solid fa-file-lines"></i> Document Editor
         </a>
-        <a href="messages.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'messages.php') ? 'active' : ''; ?>">
+        <a href="javascript:void(0)" class="menu-item">
             <i class="fa-solid fa-message"></i> Messages
         </a>
         <a href="file_upload.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'file_upload.php') ? 'active' : ''; ?>">
@@ -28,11 +28,11 @@
         <a href="resources.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'resources.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-book"></i> Resource Hub
         </a>
-        <a href="preprints.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'preprints.php' || basename($_SERVER['PHP_SELF']) == 'preprint_details.php') ? 'active' : ''; ?>">
+        <a href="javascript:void(0)" class="menu-item">
             <i class="fa-solid fa-file-pdf"></i> Preprints
         </a>
         <a href="profile.php" class="menu-item"><i class="fa-solid fa-award"></i> Reputation</a>
-        <a href="messages.php" class="menu-item"><i class="fa-solid fa-comments"></i> Research Discussion</a>
+        <a href="javascript:void(0)" class="menu-item"><i class="fa-solid fa-comments"></i> Research Discussion</a>
         <a href="profile.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'profile.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-user"></i> My Profile
         </a>

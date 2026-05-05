@@ -47,41 +47,6 @@
 
         <div class="hero-divider"></div>
     </section>
-
-    <!-- Features Section -->
-    <section class="landing-features">
-        <div class="feature-block">
-            <h2>Interdisciplinary Hub</h2>
-            <p>Break the silos between departments. Our platform allows every majors to build their projects seamlessly.</p>
-            <div class="feature-icon"><i class="fa-solid fa-folder-open"></i></div>
-        </div>
-        <div class="feature-block">
-            <h2 class="feature-faded">Resource Vault</h2>
-            <p class="feature-faded">Shared institutional storage for data and papers.</p>
-        </div>
-    </section>
-
-    <!-- Stats Section -->
-    <section class="big-stats">
-        <div class="stat-large">12K</div>
-        <div class="stat-label-bold">TASKS COMPLETED <br> THIS SEMESTER</div>
-
-        <div class="stat-small-grid">
-            <div class="stat-small-item">
-                <div class="value">2,400+</div>
-                <div class="label">Students</div>
-            </div>
-            <div class="stat-small-item">
-                <div class="value">380+</div>
-                <div class="label">Projects</div>
-            </div>
-            <div class="stat-small-item">
-                <div class="value">48</div>
-                <div class="label">Departments</div>
-            </div>
-        </div>
-    </section>
-
     <footer class="landing-footer">
         <div class="footer-copyright">&copy; 2026 UIU ScholarNet. All rights reserved.</div>
         <div class="footer-links">
