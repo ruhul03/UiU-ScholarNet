@@ -92,9 +92,9 @@ require_once('../includes/csrf.php');
                         <input type="password" name="password" placeholder="********" required>
                     </div>
 
-                    <div class="form-group remember-me-group" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                        <input type="checkbox" name="remember_me" id="rememberMe" style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--secondary-color);">
-                        <label for="rememberMe" style="font-size: 0.85rem; font-weight: 600; opacity: 0.7; cursor: pointer; margin-bottom: 0;">Stay logged in for 30 days</label>
+                    <div class="remember-me-container">
+                        <input type="checkbox" name="remember_me" id="rememberMe" class="remember-me-checkbox">
+                        <label for="rememberMe" class="remember-me-label">Stay logged in for 30 days</label>
                     </div>
 
                     <button type="submit" class="btn btn-secondary btn-full">
@@ -105,7 +105,7 @@ require_once('../includes/csrf.php');
                 <div class="auth-footer">
                     New to UIU ScholarNet? <a href="register.php">Create Account</a>
                     <div class="back-link">
-                        <a href="../index.php" style="color: inherit; font-weight: 500;"><i class="fa-solid fa-arrow-left"></i> Back to homepage</a>
+                        <a href="../index.php"><i class="fa-solid fa-arrow-left"></i> Back to homepage</a>
                     </div>
                 </div>
             </div>

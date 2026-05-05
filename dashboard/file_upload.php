@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['research_file'])) {
     $db_path = 'uploads/' . $file_name;
     $file_size_bytes = $file['size'];
 
-    // Human readable size
+
     if ($file_size_bytes >= 1073741824) {
         $file_size = round($file_size_bytes / 1073741824, 1) . ' GB';
     } elseif ($file_size_bytes >= 1048576) {
@@ -75,6 +75,8 @@ $crStmt->bind_param("i", $user_id);
 $crStmt->execute();
 $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
