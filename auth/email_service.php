@@ -236,17 +236,21 @@ function uiu_send_smtp_mail(string $toEmail, string $subject, string $htmlBody, 
 function uiu_send_password_reset_code(string $toEmail, string $code, int $expiresMinutes, string &$error): bool
 {
     $subject = 'UIU ScholarNet Password Reset Code';
-    $textBody = "Your UIU ScholarNet password reset code is: " . $code . "\n\n"
-        . "This code will expire in " . $expiresMinutes . " minutes.\n"
+    $textBody = "UIU ScholarNet Password Reset\n\n"
+        . "Your password reset code is:\n"
+        . $code . "\n\n"
+        . "This code will expire in " . $expiresMinutes . " minutes.\n\n"
         . "If you did not request this, you can ignore this email.";
 
-    $htmlBody = '<div style="font-family:Arial,sans-serif;line-height:1.6;">'
-        . '<h2 style="margin:0 0 12px;">UIU ScholarNet Password Reset</h2>'
-        . '<p>Your password reset code is:</p>'
-        . '<p style="font-size:28px;font-weight:700;letter-spacing:6px;margin:8px 0 12px;">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</p>'
-        . '<p>This code will expire in <strong>' . $expiresMinutes . ' minutes</strong>.</p>'
-        . '<p>If you did not request this, you can ignore this email.</p>'
-        . '</div>';
+    $spacedCode = implode(' ', str_split($code));
+    $htmlBody = '<!doctype html><html><body style="margin:0;padding:0;background:#ffffff;color:#111827;font-family:Arial,sans-serif;">'
+        . '<div style="max-width:640px;margin:0 auto;padding:28px 22px;">'
+        . '<h2 style="margin:0 0 24px 0;font-size:36px;line-height:1.2;font-weight:700;color:#111827;">UIU ScholarNet Password Reset</h2>'
+        . '<p style="margin:0 0 18px 0;font-size:22px;line-height:1.45;color:#111827;">Your password reset code is:</p>'
+        . '<p style="margin:0 0 30px 0;font-size:48px;line-height:1.1;letter-spacing:10px;font-weight:700;color:#111827;">' . htmlspecialchars($spacedCode, ENT_QUOTES, 'UTF-8') . '</p>'
+        . '<p style="margin:0 0 16px 0;font-size:26px;line-height:1.45;color:#111827;">This code will expire in <strong>' . $expiresMinutes . ' minutes</strong>.</p>'
+        . '<p style="margin:0;font-size:26px;line-height:1.45;color:#111827;">If you did not request this, you can ignore this email.</p>'
+        . '</div></body></html>';
 
     return uiu_send_smtp_mail($toEmail, $subject, $htmlBody, $textBody, $error);
 }
