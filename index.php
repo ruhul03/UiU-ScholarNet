@@ -63,8 +63,8 @@ if ($is_logged_in) {
                     <span>Dashboard</span>
                 </a>
             <?php else: ?>
-                <a href="auth/login.php" class="btn btn-outline landing-signin">
-                    <i class="fa-regular fa-user"></i> Sign In
+                <a href="auth/register.php" class="btn btn-outline landing-signin">
+                    <i class="fa-regular fa-user"></i> Sign Up
                 </a>
             <?php endif; ?>
         </div>

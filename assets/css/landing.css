@@ -90,12 +90,12 @@
 .landing-features {
     padding: 5rem;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3rem;
 }
 
 .feature-block h2 {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     margin-bottom: 1rem;
 }
 
@@ -146,6 +146,9 @@
 /* Inline styles moved from index.php */
 .landing-body {
     background-color: var(--bg-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .hero-label {
@@ -191,6 +194,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: auto;
 }
 
 .footer-copyright {
