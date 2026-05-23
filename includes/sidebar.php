@@ -10,16 +10,16 @@
         <a href="collaboration.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'collaboration.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-magnifying-glass"></i> Collaboration Finder
         </a>
-        <a href="projects.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'projects.php') ? 'active' : ''; ?>">
+        <a href="projects.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'projects.php' || basename($_SERVER['PHP_SELF']) == 'edit_project.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-folder"></i> Projects
         </a>
         <a href="tasks.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'tasks.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-square-check"></i> Tasks
         </a>
-        <a href="javascript:void(0)" class="menu-item">
+        <a href="document_editor.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'document_editor.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-file-lines"></i> Document Editor
         </a>
-        <a href="javascript:void(0)" class="menu-item">
+        <a href="messages.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'messages.php' && (!isset($_GET['channel']) || $_GET['channel'] !== 'discussion')) ? 'active' : ''; ?>">
             <i class="fa-solid fa-message"></i> Messages
         </a>
         <a href="file_upload.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'file_upload.php') ? 'active' : ''; ?>">
@@ -28,18 +28,21 @@
         <a href="resources.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'resources.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-book"></i> Resource Hub
         </a>
-        <a href="javascript:void(0)" class="menu-item">
+        <a href="preprints.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'preprints.php' || basename($_SERVER['PHP_SELF']) == 'preprint_details.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-file-pdf"></i> Preprints
         </a>
-        <a href="profile.php" class="menu-item"><i class="fa-solid fa-award"></i> Reputation</a>
-        <a href="javascript:void(0)" class="menu-item"><i class="fa-solid fa-comments"></i> Research Discussion</a>
+        <a href="reputation.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'reputation.php') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-award"></i> Reputation
+        </a>
+        <a href="research_discussion.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'research_discussion.php' || basename($_SERVER['PHP_SELF']) == 'discussion_thread.php') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-comments"></i> Research Discussion
+        </a>
         <a href="profile.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'profile.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-user"></i> My Profile
         </a>
     </nav>
 
     <div class="sidebar-footer">
-        <a href="profile.php" class="menu-item"><i class="fa-solid fa-gear"></i> Settings</a>
         <a href="../auth/logout.php" class="menu-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         
         <div class="user-profile-small">

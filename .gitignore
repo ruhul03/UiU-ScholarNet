@@ -3,4 +3,7 @@
 
 .env
 .env.*
+.agents
+skills-lock.json
+.gemini
 

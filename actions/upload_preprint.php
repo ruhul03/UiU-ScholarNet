@@ -22,10 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $dest_path = '../' . $file_path;
         
         if (move_uploaded_file($_FILES['preprint_file']['tmp_name'], $dest_path)) {
+            // QUERY: Insert the preprint details (title, abstract, keywords, local file path) into preprints table
             $stmt = $conn->prepare("INSERT INTO preprints (title, abstract, keywords, file_path, author_id, project_id, visibility, license_type, accepted_copyright) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->bind_param("ssssisssi", $title, $abstract, $keywords, $file_path, $user_id, $project_id, $visibility, $license_type, $accepted_copyright);
             
             if ($stmt->execute()) {
+                // REPUTATION POINTS: Award +100 points to the author for uploading their research preprint
+                $ptsStmt = $conn->prepare("UPDATE users SET points = points + 100 WHERE id = ?");
+                $ptsStmt->bind_param("i", $user_id);
+                $ptsStmt->execute();
+                
                 header("Location: ../dashboard/preprints.php");
                 exit();
             } else {

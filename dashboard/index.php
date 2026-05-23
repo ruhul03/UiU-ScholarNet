@@ -1,62 +1,35 @@
 <?php
 require_once('../includes/auth_check.php');
+require_once('../includes/layout.php');
 
-// Fetch Home Stats
-$pstmt = $conn->prepare("SELECT COUNT(*) as total FROM projects WHERE creator_id = ?");
-$pstmt->bind_param("i", $user_id);
-$pstmt->execute();
-$projects_total = (int)($pstmt->get_result()->fetch_assoc()['total'] ?? 0);
-
-$tstmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status = 'done'");
-$tstmt->bind_param("i", $user_id);
-$tstmt->execute();
-$tasks = (int)($tstmt->get_result()->fetch_assoc()['total'] ?? 0);
-
-$fstmt = $conn->prepare("SELECT COUNT(*) as total FROM resources WHERE user_id = ?");
-$fstmt->bind_param("i", $user_id);
-$fstmt->execute();
-$files = (int)($fstmt->get_result()->fetch_assoc()['total'] ?? 0);
+// Fetch Home Stats using db_query
+$projects_total = (int)(db_query("SELECT COUNT(*) as total FROM projects WHERE creator_id = ?", [$user_id])->fetch_assoc()['total'] ?? 0);
+$tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status = 'done'", [$user_id])->fetch_assoc()['total'] ?? 0);
+$files = (int)(db_query("SELECT COUNT(*) as total FROM resources WHERE user_id = ?", [$user_id])->fetch_assoc()['total'] ?? 0);
 
 // Fetch Projects for the popup
-$listStmt = $conn->prepare("SELECT * FROM projects WHERE creator_id = ? ORDER BY created_at DESC LIMIT 4");
-$listStmt->bind_param("i", $user_id);
-$listStmt->execute();
-$projects_list_result = $listStmt->get_result();
+$projects_list_result = db_query("SELECT * FROM projects WHERE creator_id = ? ORDER BY created_at DESC LIMIT 4", [$user_id]);
 
 // Pending tasks
-$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
-$ptStmt->bind_param("i", $user_id);
-$ptStmt->execute();
-$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'", [$user_id])->fetch_assoc()['total'] ?? 0);
 
 // Collaboration requests
-$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
-$crStmt->bind_param("i", $user_id);
-$crStmt->execute();
-$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'", [$user_id])->fetch_assoc()['total'] ?? 0);
 
 // Spotlight project
-$spotlightStmt = $conn->prepare("SELECT * FROM projects WHERE creator_id = ? AND status != 'completed' ORDER BY progress DESC LIMIT 1");
-$spotlightStmt->bind_param("i", $user_id);
-$spotlightStmt->execute();
-$spotlightProject = $spotlightStmt->get_result()->fetch_assoc();
+$spotlightProject = db_query("SELECT * FROM projects WHERE creator_id = ? AND status != 'completed' ORDER BY progress DESC LIMIT 1", [$user_id])->fetch_assoc();
 
 // Recent Activity (Applications)
-$actStmt = $conn->prepare("SELECT ca.created_at, u.full_name, cp.title 
-                           FROM collaboration_applications ca 
-                           JOIN collaboration_posts cp ON ca.post_id = cp.id 
-                           JOIN users u ON ca.user_id = u.id 
-                           WHERE cp.user_id = ? 
-                           ORDER BY ca.created_at DESC LIMIT 2");
-$actStmt->bind_param("i", $user_id);
-$actStmt->execute();
-$recent_activities = $actStmt->get_result();
+$recent_activities = db_query("SELECT ca.created_at, u.full_name, cp.title 
+                               FROM collaboration_applications ca 
+                               JOIN collaboration_posts cp ON ca.post_id = cp.id 
+                               JOIN users u ON ca.user_id = u.id 
+                               WHERE cp.user_id = ? 
+                               ORDER BY ca.created_at DESC LIMIT 2", [$user_id]);
 
 // Recent Tasks
-$recentTaskStmt = $conn->prepare("SELECT title, created_at, status FROM tasks WHERE assigned_to = ? ORDER BY created_at DESC LIMIT 2");
-$recentTaskStmt->bind_param("i", $user_id);
-$recentTaskStmt->execute();
-$recent_tasks = $recentTaskStmt->get_result();
+$recent_tasks = db_query("SELECT title, created_at, status FROM tasks WHERE assigned_to = ? ORDER BY created_at DESC LIMIT 2", [$user_id]);
+
 // Merge activities
 $activities = [];
 while ($row = $recent_activities->fetch_assoc()) {
@@ -107,23 +80,8 @@ function time_elapsed_string($datetime, $full = false) {
     if (!$full) $string = array_slice($string, 0, 1);
     return $string ? implode(', ', $string) . ' ago' : 'just now';
 }
+layout_header("Dashboard | UIU ScholarNet");
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | UIU ScholarNet</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
-</head>
-<body class="dashboard-page">
 
     <?php include('../includes/sidebar.php'); ?>
 
@@ -136,7 +94,7 @@ function time_elapsed_string($datetime, $full = false) {
                 <input type="text" placeholder="Search projects, researchers, or papers...">
             </div>
             <div class="nav-actions">
-                <a href="#" class="notification-icon">
+                <a href="notifications.php" class="notification-icon">
                     <i class="fa-regular fa-bell"></i>
                     <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
                         <span class="notification-dot"></span>
@@ -162,7 +120,7 @@ function time_elapsed_string($datetime, $full = false) {
             ?>
             <h1><?php echo $greeting; ?>, <?php echo htmlspecialchars(explode(' ', $user_data['full_name'])[0]); ?> 👋</h1>
             <p>You have <?php echo $pending_tasks; ?> pending tasks and <?php echo $collab_requests; ?> new collaboration requests today.</p>
-            
+
             <div class="dash-actions">
                 <a href="collaboration.php" class="btn btn-primary btn-collab"><i class="fa-solid fa-plus"></i> Post Collaboration</a>
                 <button class="btn btn-outline btn-view-projects" onclick="openProjectsModal()">View My Projects</button>
@@ -206,7 +164,7 @@ function time_elapsed_string($datetime, $full = false) {
             <!-- Left: Activity -->
             <section class="activity-feed">
                 <h3>Recent Activity</h3>
-                
+
                 <?php if (empty($activities)): ?>
                     <p class="text-muted" style="color: var(--text-light); margin-top: 1rem;">No recent activity to show.</p>
                 <?php else: ?>
@@ -274,7 +232,7 @@ function time_elapsed_string($datetime, $full = false) {
         <div class="modal-content modal-wide">
             <i class="fa-solid fa-xmark modal-close" onclick="closeProjectsModal()"></i>
             <h2 class="modal-title">My Active Projects</h2>
-            
+
             <div class="popup-project-list">
                 <?php while($proj = $projects_list_result->fetch_assoc()): ?>
                 <div class="popup-project-item">
@@ -375,6 +333,4 @@ function time_elapsed_string($datetime, $full = false) {
         </div>
     </div>
 
-    <script src="../assets/js/dashboard.js"></script>
-</body>
-</html>
+    <?php layout_footer(['../assets/js/dashboard.js']); ?>

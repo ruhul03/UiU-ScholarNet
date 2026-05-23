@@ -248,7 +248,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
             <div class="header-actions">
 
                 <div class="header-icons">
-                    <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative;">
+                    <a href="notifications.php" class="notification-icon" style="color: inherit; text-decoration: none; position: relative;">
                         <i class="fa-regular fa-bell header-icon"></i>
                         <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
                             <span class="notification-dot" style="top: 0px; right: 2px;"></span>
