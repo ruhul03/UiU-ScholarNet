@@ -69,7 +69,7 @@ $result = $stmt->get_result();
                 <input type="text" placeholder="Search repository, projects, or collaborators...">
             </div>
             <div class="header-actions">
-                <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
+                <a href="notifications.php" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
                     <i class="fa-regular fa-bell header-icon"></i>
                     <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
                         <span class="notification-dot" style="top: 0px; right: 2px;"></span>

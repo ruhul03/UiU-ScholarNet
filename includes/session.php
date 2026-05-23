@@ -24,3 +24,15 @@ function start_secure_session(int $lifetime = 0): void {
     session_start();
 }
 
+function redirect_with_error(string $url, string $message): void {
+    $_SESSION['error'] = $message;
+    header("Location: $url");
+    exit();
+}
+
+function redirect_with_success(string $url, string $message): void {
+    $_SESSION['success'] = $message;
+    header("Location: $url");
+    exit();
+}
+?>

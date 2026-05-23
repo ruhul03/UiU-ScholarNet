@@ -1,3 +1,18 @@
+<?php
+require_once(__DIR__ . '/includes/session.php');
+start_secure_session();
+$is_logged_in = isset($_SESSION['user_id']);
+$user_data = null;
+if ($is_logged_in) {
+    require_once(__DIR__ . '/includes/db_connect.php');
+    $user_id = (int)$_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $user_result = $stmt->get_result();
+    $user_data = $user_result->fetch_assoc();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +27,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/landing.css">
 </head>
 <body class="landing-body">
 
@@ -21,16 +37,36 @@
             <div class="logo">UIU ScholarNet</div>
         </div>
 
-        <!-- Navigation Removed -->
+        <nav class="landing-header-center">
+            <?php if ($is_logged_in): ?>
+                <a href="dashboard/index.php">Dashboard</a>
+                <a href="dashboard/collaboration.php">Collaboration</a>
+                <a href="dashboard/projects.php">Projects</a>
+                <a href="dashboard/tasks.php">Tasks</a>
+                <a href="dashboard/preprints.php">Preprints</a>
+            <?php else: ?>
+                <a href="#features">Features</a>
+                <a href="#stats">Impact</a>
+                <a href="auth/register.php">Register</a>
+                <a href="auth/login.php">Explore</a>
+            <?php endif; ?>
+        </nav>
 
         <div class="landing-header-right">
             <div class="landing-header-icons" aria-label="Actions">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <i class="fa-regular fa-bell"></i>
             </div>
-            <a href="auth/login.php" class="btn btn-outline landing-signin">
-                <i class="fa-regular fa-user"></i> Sign In
-            </a>
+            <?php if ($is_logged_in && $user_data): ?>
+                <a href="dashboard/index.php" class="btn btn-outline landing-signin" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" style="width: 24px; height: 24px; border-radius: 50%;">
+                    <span>Dashboard</span>
+                </a>
+            <?php else: ?>
+                <a href="auth/login.php" class="btn btn-outline landing-signin">
+                    <i class="fa-regular fa-user"></i> Sign In
+                </a>
+            <?php endif; ?>
         </div>
     </header>
 
@@ -41,12 +77,84 @@
         <p>Connect with researchers, form teams, manage projects, and share knowledge across your university — all in one place.</p>
 
         <div class="hero-btns">
-            <a href="auth/register.php" class="btn btn-primary hero-btn-primary">Get Started Free <i class="fa-solid fa-arrow-right"></i></a>
-            <a href="auth/login.php" class="btn btn-secondary hero-btn-secondary">Log In</a>
+            <?php if ($is_logged_in): ?>
+                <a href="dashboard/index.php" class="btn btn-primary hero-btn-primary">Go to Dashboard <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="dashboard/projects.php" class="btn btn-secondary hero-btn-secondary">My Workspace</a>
+            <?php else: ?>
+                <a href="auth/register.php" class="btn btn-primary hero-btn-primary">Get Started Free <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="auth/login.php" class="btn btn-secondary hero-btn-secondary">Log In</a>
+            <?php endif; ?>
         </div>
 
         <div class="hero-divider"></div>
     </section>
+
+    <!-- Features Section -->
+    <section class="landing-features" id="features">
+        <div class="feature-block">
+            <div class="feature-icon"><i class="fa-solid fa-user-group"></i></div>
+            <h2>Collaboration Finder</h2>
+            <p>Connect with student and faculty researchers across different departments. Post opportunities, form multidisciplinary teams, and establish clear academic partnerships.</p>
+            <a href="<?php echo $is_logged_in ? 'dashboard/collaboration.php' : 'auth/login.php'; ?>" class="btn btn-outline">Explore Board <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+
+        <div class="feature-block">
+            <div class="feature-icon"><i class="fa-solid fa-list-check"></i></div>
+            <h2>Kanban Logistics</h2>
+            <p>Organize academic workflow, allocate milestones, assign deadlines, and track development. Keep your research team aligned and project momentum high.</p>
+            <a href="<?php echo $is_logged_in ? 'dashboard/tasks.php' : 'auth/login.php'; ?>" class="btn btn-outline">Manage Tasks <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+
+        <div class="feature-block">
+            <div class="feature-icon"><i class="fa-solid fa-file-pdf"></i></div>
+            <h2>Preprint Registry</h2>
+            <p>Share early-stage manuscripts and research drafts before formal publication. Receive structured peer reviews, comment feedback, and citation tracking from the community.</p>
+            <a href="<?php echo $is_logged_in ? 'dashboard/preprints.php' : 'auth/login.php'; ?>" class="btn btn-outline">Read Preprints <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+
+        <div class="feature-block">
+            <div class="feature-icon"><i class="fa-solid fa-book-bookmark"></i></div>
+            <h2>Resource Hub</h2>
+            <p>Access and download dataset archives, past reports, research templates, and general publications. Store resources in secure project storage with visibility controls.</p>
+            <a href="<?php echo $is_logged_in ? 'dashboard/resources.php' : 'auth/login.php'; ?>" class="btn btn-outline">Browse Resources <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="big-stats" id="stats">
+        <div class="stat-large">2.4k+</div>
+        <div class="stat-label-bold">Academic Citations & Contributions Logged</div>
+        
+        <div class="stat-small-grid">
+            <div class="stat-small-item">
+                <div class="value">150+</div>
+                <div class="label">Research Projects</div>
+            </div>
+            <div class="stat-small-item">
+                <div class="value">420+</div>
+                <div class="label">Active Researchers</div>
+            </div>
+            <div class="stat-small-item">
+                <div class="value">85%</div>
+                <div class="label">Task Completion Rate</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Banner -->
+    <section class="landing-cta" style="padding: 8rem 5rem; background: var(--primary-color); color: var(--white); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem;">
+        <h2 style="font-size: 3rem; font-family: var(--font-heading); max-width: 800px; line-height: 1.2;">Ready to accelerate your research journey?</h2>
+        <p style="opacity: 0.8; max-width: 600px; font-size: 1.1rem;">Connect with ScholarNet's brightest minds today, launch project workspaces, and publish findings.</p>
+        <div>
+            <?php if ($is_logged_in): ?>
+                <a href="dashboard/index.php" class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color); padding: 1rem 2.5rem; font-size: 1rem;">Go to Dashboard <i class="fa-solid fa-arrow-right"></i></a>
+            <?php else: ?>
+                <a href="auth/register.php" class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color); padding: 1rem 2.5rem; font-size: 1rem;">Get Started Free <i class="fa-solid fa-arrow-right"></i></a>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer class="landing-footer">
         <div class="footer-copyright">&copy; 2026 UIU ScholarNet. All rights reserved.</div>
         <div class="footer-links">

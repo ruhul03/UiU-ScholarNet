@@ -47,10 +47,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $slots_total = 100;
     }
 
+    // QUERY: Create a new row in the collaboration_posts table
     $stmt = $conn->prepare("INSERT INTO collaboration_posts (user_id, title, department, description, skills_required, opportunity_type, status, slots_total, project_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("issssssii", $user_id, $title, $department, $description, $skills, $opportunity_type, $status, $slots_total, $project_id);
 
     if ($stmt->execute()) {
+        // REPUTATION POINTS: Award +20 points to the user for posting a collaboration invitation
+        $ptsStmt = $conn->prepare("UPDATE users SET points = points + 20 WHERE id = ?");
+        $ptsStmt->bind_param("i", $user_id);
+        $ptsStmt->execute();
+        
         $_SESSION['success'] = "Collaboration request posted successfully!";
     } else {
         $_SESSION['error'] = "Database error. Please try again.";

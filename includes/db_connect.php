@@ -39,4 +39,31 @@ if (!$conn) {
 }
 
 mysqli_set_charset($conn, "utf8mb4");
+
+function db_query($sql, $params = [], $types = "") {
+    global $conn;
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die("Query preparation failed: " . mysqli_error($conn));
+    }
+    if ($params) {
+        if (empty($types)) {
+            $types = "";
+            foreach ($params as $param) {
+                if (is_int($param)) {
+                    $types .= "i";
+                } elseif (is_double($param)) {
+                    $types .= "d";
+                } else {
+                    $types .= "s";
+                }
+            }
+        }
+        $stmt->bind_param($types, ...$params);
+    }
+    if (!$stmt->execute()) {
+        die("Query execution failed: " . $stmt->error);
+    }
+    return $stmt->get_result();
+}
 ?>
