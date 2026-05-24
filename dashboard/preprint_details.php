@@ -57,17 +57,7 @@ $comments = $c_stmt->get_result();
     <?php include('../includes/sidebar.php'); ?>
 
     <main class="main-content">
-        <header class="dash-header dash-header-resources">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search...">
-            </div>
-            <div class="header-actions">
-                <div class="user-profile-small">
-                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" alt="User">
-                </div>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="p-details-section">
             <a href="preprints.php" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Preprints</a>

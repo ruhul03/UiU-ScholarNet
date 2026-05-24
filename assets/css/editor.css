@@ -338,3 +338,19 @@
     font-weight: 700;
     margin-top: 1rem;
 }
+
+/* Quill.js overrides */
+.ql-toolbar.ql-snow {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px 8px 0 0;
+    background: #f9f9f9;
+}
+.ql-container.ql-snow {
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: #fff;
+    height: 500px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+}

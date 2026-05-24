@@ -18,8 +18,8 @@ $profileStmt->bind_param("i", $user_id);
 $profileStmt->execute();
 $profileData = $profileStmt->get_result()->fetch_assoc();
 
-$projectsStmt = $conn->prepare("SELECT COUNT(*) AS total FROM projects WHERE creator_id = ?");
-$projectsStmt->bind_param("i", $user_id);
+$projectsStmt = $conn->prepare("SELECT COUNT(DISTINCT p.id) AS total FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.creator_id = ? OR pm.user_id = ?");
+$projectsStmt->bind_param("iii", $user_id, $user_id, $user_id);
 $projectsStmt->execute();
 $projectsTotal = (int)($projectsStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
@@ -79,15 +79,7 @@ $skillTags = array_values(
     <?php include('../includes/sidebar.php'); ?>
 
     <main class="main-content">
-        <header class="dash-header">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search archive...">
-            </div>
-            <button type="button" class="btn btn-primary profile-edit-btn" id="openProfileEdit">
-                <i class="fa-solid fa-pen"></i> Edit Profile
-            </button>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="profile-headline">
             <h1>The Scholar's Profile</h1>

@@ -88,24 +88,7 @@ $departments = [
     <?php include('../includes/sidebar.php'); ?>
 
     <main class="main-content">
-        <header class="dash-header dash-header-xl">
-            <div class="breadcrumb-nav">
-                <a href="projects.php">PROJECTS</a>
-                <i class="fa-solid fa-chevron-right"></i>
-                <span>EDIT PROJECT ENTRY</span>
-            </div>
-            <div class="header-actions">
-                <a href="notifications.php" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
-                    <?php endif; ?>
-                </a>
-                <a href="profile.php" style="color: inherit; text-decoration: none;">
-                    <i class="fa-regular fa-user header-icon"></i>
-                </a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="edit-hero" style="margin-bottom: 3rem;">
             <div class="section-label">INSTITUTIONAL REPOSITORY / CURATION</div>

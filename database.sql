@@ -38,6 +38,18 @@ CREATE TABLE IF NOT EXISTS projects (
     FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- 2.1 Project Members
+CREATE TABLE IF NOT EXISTS project_members (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role ENUM('owner', 'editor', 'viewer') DEFAULT 'viewer',
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_project_user (project_id, user_id),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- 3. Tasks Table (KanBan)
 CREATE TABLE IF NOT EXISTS tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -120,6 +132,18 @@ CREATE TABLE IF NOT EXISTS documents (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (last_edited_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 7.1 Document Versions
+CREATE TABLE IF NOT EXISTS document_versions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    document_id INT NOT NULL,
+    version_name VARCHAR(100),
+    content LONGTEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- ===========================

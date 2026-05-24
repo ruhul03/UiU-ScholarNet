@@ -34,11 +34,17 @@ foreach ($columnsToEnsure as $columnName => $alterSql) {
     }
 }
 
-// Fetch user's projects for linking
+// Fetch User's Projects for creating post dropdown
 $userProjects = [];
 if (isset($_SESSION['user_id'])) {
-    $upStmt = $conn->prepare("SELECT id, title FROM projects WHERE creator_id = ? ORDER BY title ASC");
-    $upStmt->bind_param("i", $user_id);
+    $upStmt = $conn->prepare("
+        SELECT p.id, p.title 
+        FROM projects p 
+        LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? 
+        WHERE p.creator_id = ? OR pm.role IN ('owner', 'editor')
+        ORDER BY p.title ASC
+    ");
+    $upStmt->bind_param("ii", $user_id, $user_id);
     $upStmt->execute();
     $upRes = $upStmt->get_result();
     while ($p = $upRes->fetch_assoc()) {
@@ -235,31 +241,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
     <?php include('../includes/sidebar.php'); ?>
 
     <main class="main-content">
-        <header class="dash-header dash-header-collab">
-            <form method="GET" class="search-container collab-search-form">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" name="q" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search opportunities...">
-                <input type="hidden" name="department" value="<?php echo htmlspecialchars($department); ?>">
-                <input type="hidden" name="skill" value="<?php echo htmlspecialchars($skill); ?>">
-                <input type="hidden" name="type" value="<?php echo htmlspecialchars($type); ?>">
-                <input type="hidden" name="view" value="<?php echo htmlspecialchars($view); ?>">
-                <input type="hidden" name="tab" value="<?php echo htmlspecialchars($tab); ?>">
-            </form>
-            <div class="header-actions">
-
-                <div class="header-icons">
-                    <a href="notifications.php" class="notification-icon" style="color: inherit; text-decoration: none; position: relative;">
-                        <i class="fa-regular fa-bell header-icon"></i>
-                        <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                            <span class="notification-dot" style="top: 0px; right: 2px;"></span>
-                        <?php endif; ?>
-                    </a>
-                    <a href="profile.php" style="color: inherit; text-decoration: none;">
-                        <i class="fa-regular fa-user header-icon"></i>
-                    </a>
-                </div>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="discovery-header">
             <div class="discovery-main">

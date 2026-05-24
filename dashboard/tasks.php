@@ -18,33 +18,40 @@ $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 // Fetch team members
 $teamStmt = $conn->prepare("
     SELECT DISTINCT u.id, u.full_name 
-    FROM tasks t 
-    JOIN projects p ON t.project_id = p.id 
-    JOIN users u ON t.assigned_to = u.id 
-    WHERE p.creator_id = ? AND t.assigned_to IS NOT NULL 
-    LIMIT 5
+    FROM project_members pm
+    JOIN projects p ON pm.project_id = p.id
+    LEFT JOIN project_members me ON p.id = me.project_id AND me.user_id = ?
+    JOIN users u ON pm.user_id = u.id
+    WHERE p.creator_id = ? OR me.user_id = ?
 ");
-$teamStmt->bind_param("i", $user_id);
+$teamStmt->bind_param("iii", $user_id, $user_id, $user_id);
 $teamStmt->execute();
 $team_members = $teamStmt->get_result();
 
 // Fetch Projects for the dropdown
-$pstmt = $conn->prepare("SELECT id, title FROM projects WHERE creator_id = ? ORDER BY created_at DESC");
-$pstmt->bind_param("i", $user_id);
+$pstmt = $conn->prepare("
+    SELECT p.id, p.title 
+    FROM projects p
+    LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+    WHERE p.creator_id = ? OR pm.user_id = ?
+    ORDER BY p.created_at DESC
+");
+$pstmt->bind_param("iii", $user_id, $user_id, $user_id);
 $pstmt->execute();
 $projects_result = $pstmt->get_result();
 
 // Fetch Tasks
 $task_sql = "SELECT t.*, p.title as project_title FROM tasks t 
              JOIN projects p ON t.project_id = p.id 
-             WHERE p.creator_id = ?";
+             LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+             WHERE (p.creator_id = ? OR pm.user_id = ?)";
 if ($project_id) {
     $task_sql .= " AND t.project_id = ?";
     $tstmt = $conn->prepare($task_sql);
-    $tstmt->bind_param("ii", $user_id, $project_id);
+    $tstmt->bind_param("iiii", $user_id, $user_id, $user_id, $project_id);
 } else {
     $tstmt = $conn->prepare($task_sql);
-    $tstmt->bind_param("i", $user_id);
+    $tstmt->bind_param("iii", $user_id, $user_id, $user_id);
 }
 $tstmt->execute();
 $task_result = $tstmt->get_result();
@@ -78,25 +85,7 @@ while ($task = $task_result->fetch_assoc()) {
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header dash-header-xl">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search tasks and projects...">
-            </div>
-            <div class="header-actions">
-                <a href="notifications.php" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
-                    <?php endif; ?>
-                </a>
-                <a href="profile.php" style="color: inherit; text-decoration: none;">
-                    <i class="fa-regular fa-user header-icon"></i>
-                </a>
-                <div class="divider-v"></div>
-                <button class="btn btn-primary btn-new-task" onclick="openModal()">+ NEW TASKS</button>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section>
             <div class="section-label">PROJECT LOGISTICS / ACTIVE SPRINT</div>

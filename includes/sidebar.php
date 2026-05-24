@@ -54,3 +54,97 @@
         </div>
     </div>
 </aside>
+
+<?php
+// Ensure table exists for notifications
+$conn->query("CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type VARCHAR(50) DEFAULT 'system',
+    title VARCHAR(255) NOT NULL,
+    message TEXT,
+    is_read TINYINT(1) DEFAULT 0,
+    link VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)");
+
+// Fetch latest notifications for the popup
+$notifStmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
+$notifStmt->bind_param("i", $user_id);
+$notifStmt->execute();
+$popup_notifs = $notifStmt->get_result();
+
+if (!function_exists('getSidebarNotifIcon')) {
+    function getSidebarNotifIcon($type) {
+        switch ($type) {
+            case 'message': return '<i class="fa-solid fa-envelope"></i>';
+            case 'reputation': return '<i class="fa-solid fa-trophy"></i>';
+            case 'collaboration': return '<i class="fa-solid fa-handshake"></i>';
+            default: return '<i class="fa-solid fa-bell"></i>';
+        }
+    }
+}
+?>
+<!-- Notification Popup Container -->
+<div id="notificationPopup" style="display:none; position:fixed; right:30px; top:80px; width:320px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,0.15); border-radius:12px; z-index:9999; padding:15px; border:1px solid #eee;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+        <h3 style="margin:0; font-size:1.1rem; color:var(--text-color);">Notifications</h3>
+        <a href="notifications.php?mark_read=all" style="font-size:0.75rem; color:var(--primary-color); text-decoration:none;">Mark all read</a>
+    </div>
+    <div style="max-height: 350px; overflow-y: auto;">
+        <?php if ($popup_notifs && $popup_notifs->num_rows > 0): ?>
+            <?php while($n = $popup_notifs->fetch_assoc()): ?>
+                <div style="padding:10px 0; border-bottom:1px solid #f5f5f5; <?php echo $n['is_read'] ? 'opacity:0.6;' : 'background:#f8f7f2; padding:10px; border-radius:8px; margin-bottom:5px;'; ?>">
+                    <div style="font-size:0.85rem; color:#0a1128; font-weight:600;"><?php echo getSidebarNotifIcon($n['type']); ?> <?php echo htmlspecialchars($n['title']); ?></div>
+                    <div style="font-size:0.75rem; color:#666; margin-top:5px; line-height:1.4;"><?php echo htmlspecialchars($n['message']); ?></div>
+                    <div style="margin-top:8px; display:flex; justify-content:space-between;">
+                        <span style="font-size:0.7rem; color:#999;"><?php echo date('M j, g:i a', strtotime($n['created_at'])); ?></span>
+                        <?php if ($n['link']): ?>
+                            <a href="<?php echo htmlspecialchars($n['link']); ?>" style="font-size:0.75rem; color:var(--secondary-color); text-decoration:none; font-weight:600;">View</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <div style="font-size:0.85rem; color:#666; text-align:center; padding:30px 0;">
+                <i class="fa-regular fa-bell-slash" style="font-size: 2rem; opacity:0.5; margin-bottom:10px; display:block;"></i>
+                No new notifications.
+            </div>
+        <?php endif; ?>
+    </div>
+    <div style="text-align:center; margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
+        <a href="notifications.php" style="font-size:0.8rem; color:var(--primary-color); text-decoration:none; font-weight:600;">View All Notifications</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const notifIcons = document.querySelectorAll('.notification-icon');
+    const popup = document.getElementById('notificationPopup');
+    
+    notifIcons.forEach(icon => {
+        icon.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Position near icon
+            const rect = this.getBoundingClientRect();
+            popup.style.top = (rect.bottom + 15) + 'px';
+            popup.style.right = (window.innerWidth - rect.right - 10) + 'px';
+            
+            if (popup.style.display === 'none') {
+                popup.style.display = 'block';
+            } else {
+                popup.style.display = 'none';
+            }
+        });
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.closest('.notification-icon')) {
+            popup.style.display = 'none';
+        }
+    });
+});
+</script>

@@ -1,12 +1,10 @@
 <?php
-// ==========================================
+
 // STEP 1: INITIALIZATION & SECURITY
-// ==========================================
-// We use simple procedural PHP for beginner developers to easily trace the logic.
+
 require_once('../includes/auth_check.php');
 require_once('../includes/csrf.php');
 
-// ==========================================
 // STEP 2: DEFINE STATIC CHANNELS
 // ==========================================
 $channels_map = [
@@ -15,23 +13,31 @@ $channels_map = [
         'badge' => 'GD',
         'color' => 'bg-blue',
         'desc' => 'General chat for all researchers.'
-    ],
-    'modernist_lab' => [
-        'name' => 'Modernist Lab',
-        'badge' => 'ML',
-        'color' => 'bg-orange',
-        'desc' => 'Research on 20th-century preservation.'
-    ],
-    'architectural_studies' => [
-        'name' => 'Architectural Studies',
-        'badge' => 'AS',
-        'color' => 'bg-gray',
-        'desc' => 'Focus group for architecture.'
     ]
 ];
 
+// Fetch projects user is involved in
+$pStmt = $conn->prepare("
+    SELECT p.id, p.title, p.description 
+    FROM projects p
+    LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+    WHERE p.creator_id = ? OR pm.user_id = ?
+");
+$pStmt->bind_param("iii", $user_id, $user_id, $user_id);
+$pStmt->execute();
+$pRes = $pStmt->get_result();
+while ($p = $pRes->fetch_assoc()) {
+    $c_name = 'project_' . $p['id'];
+    $channels_map[$c_name] = [
+        'name' => htmlspecialchars($p['title']),
+        'badge' => strtoupper(substr($p['title'], 0, 2)),
+        'color' => 'bg-orange',
+        'desc' => htmlspecialchars(substr($p['description'] ?? 'Project Channel', 0, 30) . '...')
+    ];
+}
+
 // Add custom dynamic channels from database
-$custom_channels_res = mysqli_query($conn, "SELECT DISTINCT channel FROM messages WHERE channel NOT IN ('general', 'modernist_lab', 'architectural_studies')");
+$custom_channels_res = mysqli_query($conn, "SELECT DISTINCT channel FROM messages WHERE channel NOT IN ('general') AND channel NOT LIKE 'project_%'");
 if ($custom_channels_res) {
     while ($row = mysqli_fetch_assoc($custom_channels_res)) {
         $c_name = $row['channel'];
@@ -44,9 +50,8 @@ if ($custom_channels_res) {
     }
 }
 
-// ==========================================
 // STEP 3: ROUTING & FETCHING MESSAGES
-// ==========================================
+
 $chat_user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
 $channel = '';
 $chat_target_info = [];
@@ -108,12 +113,34 @@ if ($chat_user_id === 0) {
     $messages = $mstmt->get_result();
 }
 
-// Fetch users for the sidebar
-$dm_users_res = mysqli_query($conn, "SELECT id, full_name, role FROM users WHERE id != " . (int)$user_id . " ORDER BY full_name ASC LIMIT 10");
+// Fetch users for the sidebar (Connections from projects OR users you've DM'd)
+$dmStmt = $conn->prepare("
+    SELECT DISTINCT u.id, u.full_name, u.role
+    FROM users u
+    WHERE u.id != ? 
+    AND (
+        EXISTS (
+            SELECT 1 FROM project_members pm1
+            JOIN project_members pm2 ON pm1.project_id = pm2.project_id
+            WHERE pm1.user_id = u.id AND pm2.user_id = ?
+        )
+        OR
+        EXISTS (
+            SELECT 1 FROM messages m
+            WHERE (m.sender_id = ? AND m.receiver_id = u.id) 
+               OR (m.sender_id = u.id AND m.receiver_id = ?)
+        )
+    )
+    ORDER BY u.full_name ASC
+    LIMIT 50
+");
+$dmStmt->bind_param("iiii", $user_id, $user_id, $user_id, $user_id);
+$dmStmt->execute();
+$dm_users_res = $dmStmt->get_result();
 
-// ==========================================
+
 // STEP 4: PRESENTATION (HTML UI)
-// ==========================================
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -239,26 +266,46 @@ $dm_users_res = mysqli_query($conn, "SELECT id, full_name, role FROM users WHERE
 
                 <h4 class="info-section-title">Shared Media</h4>
                 <div class="media-grid">
-                    <div class="media-item"></div>
-                    <div class="media-item"></div>
-                    <div class="media-item"></div>
+                    <?php 
+                    $mediaStmt = $conn->prepare("SELECT id, title, file_path, created_at FROM resources WHERE user_id = ? ORDER BY created_at DESC LIMIT 3");
+                    $mediaStmt->bind_param("i", $user_id);
+                    $mediaStmt->execute();
+                    $mediaRes = $mediaStmt->get_result();
+                    if ($mediaRes->num_rows > 0):
+                        while ($m = $mediaRes->fetch_assoc()):
+                    ?>
+                        <div class="media-item" title="<?php echo htmlspecialchars($m['title']); ?>" style="background-image: url('../<?php echo htmlspecialchars($m['file_path']); ?>'); background-size: cover; background-position: center; border: 1px solid rgba(0,0,0,0.1);"></div>
+                    <?php endwhile; else: ?>
+                        <div style="font-size: 0.85rem; color: var(--text-light); text-align: center; margin-top: 1rem; grid-column: span 3;">No media uploaded.</div>
+                    <?php endif; ?>
                 </div>
 
                 <h4 class="info-section-title">Pinned Artifacts</h4>
+                <?php 
+                $docStmt = $conn->prepare("
+                    SELECT d.id, d.title, d.created_at, p.title as project_title 
+                    FROM documents d
+                    JOIN projects p ON d.project_id = p.id
+                    LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+                    WHERE p.creator_id = ? OR pm.user_id = ?
+                    ORDER BY d.created_at DESC LIMIT 2
+                ");
+                $docStmt->bind_param("iii", $user_id, $user_id, $user_id);
+                $docStmt->execute();
+                $docRes = $docStmt->get_result();
+                if ($docRes->num_rows > 0):
+                    while ($d = $docRes->fetch_assoc()):
+                ?>
                 <div class="pinned-card">
-                    <i class="fa-solid fa-file-pdf" style="color: var(--primary-color); font-size: 1.5rem;"></i>
+                    <i class="fa-solid fa-file-lines" style="color: var(--primary-color); font-size: 1.5rem;"></i>
                     <div>
-                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-color);">Project_Brief.pdf</div>
-                        <div style="font-size: 0.7rem; color: var(--text-color); opacity: 0.6;">Added 2 days ago</div>
+                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-color);"><?php echo htmlspecialchars($d['title']); ?></div>
+                        <div style="font-size: 0.7rem; color: var(--text-color); opacity: 0.6;">In <?php echo htmlspecialchars($d['project_title']); ?></div>
                     </div>
                 </div>
-                <div class="pinned-card">
-                    <i class="fa-solid fa-link" style="color: var(--primary-color); font-size: 1.5rem;"></i>
-                    <div>
-                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-color);">Figma Design</div>
-                        <div style="font-size: 0.7rem; color: var(--text-color); opacity: 0.6;">External Link</div>
-                    </div>
-                </div>
+                <?php endwhile; else: ?>
+                    <div style="font-size: 0.85rem; color: var(--text-light); text-align: center; margin-top: 1rem;">No pinned artifacts found.</div>
+                <?php endif; ?>
             </aside>
         </div>
     </main>

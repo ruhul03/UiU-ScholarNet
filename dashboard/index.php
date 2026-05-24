@@ -3,12 +3,12 @@ require_once('../includes/auth_check.php');
 require_once('../includes/layout.php');
 
 // Fetch Home Stats using db_query
-$projects_total = (int)(db_query("SELECT COUNT(*) as total FROM projects WHERE creator_id = ?", [$user_id])->fetch_assoc()['total'] ?? 0);
+$projects_total = (int)(db_query("SELECT COUNT(DISTINCT p.id) as total FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.creator_id = ? OR pm.user_id = ?", [$user_id, $user_id, $user_id])->fetch_assoc()['total'] ?? 0);
 $tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status = 'done'", [$user_id])->fetch_assoc()['total'] ?? 0);
 $files = (int)(db_query("SELECT COUNT(*) as total FROM resources WHERE user_id = ?", [$user_id])->fetch_assoc()['total'] ?? 0);
 
 // Fetch Projects for the popup
-$projects_list_result = db_query("SELECT * FROM projects WHERE creator_id = ? ORDER BY created_at DESC LIMIT 4", [$user_id]);
+$projects_list_result = db_query("SELECT p.* FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.creator_id = ? OR pm.user_id = ? ORDER BY p.created_at DESC LIMIT 4", [$user_id, $user_id, $user_id]);
 
 // Pending tasks
 $pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'", [$user_id])->fetch_assoc()['total'] ?? 0);
@@ -17,7 +17,7 @@ $pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assig
 $collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'", [$user_id])->fetch_assoc()['total'] ?? 0);
 
 // Spotlight project
-$spotlightProject = db_query("SELECT * FROM projects WHERE creator_id = ? AND status != 'completed' ORDER BY progress DESC LIMIT 1", [$user_id])->fetch_assoc();
+$spotlightProject = db_query("SELECT p.* FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE (p.creator_id = ? OR pm.user_id = ?) AND p.status != 'completed' ORDER BY p.progress DESC LIMIT 1", [$user_id, $user_id, $user_id])->fetch_assoc();
 
 // Recent Activity (Applications)
 $recent_activities = db_query("SELECT ca.created_at, u.full_name, cp.title 
@@ -88,21 +88,7 @@ layout_header("Dashboard | UIU ScholarNet");
     <!-- Main Content -->
     <main class="main-content">
         <!-- Header -->
-        <header class="dash-header">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search projects, researchers, or papers...">
-            </div>
-            <div class="nav-actions">
-                <a href="notifications.php" class="notification-icon">
-                    <i class="fa-regular fa-bell"></i>
-                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                        <span class="notification-dot"></span>
-                    <?php endif; ?>
-                </a>
-                <a href="profile.php" class="btn btn-outline"><i class="fa-regular fa-user"></i> Account</a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <?php include('../includes/alerts.php'); ?>
 
@@ -316,12 +302,16 @@ layout_header("Dashboard | UIU ScholarNet");
 
                 <div class="invite-researchers">
                     <label class="invite-label">INVITE RESEARCHERS</label>
-                    <div class="researcher-tags" id="invitedResearchers">
-                        <!-- Dynamic tags will appear here -->
-                    </div>
                     <div class="search-container search-container-wide">
-                        <i class="fa-solid fa-user-plus" style="opacity: 0.3;"></i>
-                        <input type="text" placeholder="Search by name or Student ID...">
+                        <select name="invited_users[]" class="form-input-light" multiple style="height: auto; min-height: 100px;">
+                            <?php 
+                            $users_res = db_query("SELECT id, full_name, role FROM users WHERE id != ? ORDER BY full_name ASC", [$user_id]);
+                            while($u = $users_res->fetch_assoc()):
+                            ?>
+                                <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['full_name']); ?> (<?php echo ucfirst($u['role']); ?>)</option>
+                            <?php endwhile; ?>
+                        </select>
+                        <small style="color:#666; font-size:0.75rem; margin-top:5px; display:block;">Hold Ctrl (Windows) or Command (Mac) to select multiple users.</small>
                     </div>
                 </div>
 

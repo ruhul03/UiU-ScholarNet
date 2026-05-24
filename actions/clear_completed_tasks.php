@@ -15,12 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $project_id = isset($_POST['project_id']) ? (int)$_POST['project_id'] : 0;
 
     // We only clear tasks from projects owned by the user
-    if ($project_id > 0) {
-        $stmt = $conn->prepare("DELETE t FROM tasks t JOIN projects p ON t.project_id = p.id WHERE t.status = 'done' AND t.project_id = ? AND p.creator_id = ?");
-        $stmt->bind_param("ii", $project_id, $user_id);
+    if ($project_id) {
+        $stmt = $conn->prepare("DELETE t FROM tasks t JOIN projects p ON t.project_id = p.id LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? WHERE t.status = 'done' AND t.project_id = ? AND (p.creator_id = ? OR pm.role IN ('owner', 'editor'))");
+        $stmt->bind_param("iii", $user_id, $project_id, $user_id);
     } else {
-        $stmt = $conn->prepare("DELETE t FROM tasks t JOIN projects p ON t.project_id = p.id WHERE t.status = 'done' AND p.creator_id = ?");
-        $stmt->bind_param("i", $user_id);
+        $stmt = $conn->prepare("DELETE t FROM tasks t JOIN projects p ON t.project_id = p.id LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? WHERE t.status = 'done' AND (p.creator_id = ? OR pm.role IN ('owner', 'editor'))");
+        $stmt->bind_param("ii", $user_id, $user_id);
     }
 
     if ($stmt->execute()) {

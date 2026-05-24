@@ -98,23 +98,7 @@ $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header dash-header-upload">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search archive...">
-            </div>
-            <div class="header-actions">
-                <a href="notifications.php" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
-                    <?php endif; ?>
-                </a>
-                <a href="profile.php" style="color: inherit; text-decoration: none;">
-                    <i class="fa-regular fa-user header-icon"></i>
-                </a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="upload-section">
             <h1 class="filemanager-title">File Manager</h1>

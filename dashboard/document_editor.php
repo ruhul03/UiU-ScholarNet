@@ -4,9 +4,15 @@ require_once('../includes/csrf.php');
 
 $document_id = isset($_GET['document_id']) ? (int)$_GET['document_id'] : 0;
 
-// Projects for dropdown (only user's own projects for now)
-$pstmt = $conn->prepare("SELECT id, title FROM projects WHERE creator_id = ? ORDER BY created_at DESC");
-$pstmt->bind_param("i", $user_id);
+// Projects for dropdown (user's own projects or where they are an editor/owner)
+$pstmt = $conn->prepare("
+    SELECT p.id, p.title 
+    FROM projects p
+    LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
+    WHERE p.creator_id = ? OR pm.role IN ('owner', 'editor')
+    ORDER BY p.created_at DESC
+");
+$pstmt->bind_param("ii", $user_id, $user_id);
 $pstmt->execute();
 $projects_result = $pstmt->get_result();
 
@@ -24,10 +30,11 @@ if ($document_id > 0) {
         SELECT d.*
         FROM documents d
         JOIN projects p ON p.id = d.project_id
-        WHERE d.id = ? AND p.creator_id = ?
+        LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
+        WHERE d.id = ? AND (p.creator_id = ? OR pm.role IN ('owner', 'editor', 'viewer'))
         LIMIT 1
     ");
-    $dstmt->bind_param("ii", $document_id, $user_id);
+    $dstmt->bind_param("iii", $user_id, $document_id, $user_id);
     $dstmt->execute();
     $dres = $dstmt->get_result();
     $found = $dres ? $dres->fetch_assoc() : null;
@@ -35,6 +42,42 @@ if ($document_id > 0) {
         $doc = array_merge($doc, $found);
         $doc['id'] = (int)$doc['id'];
         $doc['project_id'] = (int)$doc['project_id'];
+    }
+}
+
+$team_members = [];
+$versions = [];
+
+if ($doc['project_id'] > 0) {
+    // Fetch project creator
+    $cstmt = $conn->prepare("SELECT u.id, u.full_name, 'owner' as role FROM users u JOIN projects p ON p.creator_id = u.id WHERE p.id = ?");
+    $cstmt->bind_param("i", $doc['project_id']);
+    $cstmt->execute();
+    $cRes = $cstmt->get_result();
+    if ($cRes && $row = $cRes->fetch_assoc()) {
+        $team_members[] = $row;
+    }
+    
+    // Fetch members
+    $mstmt = $conn->prepare("SELECT u.id, u.full_name, pm.role FROM project_members pm JOIN users u ON pm.user_id = u.id WHERE pm.project_id = ? ORDER BY pm.added_at ASC");
+    $mstmt->bind_param("i", $doc['project_id']);
+    $mstmt->execute();
+    $mRes = $mstmt->get_result();
+    while ($mRes && $row = $mRes->fetch_assoc()) {
+        $is_dup = false;
+        foreach($team_members as $tm) { if($tm['id'] == $row['id']) $is_dup = true; }
+        if(!$is_dup) $team_members[] = $row;
+    }
+}
+
+if ($doc['id'] > 0) {
+    // Fetch versions
+    $vstmt = $conn->prepare("SELECT v.*, u.full_name FROM document_versions v LEFT JOIN users u ON v.created_by = u.id WHERE v.document_id = ? ORDER BY v.created_at DESC");
+    $vstmt->bind_param("i", $doc['id']);
+    $vstmt->execute();
+    $vRes = $vstmt->get_result();
+    while ($vRes && $row = $vRes->fetch_assoc()) {
+        $versions[] = $row;
     }
 }
 ?>
@@ -52,6 +95,8 @@ if ($document_id > 0) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
 <body class="dashboard-page">
 
@@ -59,19 +104,7 @@ if ($document_id > 0) {
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header dash-header-editor">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search research papers, collaborators...">
-            </div>
-            <div class="header-actions">
-                <i class="fa-regular fa-bell header-icon"></i>
-                <div class="user-badge">
-                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" class="user-badge-img">
-                    <span class="user-badge-name"><?php echo $user_data['full_name']; ?></span>
-                </div>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <div class="editor-layout">
             <!-- Left: Main Editor Area -->
@@ -127,27 +160,13 @@ if ($document_id > 0) {
                         </div>
                     </div>
 
-                <!-- Toolbar -->
-                <div class="editor-toolbar">
-                    <div class="toolbar-btn"><strong>B</strong></div>
-                    <div class="toolbar-btn"><em>I</em></div>
-                    <div class="toolbar-btn"><u>U</u></div>
-                    <div style="width: 1px; height: 20px; background: #eee; margin: 0 0.5rem; align-self: center;"></div>
-                    <div class="toolbar-btn"><i class="fa-solid fa-align-left"></i></div>
-                    <div class="toolbar-btn"><i class="fa-solid fa-align-center"></i></div>
-                    <div class="toolbar-btn"><i class="fa-solid fa-list-ul"></i></div>
-                    <div style="width: 1px; height: 20px; background: #eee; margin: 0 0.5rem; align-self: center;"></div>
-                    <div class="toolbar-btn"><i class="fa-solid fa-link"></i></div>
-                    <div class="toolbar-btn"><i class="fa-regular fa-image"></i></div>
-                    <div class="toolbar-btn"><i class="fa-solid fa-ellipsis-vertical"></i></div>
-                </div>
-
                 <!-- Editor Body -->
-                <div class="editor-main">
+                <div class="editor-main" style="padding: 0; background: transparent; border: none; box-shadow: none;">
                     <label class="editor-label">CONTENT</label>
-                    <textarea name="content" rows="18" class="textarea-editor"><?php
-                        echo htmlspecialchars($doc['content'] !== '' ? (string)$doc['content'] : "## Introduction\n\nWrite your research notes, methodology, and draft sections here.\n\n## References\n\n- Add citations and links...");
-                    ?></textarea>
+                    <div id="quill-editor"><?php
+                        echo $doc['content'] !== '' ? $doc['content'] : "<h2>Introduction</h2><p>Write your research notes, methodology, and draft sections here.</p><h2>References</h2><ul><li>Add citations and links...</li></ul>";
+                    ?></div>
+                    <input type="hidden" name="content" id="hidden-content">
                 </div>
                 </form>
             </div>
@@ -173,50 +192,36 @@ if ($document_id > 0) {
                 <section class="version-section">
                     <h4>TEAM MEMBERS <a href="#" class="invite-link">Invite</a></h4>
                     <div class="team-list">
-                        <div class="team-member">
-                            <img src="https://ui-avatars.com/api/?name=Sabbir+Ahmed&background=0a1128&color=fff" class="team-member-img">
-                            <div>
-                                <div class="team-member-name">Sabbir Ahmed</div>
-                                <div class="team-member-role">Owner</div>
+                        <?php if (empty($team_members)): ?>
+                            <p style="font-size: 0.85rem; opacity: 0.6;">No project selected.</p>
+                        <?php else: ?>
+                            <?php foreach($team_members as $tm): ?>
+                            <div class="team-member">
+                                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($tm['full_name']); ?>&background=random&color=fff" class="team-member-img">
+                                <div>
+                                    <div class="team-member-name"><?php echo htmlspecialchars($tm['full_name']); ?></div>
+                                    <div class="team-member-role"><?php echo ucfirst(htmlspecialchars($tm['role'])); ?></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="team-member">
-                            <img src="https://ui-avatars.com/api/?name=Dr+Mithila&background=000&color=fff" class="team-member-img">
-                            <div>
-                                <div class="team-member-name">Dr. Mithila</div>
-                                <div class="team-member-role">Editor</div>
-                            </div>
-                        </div>
-                        <div class="team-member">
-                            <img src="https://ui-avatars.com/api/?name=K+H+Khan&background=ccc&color=fff" class="team-member-img">
-                            <div>
-                                <div class="team-member-name">K. H. Khan</div>
-                                <div class="team-member-role">Viewer</div>
-                            </div>
-                        </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                 </section>
 
                 <section class="version-history">
                     <h4>VERSION HISTORY</h4>
-                    <div class="version-item active">
-                        <div class="version-info">
-                            <h5>v2.4 Final Submission Draft</h5>
-                            <p>Today, 12:10 PM by Aryan</p>
+                    <?php if (empty($versions)): ?>
+                        <p style="font-size: 0.85rem; opacity: 0.6;">No version history yet.</p>
+                    <?php else: ?>
+                        <?php $first = true; foreach($versions as $v): ?>
+                        <div class="version-item <?php echo $first ? 'active' : ''; ?>">
+                            <div class="version-info">
+                                <h5><?php echo htmlspecialchars($v['version_name']); ?></h5>
+                                <p><?php echo date('M d, g:i A', strtotime($v['created_at'])); ?> by <?php echo htmlspecialchars($v['full_name'] ?? 'Unknown'); ?></p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="version-item">
-                        <div class="version-info">
-                            <h5>v2.3 Added Bibliography</h5>
-                            <p>Yesterday, 4:45 PM by Elena</p>
-                        </div>
-                    </div>
-                    <div class="version-item">
-                        <div class="version-info">
-                            <h5>v2.1 Structural Changes</h5>
-                            <p>Oct 12, 9:00 AM by Julian</p>
-                        </div>
-                    </div>
+                        <?php $first = false; endforeach; ?>
+                    <?php endif; ?>
                     
                     <button class="btn btn-outline view-all-btn">View All Versions</button>
                 </section>
@@ -224,5 +229,40 @@ if ($document_id > 0) {
         </div>
     </main>
 
+    <!-- Quill.js JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        var quill = new Quill('#quill-editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{ 'header': 1 }, { 'header': 2 }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'font': [] }],
+                    [{ 'align': [] }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Write your research notes, methodology, and draft sections here...'
+        });
+
+        // Sync Quill HTML content to hidden input before form submit
+        var form = document.querySelector('form[action="../actions/save_document.php"]');
+        var hiddenContent = document.querySelector('#hidden-content');
+        
+        form.onsubmit = function() {
+            // Using quill.root.innerHTML gets the exact HTML of the content
+            hiddenContent.value = quill.root.innerHTML;
+            return true;
+        };
+    </script>
 </body>
 </html>

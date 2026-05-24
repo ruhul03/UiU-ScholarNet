@@ -42,17 +42,7 @@ $top_3 = isset($ranked_users[2]) ? $ranked_users[2] : null;
     <!-- Main Content -->
     <main class="main-content">
         <!-- Header -->
-        <header class="dash-header">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search leaderboard...">
-            </div>
-            <div class="header-actions">
-                <a href="profile.php" style="color: inherit; text-decoration: none;">
-                    <i class="fa-regular fa-user header-icon"></i>
-                </a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <div class="reputation-container">
             <section class="reputation-headline">

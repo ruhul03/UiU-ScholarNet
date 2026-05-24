@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($project_id > 0 && !empty($title)) {
         // Verify ownership
-        $stmt = $conn->prepare("SELECT id FROM projects WHERE id = ? AND creator_id = ? LIMIT 1");
-        $stmt->bind_param("ii", $project_id, $user_id);
+        $stmt = $conn->prepare("SELECT p.id FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.id = ? AND (p.creator_id = ? OR pm.role IN ('owner', 'editor')) LIMIT 1");
+        $stmt->bind_param("iii", $user_id, $project_id, $user_id);
         $stmt->execute();
         
         if ($stmt->get_result()->num_rows === 1) {

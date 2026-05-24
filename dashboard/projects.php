@@ -14,16 +14,21 @@ $crStmt->execute();
 $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
 // Insights queries
-$activeProjStmt = $conn->prepare("SELECT COUNT(*) as total FROM projects WHERE creator_id = ? AND status = 'active'");
-$activeProjStmt->bind_param("i", $user_id);
+$activeProjStmt = $conn->prepare("
+    SELECT COUNT(DISTINCT p.id) as total 
+    FROM projects p 
+    LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? 
+    WHERE (p.creator_id = ? OR pm.user_id = ?) AND p.status = 'active'
+");
+$activeProjStmt->bind_param("iii", $user_id, $user_id, $user_id);
 $activeProjStmt->execute();
 $active_projects = (int)($activeProjStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
 $collabStmt = $conn->prepare("
-    SELECT COUNT(DISTINCT t.assigned_to) as total 
-    FROM tasks t 
-    JOIN projects p ON t.project_id = p.id 
-    WHERE p.creator_id = ? AND t.assigned_to != ? AND t.assigned_to IS NOT NULL
+    SELECT COUNT(DISTINCT m.user_id) as total 
+    FROM project_members m 
+    JOIN project_members me ON m.project_id = me.project_id 
+    WHERE me.user_id = ? AND m.user_id != ?
 ");
 $collabStmt->bind_param("ii", $user_id, $user_id);
 $collabStmt->execute();
@@ -32,13 +37,14 @@ $peer_collaborators = (int)($collabStmt->get_result()->fetch_assoc()['total'] ??
 // Fetch Projects
 $stmt = $conn->prepare("
     SELECT p.*, 
-           (SELECT COUNT(DISTINCT assigned_to) FROM tasks WHERE project_id = p.id AND assigned_to IS NOT NULL) as contributors_count,
+           (SELECT COUNT(DISTINCT user_id) FROM project_members WHERE project_id = p.id) as contributors_count,
            (SELECT COUNT(*) FROM collaboration_posts WHERE project_id = p.id AND status = 'open') as active_collabs
     FROM projects p 
-    WHERE p.creator_id = ? 
+    LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
+    WHERE p.creator_id = ? OR pm.user_id = ?
     ORDER BY p.created_at DESC
 ");
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("iii", $user_id, $user_id, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
@@ -63,23 +69,7 @@ $result = $stmt->get_result();
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header dash-header-lg">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search repository, projects, or collaborators...">
-            </div>
-            <div class="header-actions">
-                <a href="notifications.php" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
-                    <?php endif; ?>
-                </a>
-                <a href="profile.php" class="user-info" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-regular fa-user header-icon"></i>
-                </a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="projects-section">
             <div class="projects-header">
@@ -211,12 +201,19 @@ $result = $stmt->get_result();
 
                 <div class="invite-researchers">
                     <label class="invite-label">INVITE RESEARCHERS</label>
-                    <div class="researcher-tags" id="invitedResearchersProject">
-                        <!-- Dynamic tags will appear here -->
-                    </div>
                     <div class="search-container search-container-wide">
-                        <i class="fa-solid fa-user-plus" style="opacity: 0.3;"></i>
-                        <input type="text" placeholder="Search by name or Student ID...">
+                        <select name="invited_users[]" class="form-input-light" multiple style="height: auto; min-height: 100px;">
+                            <?php 
+                            $users_stmt = $conn->prepare("SELECT id, full_name, role FROM users WHERE id != ? ORDER BY full_name ASC");
+                            $users_stmt->bind_param("i", $user_id);
+                            $users_stmt->execute();
+                            $users_res = $users_stmt->get_result();
+                            while($u = $users_res->fetch_assoc()):
+                            ?>
+                                <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['full_name']); ?> (<?php echo ucfirst($u['role']); ?>)</option>
+                            <?php endwhile; ?>
+                        </select>
+                        <small style="color:#666; font-size:0.75rem; margin-top:5px; display:block;">Hold Ctrl (Windows) or Command (Mac) to select multiple users.</small>
                     </div>
                 </div>
 

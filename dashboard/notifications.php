@@ -91,16 +91,7 @@ function getNotifIcon($type) {
     <?php include('../includes/sidebar.php'); ?>
 
     <main class="main-content">
-        <header class="dash-header">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search archive...">
-            </div>
-            <div class="header-actions">
-                <a href="settings.php" style="color: inherit;"><i class="fa-solid fa-gear"></i></a>
-                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" class="header-avatar">
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-end;">
             <div>

@@ -15,14 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $project_id = (int)($_POST['project_id'] ?? 0);
 
     if ($project_id > 0) {
-        // Verify ownership
-        $stmt = $conn->prepare("SELECT id FROM projects WHERE id = ? AND creator_id = ? LIMIT 1");
-        $stmt->bind_param("ii", $project_id, $user_id);
+        // First verify ownership
+        $stmt = $conn->prepare("SELECT p.id FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.id = ? AND (p.creator_id = ? OR pm.role = 'owner') LIMIT 1");
+        $stmt->bind_param("iii", $user_id, $project_id, $user_id);
         $stmt->execute();
         
         if ($stmt->get_result()->num_rows === 1) {
-            $delStmt = $conn->prepare("DELETE FROM projects WHERE id = ? AND creator_id = ?");
-            $delStmt->bind_param("ii", $project_id, $user_id);
+            $delStmt = $conn->prepare("DELETE FROM projects WHERE id = ?");
+            $delStmt->bind_param("i", $project_id);
             
             if ($delStmt->execute()) {
                 $_SESSION['success'] = "Project removed successfully.";

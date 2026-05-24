@@ -31,8 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Ensure project belongs to current user (basic access control)
-    $pstmt = $conn->prepare("SELECT id FROM projects WHERE id = ? AND creator_id = ? LIMIT 1");
-    $pstmt->bind_param("ii", $project_id, $current_user);
+    $pstmt = $conn->prepare("SELECT p.id FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.id = ? AND (p.creator_id = ? OR pm.role IN ('owner', 'editor')) LIMIT 1");
+    $pstmt->bind_param("iii", $current_user, $project_id, $current_user);
     $pstmt->execute();
     $pRes = $pstmt->get_result();
     if (!$pRes || $pRes->num_rows !== 1) {

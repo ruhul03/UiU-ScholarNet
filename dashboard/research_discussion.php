@@ -42,18 +42,7 @@ layout_header("Research Discussion | UIU ScholarNet");
     <?php include('../includes/sidebar.php'); ?>
 
     <main class="main-content">
-        <header class="dash-header dash-header-resources">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search discussions...">
-            </div>
-            <div class="nav-actions">
-                <a href="notifications.php" class="notification-icon">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                </a>
-                <a href="profile.php" class="btn btn-outline"><i class="fa-regular fa-user"></i> Account</a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <div class="discussion-container">
             <div class="discussion-header">
