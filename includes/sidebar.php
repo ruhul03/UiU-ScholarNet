@@ -69,8 +69,26 @@ $conn->query("CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )");
 
+// Handle mark as read
+if (isset($_GET['mark_read'])) {
+    if ($_GET['mark_read'] === 'all') {
+        $mrStmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
+        $mrStmt->bind_param("i", $user_id);
+        $mrStmt->execute();
+    } else {
+        $notif_id = (int)$_GET['mark_read'];
+        $mrStmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
+        $mrStmt->bind_param("ii", $notif_id, $user_id);
+        $mrStmt->execute();
+    }
+    // Remove query param to prevent resubmission
+    $url = strtok($_SERVER["REQUEST_URI"], '?');
+    header("Location: " . $url);
+    exit;
+}
+
 // Fetch latest notifications for the popup
-$notifStmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
+$notifStmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
 $notifStmt->bind_param("i", $user_id);
 $notifStmt->execute();
 $popup_notifs = $notifStmt->get_result();
@@ -90,7 +108,7 @@ if (!function_exists('getSidebarNotifIcon')) {
 <div id="notificationPopup" style="display:none; position:fixed; right:30px; top:80px; width:320px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,0.15); border-radius:12px; z-index:9999; padding:15px; border:1px solid #eee;">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
         <h3 style="margin:0; font-size:1.1rem; color:var(--text-color);">Notifications</h3>
-        <a href="notifications.php?mark_read=all" style="font-size:0.75rem; color:var(--primary-color); text-decoration:none;">Mark all read</a>
+        <a href="?mark_read=all" style="font-size:0.75rem; color:var(--primary-color); text-decoration:none;">Mark all read</a>
     </div>
     <div style="max-height: 350px; overflow-y: auto;">
         <?php if ($popup_notifs && $popup_notifs->num_rows > 0): ?>
@@ -112,9 +130,6 @@ if (!function_exists('getSidebarNotifIcon')) {
                 No new notifications.
             </div>
         <?php endif; ?>
-    </div>
-    <div style="text-align:center; margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
-        <a href="notifications.php" style="font-size:0.8rem; color:var(--primary-color); text-decoration:none; font-weight:600;">View All Notifications</a>
     </div>
 </div>
 
