@@ -184,27 +184,30 @@ $spotlightStmt = $conn->prepare(
 $spotlightStmt->execute();
 $spotlight = $spotlightStmt->get_result()->fetch_assoc();
 
-$departments = [
-    "Computer Science & Engineering",
-    "Electrical & Electronic Engineering",
-    "Civil Engineering",
-    "Business Administration",
-    "Economics",
-    "Data Science",
-    "Biotechnology",
-    "Pharmacy",
-    "Mathematics",
-    "English",
-    "Media Studies & Journalism"
-];
+$departments = [];
+$depRes = $conn->query("SELECT name FROM departments ORDER BY name ASC");
+if ($depRes) {
+    while ($row = $depRes->fetch_assoc()) {
+        $departments[] = $row['name'];
+    }
+}
 
-$types = [
-    "Research", "Software", "Dataset", "Paper", "Thesis", 
-    "Case Study", "Survey", "Experiment", "Analysis", 
-    "Prototyping", "Field Work"
-];
+$types = [];
+$typeRes = $conn->query("SELECT name FROM opportunity_types ORDER BY name ASC");
+if ($typeRes) {
+    while ($row = $typeRes->fetch_assoc()) {
+        $types[] = $row['name'];
+    }
+}
 
-$commonSkills = ["Python", "Java", "LaTeX", "SPSS", "R", "Machine Learning", "Data Analysis", "React", "Node.js", "PHP", "SQL"];
+$commonSkills = [];
+$skillRes = $conn->query("SELECT name FROM skills ORDER BY name ASC");
+if ($skillRes) {
+    while ($row = $skillRes->fetch_assoc()) {
+        $commonSkills[] = $row['name'];
+    }
+}
+
 $skillPool = [];
 $skillsResult = $conn->query("SELECT skills_required FROM collaboration_posts WHERE skills_required IS NOT NULL AND skills_required <> '' ORDER BY created_at DESC LIMIT 100");
 if ($skillsResult) {
@@ -468,33 +471,17 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                         <label>Department</label>
                         <select name="department" class="form-input-bordered" required>
                             <option value="">Select Department</option>
-                            <option value="Computer Science & Engineering">Computer Science & Engineering (CSE)</option>
-                            <option value="Electrical & Electronic Engineering">Electrical & Electronic Engineering (EEE)</option>
-                            <option value="Civil Engineering">Civil Engineering (CE)</option>
-                            <option value="Business Administration">Business Administration (BBA)</option>
-                            <option value="Economics">Economics</option>
-                            <option value="Data Science">Data Science</option>
-                            <option value="Biotechnology">Biotechnology</option>
-                            <option value="Pharmacy">Pharmacy</option>
-                            <option value="Mathematics">Mathematics</option>
-                            <option value="English">English</option>
-                            <option value="Media Studies & Journalism">Media Studies & Journalism (MSJ)</option>
+                            <?php foreach ($departments as $dep): ?>
+                                <option value="<?php echo htmlspecialchars($dep); ?>"><?php echo htmlspecialchars($dep); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Opportunity Type</label>
                         <select name="opportunity_type" class="form-input-bordered" required>
-                            <option value="Research">Research</option>
-                            <option value="Software">Software</option>
-                            <option value="Dataset">Dataset</option>
-                            <option value="Paper">Paper</option>
-                            <option value="Thesis">Thesis</option>
-                            <option value="Case Study">Case Study</option>
-                            <option value="Survey">Survey</option>
-                            <option value="Experiment">Experiment</option>
-                            <option value="Analysis">Analysis</option>
-                            <option value="Prototyping">Prototyping</option>
-                            <option value="Field Work">Field Work</option>
+                            <?php foreach ($types as $t): ?>
+                                <option value="<?php echo htmlspecialchars($t); ?>"><?php echo htmlspecialchars($t); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                 </div>

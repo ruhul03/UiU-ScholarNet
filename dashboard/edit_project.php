@@ -28,19 +28,13 @@ if (!$project) {
     exit();
 }
 
-$departments = [
-    "Computer Science & Engineering",
-    "Electrical & Electronic Engineering",
-    "Civil Engineering",
-    "Business Administration",
-    "Economics",
-    "Data Science",
-    "Biotechnology",
-    "Pharmacy",
-    "Mathematics",
-    "English",
-    "Media Studies & Journalism"
-];
+$departments = [];
+$depRes = $conn->query("SELECT name FROM departments ORDER BY name ASC");
+if ($depRes) {
+    while ($row = $depRes->fetch_assoc()) {
+        $departments[] = $row['name'];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

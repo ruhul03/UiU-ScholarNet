@@ -216,3 +216,37 @@ CREATE TABLE IF NOT EXISTS reports (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (reported_by) REFERENCES users(id) ON DELETE CASCADE
 );
+
+ - -   1 1 .   D e p a r t m e n t s   T a b l e 
+ C R E A T E   T A B L E   I F   N O T   E X I S T S   d e p a r t m e n t s   ( 
+         i d   I N T   A U T O _ I N C R E M E N T   P R I M A R Y   K E Y , 
+         n a m e   V A R C H A R ( 1 0 0 )   U N I Q U E   N O T   N U L L 
+ ) ; 
+ I N S E R T   I G N O R E   I N T O   d e p a r t m e n t s   ( n a m e )   V A L U E S   
+ ( ' C o m p u t e r   S c i e n c e   &   E n g i n e e r i n g ' ) , 
+ ( ' E l e c t r i c a l   &   E l e c t r o n i c   E n g i n e e r i n g ' ) , 
+ ( ' B u s i n e s s   A d m i n i s t r a t i o n ' ) , 
+ ( ' E c o n o m i c s ' ) , 
+ ( ' E n g l i s h ' ) , 
+ ( ' M e d i a   S t u d i e s   &   J o u r n a l i s m ' ) , 
+ ( ' D a t a   S c i e n c e ' ) ; 
+ 
+ - -   1 2 .   O p p o r t u n i t y   T y p e s 
+ C R E A T E   T A B L E   I F   N O T   E X I S T S   o p p o r t u n i t y _ t y p e s   ( 
+         i d   I N T   A U T O _ I N C R E M E N T   P R I M A R Y   K E Y , 
+         n a m e   V A R C H A R ( 5 0 )   U N I Q U E   N O T   N U L L 
+ ) ; 
+ I N S E R T   I G N O R E   I N T O   o p p o r t u n i t y _ t y p e s   ( n a m e )   V A L U E S   
+ ( ' R e s e a r c h ' ) ,   ( ' S o f t w a r e ' ) ,   ( ' D a t a s e t ' ) ,   ( ' P a p e r ' ) ,   ( ' T h e s i s ' ) ,   
+ ( ' C a s e   S t u d y ' ) ,   ( ' S u r v e y ' ) ,   ( ' E x p e r i m e n t ' ) ,   ( ' A n a l y s i s ' ) ,   ( ' O t h e r ' ) ; 
+ 
+ - -   1 3 .   S k i l l s   T a b l e 
+ C R E A T E   T A B L E   I F   N O T   E X I S T S   s k i l l s   ( 
+         i d   I N T   A U T O _ I N C R E M E N T   P R I M A R Y   K E Y , 
+         n a m e   V A R C H A R ( 5 0 )   U N I Q U E   N O T   N U L L 
+ ) ; 
+ I N S E R T   I G N O R E   I N T O   s k i l l s   ( n a m e )   V A L U E S   
+ ( ' P y t h o n ' ) ,   ( ' J a v a ' ) ,   ( ' L a T e X ' ) ,   ( ' S P S S ' ) ,   ( ' R ' ) ,   
+ ( ' M a c h i n e   L e a r n i n g ' ) ,   ( ' D a t a   A n a l y s i s ' ) ,   ( ' R e a c t ' ) ,   ( ' N o d e . j s ' ) ,   ( ' P H P ' ) ,   ( ' S Q L ' ) ; 
+  
+ 

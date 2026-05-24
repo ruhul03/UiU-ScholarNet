@@ -14,6 +14,11 @@ while ($row = $leadRes->fetch_assoc()) {
     $ranked_users[] = $row;
 }
 
+// Fetch reputation rules dynamically
+$rulesStmt = $conn->prepare("SELECT title, description, points, icon FROM reputation_rules ORDER BY points DESC");
+$rulesStmt->execute();
+$reputation_rules = $rulesStmt->get_result();
+
 // Get the top 3 for the podium blocks
 $top_1 = isset($ranked_users[0]) ? $ranked_users[0] : null;
 $top_2 = isset($ranked_users[1]) ? $ranked_users[1] : null;
@@ -136,24 +141,14 @@ $top_3 = isset($ranked_users[2]) ? $ranked_users[2] : null;
             <!-- Guide on how to earn reputation -->
             <h3 style="margin-bottom: 2rem; color: var(--primary-color);">How to Earn Reputation</h3>
             <div class="earning-guide">
+                <?php while ($rule = $reputation_rules->fetch_assoc()): ?>
                 <div class="guide-card">
-                    <i class="fa-solid fa-list-check"></i>
-                    <h4>Complete Tasks</h4>
-                    <p>Finish tasks assigned to you on project Kanban logistics boards.</p>
-                    <span class="guide-points">+50 Points</span>
+                    <i class="fa-solid <?php echo htmlspecialchars($rule['icon']); ?>"></i>
+                    <h4><?php echo htmlspecialchars($rule['title']); ?></h4>
+                    <p><?php echo htmlspecialchars($rule['description']); ?></p>
+                    <span class="guide-points">+<?php echo number_format($rule['points']); ?> Points</span>
                 </div>
-                <div class="guide-card">
-                    <i class="fa-solid fa-file-arrow-up"></i>
-                    <h4>Publish Preprints</h4>
-                    <p>Upload early-stage academic manuscripts to share with the community.</p>
-                    <span class="guide-points">+100 Points</span>
-                </div>
-                <div class="guide-card">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <h4>Invite Collaborators</h4>
-                    <p>Post interdisciplinary research collaboration listings on the board.</p>
-                    <span class="guide-points">+20 Points</span>
-                </div>
+                <?php endwhile; ?>
             </div>
         </div>
     </main>

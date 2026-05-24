@@ -32,11 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $upStmt->bind_param("si", $status, $task_id);
             
             if ($upStmt->execute()) {
-                // REPUTATION POINTS: If the task is newly completed ('done'), award +50 points to the assignee
+                // REPUTATION POINTS: Fetch dynamic points for task completion
                 if ($status === 'done' && $checkRes['status'] !== 'done') {
                     $assignee = (int)($checkRes['assigned_to'] ?: $user_id);
-                    $ptsStmt = $conn->prepare("UPDATE users SET points = points + 50 WHERE id = ?");
-                    $ptsStmt->bind_param("i", $assignee);
+                    
+                    // Get dynamic points from reputation_rules
+                    $ruleStmt = $conn->prepare("SELECT points FROM reputation_rules WHERE action_key = 'task_completed'");
+                    $ruleStmt->execute();
+                    $ruleRes = $ruleStmt->get_result()->fetch_assoc();
+                    $award_points = $ruleRes ? (int)$ruleRes['points'] : 50;
+
+                    $ptsStmt = $conn->prepare("UPDATE users SET points = points + ? WHERE id = ?");
+                    $ptsStmt->bind_param("ii", $award_points, $assignee);
                     $ptsStmt->execute();
                 }
             }
