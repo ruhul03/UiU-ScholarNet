@@ -40,6 +40,11 @@
         <a href="profile.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'profile.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-user"></i> My Profile
         </a>
+        <?php if (isset($user_data['role']) && $user_data['role'] === 'admin'): ?>
+        <a href="admin.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'admin.php') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-shield-halved"></i> Admin Panel
+        </a>
+        <?php endif; ?>
     </nav>
 
     <div class="sidebar-footer">
@@ -48,8 +53,18 @@
         <div class="user-profile-small">
             <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" alt="User">
             <div>
-                <div class="user-name"><?php echo $user_data['full_name']; ?></div>
-                <div class="user-role"><?php echo ucfirst($user_data['role']); ?></div>
+                <div class="user-name"><?php echo htmlspecialchars($user_data['full_name']); ?></div>
+                <div class="user-role" style="font-size: 0.75rem; font-weight: bold; margin-top: 2px;">
+                    <?php if ($user_data['role'] === 'admin'): ?>
+                        <span style="color: #4f46e5;">ADMIN</span>
+                    <?php elseif ($user_data['role'] === 'faculty'): ?>
+                        <span style="color: <?php echo isset($user_data['is_verified']) && $user_data['is_verified'] ? '#1e8e3e' : '#d93025'; ?>;">
+                            <?php echo isset($user_data['is_verified']) && $user_data['is_verified'] ? 'VERIFIED FACULTY' : 'UNVERIFIED FACULTY'; ?>
+                        </span>
+                    <?php else: ?>
+                        <span style="color: #888;">STUDENT</span>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>

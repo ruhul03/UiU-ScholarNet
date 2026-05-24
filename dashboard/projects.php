@@ -2,6 +2,15 @@
 require_once('../includes/auth_check.php');
 require_once('../includes/csrf.php');
 
+// Fetch verified faculty
+$facStmt = $conn->prepare("SELECT id, full_name, department FROM users WHERE role = 'faculty' AND is_verified = 1 ORDER BY full_name ASC");
+$facStmt->execute();
+$faculty_res = $facStmt->get_result();
+$faculty_list = [];
+while ($f = $faculty_res->fetch_assoc()) {
+    $faculty_list[] = $f;
+}
+
 // Fetch notification counts
 $ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
 $ptStmt->bind_param("i", $user_id);
@@ -198,6 +207,18 @@ $result = $stmt->get_result();
                     <label>PROJECT DESCRIPTION</label>
                     <textarea name="description" rows="4" class="textarea-light" placeholder="Briefly outline the scope and research objectives..."></textarea>
                 </div>
+
+                <?php if ($user_data['role'] === 'student'): ?>
+                <div class="form-group">
+                    <label>FACULTY SUPERVISOR</label>
+                    <select name="supervisor_id" class="form-input-light" required>
+                        <option value="">Select a Verified Faculty</option>
+                        <?php foreach ($faculty_list as $fac): ?>
+                            <option value="<?php echo $fac['id']; ?>"><?php echo htmlspecialchars($fac['full_name']); ?> (<?php echo htmlspecialchars($fac['department']); ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
 
                 <div class="invite-researchers">
                     <label class="invite-label">INVITE RESEARCHERS</label>

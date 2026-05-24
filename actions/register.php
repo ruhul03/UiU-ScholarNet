@@ -58,8 +58,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $password = password_hash($raw_password, PASSWORD_DEFAULT);
-    $insert = $conn->prepare("INSERT INTO users (full_name, email, password, department, interests, skills) VALUES (?, ?, ?, ?, ?, ?)");
-    $insert->bind_param("ssssss", $full_name, $email, $password, $department, $interests, $skills);
+    $role = (isset($_POST['role']) && $_POST['role'] === 'faculty') ? 'faculty' : 'student';
+    $is_verified = ($role === 'faculty') ? 0 : 1;
+
+    $insert = $conn->prepare("INSERT INTO users (full_name, email, password, department, interests, skills, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $insert->bind_param("sssssssi", $full_name, $email, $password, $department, $interests, $skills, $role, $is_verified);
 
     if ($insert->execute()) {
         $_SESSION['success'] = "Registration successful! Please login.";

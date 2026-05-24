@@ -37,8 +37,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $status = 'planning';
     }
 
-    $stmt = $conn->prepare("INSERT INTO projects (title, description, department, visibility, status, progress, creator_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssii", $title, $description, $department, $visibility, $status, $progress, $user_id);
+    $supervisor_id = isset($_POST['supervisor_id']) && (int)$_POST['supervisor_id'] > 0 ? (int)$_POST['supervisor_id'] : null;
+
+    $stmt = $conn->prepare("INSERT INTO projects (title, description, department, visibility, status, progress, creator_id, supervisor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssiii", $title, $description, $department, $visibility, $status, $progress, $user_id, $supervisor_id);
+
 
     if ($stmt->execute()) {
         $project_id = $conn->insert_id;

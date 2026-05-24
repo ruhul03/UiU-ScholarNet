@@ -97,7 +97,19 @@ $skillTags = array_values(
                     >
                 </div>
                 <h2><?php echo htmlspecialchars($user_data['full_name']); ?></h2>
-                <div class="profile-role"><?php echo strtoupper(htmlspecialchars($user_data['role'])); ?></div>
+                <div class="profile-role" style="display: flex; align-items: center; gap: 5px;">
+                    <?php if ($user_data['role'] === 'admin'): ?>
+                        <span style="background: #eef2ff; color: #4f46e5; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">ADMINISTRATOR</span>
+                    <?php elseif ($user_data['role'] === 'faculty'): ?>
+                        <?php if (isset($user_data['is_verified']) && $user_data['is_verified']): ?>
+                            <span style="background: #e6f4ea; color: #1e8e3e; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.8rem;"><i class="fa-solid fa-circle-check"></i> VERIFIED FACULTY</span>
+                        <?php else: ?>
+                            <span style="background: #fce8e6; color: #d93025; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">UNVERIFIED FACULTY</span>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <span style="background: #f3f4f6; color: #4b5563; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">STUDENT</span>
+                    <?php endif; ?>
+                </div>
 
                 <div class="profile-reputation">
                     <span><i class="fa-solid fa-trophy"></i> Reputation Level</span>

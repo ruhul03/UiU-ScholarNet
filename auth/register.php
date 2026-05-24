@@ -83,6 +83,15 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label>Role</label>
+                            <select name="role" required>
+                                <option value="student">Student</option>
+                                <option value="faculty">Faculty</option>
+                            </select>
+                        </div>
+                    </div>
 
                     <div class="form-group">
                         <label>Research Interests</label>

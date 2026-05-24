@@ -7,14 +7,7 @@ require_once('../includes/csrf.php');
 
 // STEP 2: DEFINE STATIC CHANNELS
 // ==========================================
-$channels_map = [
-    'general' => [
-        'name' => 'General Discussion',
-        'badge' => 'GD',
-        'color' => 'bg-blue',
-        'desc' => 'General chat for all researchers.'
-    ]
-];
+$channels_map = [];
 
 // Fetch projects user is involved in
 $pStmt = $conn->prepare("
@@ -89,28 +82,41 @@ if ($chat_user_id > 0) {
 
 // Case B: Channel Chat
 if ($chat_user_id === 0) {
-    $channel = isset($_GET['channel']) ? (string)$_GET['channel'] : 'general';
-    if (!preg_match('/^[a-z0-9_-]{1,50}$/', $channel)) {
-        $channel = 'general';
+    $channel = isset($_GET['channel']) ? (string)$_GET['channel'] : '';
+    
+    // If no channel is specified or invalid, default to the first available channel in the map
+    if (empty($channel) || !preg_match('/^[a-z0-9_-]{1,50}$/', $channel) || !isset($channels_map[$channel])) {
+        reset($channels_map);
+        $channel = key($channels_map);
     }
     
-    $chat_target_info = $channels_map[$channel] ?? [
-        'name' => ucwords(str_replace('_', ' ', $channel)),
-        'badge' => strtoupper(substr($channel, 0, 2)),
-        'color' => 'bg-blue',
-        'desc' => 'Custom channel.'
-    ];
-    
-    $mstmt = $conn->prepare("
-        SELECT m.*, u.full_name
-        FROM messages m
-        JOIN users u ON u.id = m.sender_id
-        WHERE m.channel = ? AND m.receiver_id IS NULL
-        ORDER BY m.created_at ASC LIMIT 100
-    ");
-    $mstmt->bind_param("s", $channel);
-    $mstmt->execute();
-    $messages = $mstmt->get_result();
+    if ($channel) {
+        $chat_target_info = $channels_map[$channel] ?? [
+            'name' => ucwords(str_replace('_', ' ', $channel)),
+            'badge' => strtoupper(substr($channel, 0, 2)),
+            'color' => 'bg-blue',
+            'desc' => 'Custom channel.'
+        ];
+        
+        $mstmt = $conn->prepare("
+            SELECT m.*, u.full_name
+            FROM messages m
+            JOIN users u ON u.id = m.sender_id
+            WHERE m.channel = ? AND m.receiver_id IS NULL
+            ORDER BY m.created_at ASC LIMIT 100
+        ");
+        $mstmt->bind_param("s", $channel);
+        $mstmt->execute();
+        $messages = $mstmt->get_result();
+    } else {
+        $chat_target_info = [
+            'name' => 'No Team Channels',
+            'badge' => '--',
+            'color' => 'bg-blue',
+            'desc' => 'Create or join a project to unlock team messaging.'
+        ];
+        $messages = null;
+    }
 }
 
 // Fetch users for the sidebar (Connections from projects OR users you've DM'd)
@@ -202,8 +208,6 @@ $dm_users_res = $dmStmt->get_result();
                         <div class="chat-subtitle">Online • <?php echo htmlspecialchars($chat_target_info['desc']); ?></div>
                     </div>
                     <div class="chat-actions">
-                        <i class="fa-solid fa-video"></i>
-                        <i class="fa-solid fa-phone"></i>
                         <i class="fa-solid fa-ellipsis-vertical"></i>
                     </div>
                 </div>
@@ -214,7 +218,7 @@ $dm_users_res = $dmStmt->get_result();
                             $is_self = ((int)$msg['sender_id'] === (int)$user_id);
                             $sender_name = $is_self ? 'You' : $msg['full_name'];
                         ?>
-                            <div class="msg-bubble <?php echo $is_self ? 'self' : ''; ?>">
+                            <div class="msg-bubble <?php echo $is_self ? 'self' : ''; ?>" data-msg-id="<?php echo $msg['id']; ?>">
                                 <?php if (!$is_self): ?>
                                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($sender_name); ?>&background=ffffff&color=764ba2">
                                 <?php endif; ?>
@@ -229,12 +233,19 @@ $dm_users_res = $dmStmt->get_result();
                             </div>
                         <?php endwhile; ?>
                     <?php else: ?>
-                        <div class="empty-messages">
-                            ✨ Start a beautiful conversation! ✨
-                        </div>
+                        <?php if ($chat_target_info['name'] === 'No Team Channels'): ?>
+                            <div class="empty-messages">
+                                ✨ You don't have any active channels yet. Join a project to start collaborating! ✨
+                            </div>
+                        <?php else: ?>
+                            <div class="empty-messages">
+                                ✨ Start a beautiful conversation! ✨
+                            </div>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
 
+                <?php if ($chat_user_id > 0 || $channel): ?>
                 <div class="chat-input-wrapper">
                     <form class="chat-form" action="../actions/post_message.php" method="POST" id="chatForm">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
@@ -254,6 +265,7 @@ $dm_users_res = $dmStmt->get_result();
                         </button>
                     </form>
                 </div>
+                <?php endif; ?>
             </div>
 
             <!-- RIGHT COLUMN: Context Info Pane -->
@@ -308,14 +320,16 @@ $dm_users_res = $dmStmt->get_result();
                 <?php endif; ?>
             </aside>
         </div>
-    </main>
-
-    <!-- JavaScript logic for AJAX messaging (simulated realtime) -->
+        <!-- JavaScript logic for AJAX messaging (simulated realtime) -->
     <script>
         const chatContainer = document.getElementById('chatContainer');
         if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
 
         const chatForm = document.getElementById('chatForm');
+        let currentUserId = <?php echo (int)$user_id; ?>;
+        let chatTargetUserId = <?php echo (int)$chat_user_id; ?>;
+        let currentChannel = "<?php echo addslashes($channel); ?>";
+
         if (chatForm) {
             chatForm.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -349,18 +363,85 @@ $dm_users_res = $dmStmt->get_result();
                     if (data.success) {
                         bubble.querySelector('.msg-text').style.opacity = '1';
                         bubble.querySelector('.msg-meta').innerText = 'You • Just now';
+                        bubble.classList.remove('temp-bubble');
+                        pollMessages(); // Immediately poll after sending
                     }
                 });
             });
         }
-        
-        // Polling
-        setInterval(() => {
-            const inputField = document.querySelector('.chat-input');
-            if (document.activeElement !== inputField && inputField.value.trim() === '') {
-                window.location.reload();
+        // Live Chat Polling
+        function pollMessages() {
+            if (!chatContainer) return;
+            const bubbles = chatContainer.querySelectorAll('.msg-bubble:not(.temp-bubble)');
+            let lastId = 0;
+            if (bubbles.length > 0) {
+                const lastBubble = bubbles[bubbles.length - 1];
+                if (lastBubble.hasAttribute('data-msg-id')) {
+                    lastId = parseInt(lastBubble.getAttribute('data-msg-id'), 10);
+                }
             }
-        }, 15000);
+            
+            let url = '../actions/fetch_messages.php?last_id=' + lastId;
+            if (chatTargetUserId > 0) {
+                url += '&user_id=' + chatTargetUserId;
+            } else if (currentChannel) {
+                url += '&channel=' + encodeURIComponent(currentChannel);
+            } else {
+                return;
+            }
+
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.messages.length > 0) {
+                        const emptyMsg = chatContainer.querySelector('.empty-messages');
+                        if (emptyMsg) emptyMsg.remove();
+                        
+                        let needsScroll = false;
+                        if (chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 50) {
+                            needsScroll = true;
+                        }
+
+                        data.messages.forEach(msg => {
+                            if (chatContainer.querySelector(`.msg-bubble[data-msg-id="${msg.id}"]`)) return;
+
+                            const isSelf = parseInt(msg.sender_id) === currentUserId;
+                            const senderName = isSelf ? 'You' : msg.full_name;
+                            const bubble = document.createElement('div');
+                            bubble.className = 'msg-bubble ' + (isSelf ? 'self' : '');
+                            bubble.setAttribute('data-msg-id', msg.id);
+                            
+                            let html = '';
+                            if (!isSelf) {
+                                html += `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=ffffff&color=764ba2">`;
+                            }
+                            
+                            const date = new Date(msg.created_at);
+                            const timeStr = date.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
+
+                            html += `
+                                <div class="msg-content">
+                                    <div class="msg-text">${msg.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+                                    <div class="msg-meta">${senderName} • ${timeStr}</div>
+                                </div>
+                            `;
+                            bubble.innerHTML = html;
+                            chatContainer.appendChild(bubble);
+                        });
+
+                        const tempBubbles = chatContainer.querySelectorAll('.temp-bubble');
+                        tempBubbles.forEach(tb => tb.remove());
+
+                        if (needsScroll) {
+                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                        }
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        // Poll every 3 seconds
+        setInterval(pollMessages, 3000);
     </script>
 </body>
 </html>
