@@ -41,8 +41,35 @@ require_once('../includes/csrf.php');
                         <label>University Email</label>
                         <input type="email" name="email" placeholder="you@uiu.ac.bd" required>
                     </div>
+                    
+                    <p style="font-size: 0.8rem; color: #666; margin: 1rem 0;">For security, please verify your identity by entering your exact full name and department as they appear on your profile.</p>
+
+                    <div class="form-group">
+                        <label>Full Name (Verification)</label>
+                        <input type="text" name="full_name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Department (Verification)</label>
+                        <select name="department" required>
+                            <option value="">Select your department</option>
+                            <option value="CSE">Computer Science and Engineering</option>
+                            <option value="EEE">Electrical and Electronic Engineering</option>
+                            <option value="BBA">Business Administration</option>
+                            <option value="Data Science">Data Science</option>
+                            <option value="Economics">Economics</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" name="new_password" placeholder="********" required minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" name="confirm_password" placeholder="********" required minlength="8">
+                    </div>
                     <button type="submit" class="btn btn-secondary btn-full">
-                        Request Reset <i class="fa-solid fa-arrow-right"></i>
+                        Reset Password <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
 

@@ -146,7 +146,7 @@ if ($page > $totalPages) {
 
 $postsSql = "SELECT cp.*, u.full_name, p.title AS linked_project_title,
                     COALESCE(a.total_applicants, 0) AS total_applicants,
-                    ua.id AS user_applied
+                    ua.id AS user_applied, ua.status AS apply_status
              FROM collaboration_posts cp
              JOIN users u ON cp.user_id = u.id
              LEFT JOIN projects p ON cp.project_id = p.id
@@ -341,7 +341,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
 
                     <?php if ((int)$row['user_id'] === (int)$user_id): ?>
                         <div class="owner-actions" style="display: flex; gap: 0.5rem; width: 100%;">
-                            <button class="btn btn-apply" style="flex: 1;" type="button" disabled>Your Post</button>
+                            <a href="manage_collaboration.php?id=<?php echo $row['id']; ?>" class="btn btn-apply" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center;">Manage Applicants</a>
                             <form action="../actions/delete_collaboration_post.php" method="POST" style="flex: 0 0 auto;" onsubmit="return confirm('Permanently delete this collaboration request?');">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
@@ -351,7 +351,13 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                             </form>
                         </div>
                     <?php elseif (!empty($row['user_applied'])): ?>
-                        <button class="btn btn-apply btn-applied" type="button" disabled>Applied</button>
+                        <?php if ($row['apply_status'] === 'accepted'): ?>
+                            <button class="btn btn-apply" style="background: #1e8e3e; border-color: #1e8e3e; color: white;" type="button" disabled><i class="fa-solid fa-check"></i> Accepted</button>
+                        <?php elseif ($row['apply_status'] === 'declined'): ?>
+                            <button class="btn btn-apply" style="background: #fce8e6; border-color: #fce8e6; color: #d93025;" type="button" disabled><i class="fa-solid fa-xmark"></i> Declined</button>
+                        <?php else: ?>
+                            <button class="btn btn-apply btn-applied" type="button" disabled><i class="fa-solid fa-clock"></i> Pending Review</button>
+                        <?php endif; ?>
                     <?php else: ?>
                         <form action="../actions/apply_collaboration.php" method="POST">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">

@@ -48,6 +48,9 @@ if (!$post || (int)$post['user_id'] === $user_id) {
     exit();
 }
 
+$insert = $conn->prepare("INSERT IGNORE INTO collaboration_applications (post_id, user_id) VALUES (?, ?)");
+$insert->bind_param("ii", $post_id, $user_id);
+
 if ($insert->execute() && $conn->affected_rows > 0) {
     $_SESSION['success'] = "Application submitted successfully! The project lead will review your profile.";
 } else {
