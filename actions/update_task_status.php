@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // QUERY: Get task assignee and current status. Verify user has permission (project owner or task assignee)
         $checkStmt = $conn->prepare("SELECT t.id, t.status, t.assigned_to FROM tasks t JOIN projects p ON t.project_id = p.id LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? WHERE t.id = ? AND (p.creator_id = ? OR t.assigned_to = ? OR pm.role IN ('owner', 'editor'))");
-        $checkStmt->bind_param("iiiii", $user_id, $task_id, $user_id, $user_id);
+        $checkStmt->bind_param("iiii", $user_id, $task_id, $user_id, $user_id);
         $checkStmt->execute();
         $checkRes = $checkStmt->get_result()->fetch_assoc();
         

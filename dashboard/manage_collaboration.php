@@ -117,6 +117,11 @@ layout_header("Manage Applicants | UIU ScholarNet");
                                             <input type="hidden" name="action_type" value="decline">
                                             <button type="submit" class="btn" style="background: #fff; color: #d93025; padding: 0.3rem 0.6rem; font-size: 0.75rem; border:1px solid #d93025;">Decline</button>
                                         </form>
+                                        <a href="messages.php?user_id=<?php echo $app['user_id']; ?>" class="btn" style="background: #e3f2fd; color: #1967d2; padding: 0.3rem 0.6rem; font-size: 0.75rem; border:1px solid #1967d2; text-decoration:none;"><i class="fa-regular fa-comment"></i></a>
+                                    </div>
+                                <?php else: ?>
+                                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                        <a href="messages.php?user_id=<?php echo $app['user_id']; ?>" class="btn" style="background: #e3f2fd; color: #1967d2; padding: 0.3rem 0.6rem; font-size: 0.75rem; border:1px solid #1967d2; text-decoration:none;"><i class="fa-regular fa-comment"></i> Message</a>
                                     </div>
                                 <?php endif; ?>
                             </td>

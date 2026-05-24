@@ -3,6 +3,7 @@ require_once('../includes/auth_check.php');
 require_once('../includes/csrf.php');
 
 $document_id = isset($_GET['document_id']) ? (int)$_GET['document_id'] : 0;
+$initial_project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
 
 // Projects for dropdown (user's own projects or where they are an editor/owner)
 $pstmt = $conn->prepare("
@@ -18,7 +19,7 @@ $projects_result = $pstmt->get_result();
 
 $doc = [
     'id' => 0,
-    'project_id' => 0,
+    'project_id' => $initial_project_id,
     'title' => 'Untitled Document',
     'content' => '',
     'visibility' => 'private',
@@ -175,6 +176,15 @@ if ($doc['id'] > 0) {
             <aside class="editor-sidebar">
                 <section>
                     <h4>DOCUMENT INFO</h4>
+                    <?php if ($doc['id'] > 0 && $doc['project_id'] > 0): ?>
+                        <div style="margin-bottom: 1.5rem; text-align: center;">
+                            <form action="../actions/publish_preprint.php" method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="hidden" name="document_id" value="<?php echo $doc['id']; ?>">
+                                <button type="submit" class="btn btn-primary" style="width: 100%; background: #000; border: none;"><i class="fa-solid fa-rocket"></i> Publish as Preprint</button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
                     <div class="info-item">
                         <span class="info-label">Project ID</span>
                         <span class="info-value"><?php echo $doc['project_id'] ? (int)$doc['project_id'] : '—'; ?></span>

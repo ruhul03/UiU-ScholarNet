@@ -59,7 +59,7 @@ $proj_result = $proj_stmt->get_result();
                             <span><i class="fa-regular fa-calendar"></i> <?php echo date('M j, Y', strtotime($row['created_at'])); ?></span>
                             <span><i class="fa-solid fa-code-branch"></i> v<?php echo $row['version']; ?></span>
                             <?php if($row['project_title']): ?>
-                            <span class="text-success"><i class="fa-solid fa-folder"></i> <?php echo htmlspecialchars($row['project_title']); ?></span>
+                            <a href="edit_project.php?id=<?php echo $row['project_id']; ?>" class="text-success" style="text-decoration:none;"><i class="fa-solid fa-folder"></i> <?php echo htmlspecialchars($row['project_title']); ?></a>
                             <?php endif; ?>
                             <?php if($row['visibility'] == 'private'): ?>
                             <span class="text-danger"><i class="fa-solid fa-lock"></i> Private</span>

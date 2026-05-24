@@ -351,19 +351,25 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                             </form>
                         </div>
                     <?php elseif (!empty($row['user_applied'])): ?>
-                        <?php if ($row['apply_status'] === 'accepted'): ?>
-                            <button class="btn btn-apply" style="background: #1e8e3e; border-color: #1e8e3e; color: white;" type="button" disabled><i class="fa-solid fa-check"></i> Accepted</button>
-                        <?php elseif ($row['apply_status'] === 'declined'): ?>
-                            <button class="btn btn-apply" style="background: #fce8e6; border-color: #fce8e6; color: #d93025;" type="button" disabled><i class="fa-solid fa-xmark"></i> Declined</button>
-                        <?php else: ?>
-                            <button class="btn btn-apply btn-applied" type="button" disabled><i class="fa-solid fa-clock"></i> Pending Review</button>
-                        <?php endif; ?>
+                        <div style="display: flex; gap: 0.5rem; width: 100%;">
+                            <?php if ($row['apply_status'] === 'accepted'): ?>
+                                <button class="btn btn-apply" style="flex: 1; background: #1e8e3e; border-color: #1e8e3e; color: white;" type="button" disabled><i class="fa-solid fa-check"></i> Accepted</button>
+                            <?php elseif ($row['apply_status'] === 'declined'): ?>
+                                <button class="btn btn-apply" style="flex: 1; background: #fce8e6; border-color: #fce8e6; color: #d93025;" type="button" disabled><i class="fa-solid fa-xmark"></i> Declined</button>
+                            <?php else: ?>
+                                <button class="btn btn-apply btn-applied" style="flex: 1;" type="button" disabled><i class="fa-solid fa-clock"></i> Pending Review</button>
+                            <?php endif; ?>
+                            <a href="messages.php?user_id=<?php echo (int)$row['user_id']; ?>" class="btn btn-outline" style="flex: 0 0 auto; color: var(--secondary-color); border-color: #e2e8f0; display:flex; align-items:center; justify-content:center;" title="Message Poster"><i class="fa-regular fa-comment"></i></a>
+                        </div>
                     <?php else: ?>
-                        <form action="../actions/apply_collaboration.php" method="POST">
-                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
-                            <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
-                            <button class="btn btn-apply" type="submit">Apply to Collaborate</button>
-                        </form>
+                        <div style="display: flex; gap: 0.5rem; width: 100%;">
+                            <form action="../actions/apply_collaboration.php" method="POST" style="flex: 1; display:flex;">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
+                                <button class="btn btn-apply" style="width: 100%;" type="submit">Apply to Collaborate</button>
+                            </form>
+                            <a href="messages.php?user_id=<?php echo (int)$row['user_id']; ?>" class="btn btn-outline" style="flex: 0 0 auto; color: var(--secondary-color); border-color: #e2e8f0; display:flex; align-items:center; justify-content:center;" title="Message Poster"><i class="fa-regular fa-comment"></i></a>
+                        </div>
                     <?php endif; ?>
                 </div>
             <?php endwhile; ?>

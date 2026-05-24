@@ -35,6 +35,24 @@ if ($depRes) {
         $departments[] = $row['name'];
     }
 }
+
+// Fetch documents
+$docStmt = $conn->prepare("SELECT id, title, updated_at FROM documents WHERE project_id = ? ORDER BY updated_at DESC");
+$docStmt->bind_param("i", $project_id);
+$docStmt->execute();
+$documents = $docStmt->get_result();
+
+// Fetch tasks
+$taskStmt = $conn->prepare("SELECT t.*, u.full_name AS assignee_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id WHERE t.project_id = ? ORDER BY t.due_date ASC");
+$taskStmt->bind_param("i", $project_id);
+$taskStmt->execute();
+$tasks = $taskStmt->get_result();
+
+// Fetch preprints
+$prepStmt = $conn->prepare("SELECT id, title, created_at, views_count FROM preprints WHERE project_id = ? ORDER BY created_at DESC");
+$prepStmt->bind_param("i", $project_id);
+$prepStmt->execute();
+$preprints = $prepStmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -149,6 +167,82 @@ if ($depRes) {
                 </div>
             </form>
         </div>
+
+        <h2 style="margin-top: 4rem; margin-bottom: 1.5rem; font-family: var(--font-heading); font-size: 1.5rem;">Project Hub Ecosystem</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
+            <!-- Documents Section -->
+            <div class="card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.1rem; margin: 0;"><i class="fa-solid fa-file-lines" style="color: var(--primary-color);"></i> Documents</h3>
+                    <a href="document_editor.php?project_id=<?php echo $project['id']; ?>" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.75rem;"><i class="fa-solid fa-plus"></i> New</a>
+                </div>
+                <?php if ($documents->num_rows > 0): ?>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.8rem;">
+                        <?php while($doc = $documents->fetch_assoc()): ?>
+                            <li style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <span style="font-weight: 600;"><?php echo htmlspecialchars($doc['title']); ?></span>
+                                    <span style="font-size: 0.75rem; color: #888;">Updated: <?php echo date('M d', strtotime($doc['updated_at'])); ?></span>
+                                </div>
+                                <a href="document_editor.php?document_id=<?php echo $doc['id']; ?>" style="color: var(--secondary-color);"><i class="fa-solid fa-pen-to-square"></i></a>
+                            </li>
+                        <?php endwhile; ?>
+                    </ul>
+                <?php else: ?>
+                    <p style="color: #888; font-size: 0.85rem; text-align: center; margin-top: 2rem;">No documents linked.</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- Tasks Section -->
+            <div class="card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.1rem; margin: 0;"><i class="fa-solid fa-list-check" style="color: var(--primary-color);"></i> Tasks</h3>
+                    <a href="tasks.php" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.75rem;">View All</a>
+                </div>
+                <?php if ($tasks->num_rows > 0): ?>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.8rem;">
+                        <?php while($t = $tasks->fetch_assoc()): ?>
+                            <li style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding: 0.5rem; background: #f9f9f9; border-radius: 6px; border-left: 3px solid <?php echo $t['status']==='done'?'#1e8e3e':($t['priority']==='high'?'#d93025':'#f29900'); ?>;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <span style="font-weight: 600;"><?php echo htmlspecialchars($t['title']); ?></span>
+                                    <span style="font-size: 0.75rem; color: #888;"><?php echo htmlspecialchars($t['assignee_name'] ?? 'Unassigned'); ?></span>
+                                </div>
+                                <?php if($t['status']==='done'): ?>
+                                    <i class="fa-solid fa-circle-check" style="color: #1e8e3e;"></i>
+                                <?php else: ?>
+                                    <i class="fa-regular fa-circle" style="color: #ccc;"></i>
+                                <?php endif; ?>
+                            </li>
+                        <?php endwhile; ?>
+                    </ul>
+                <?php else: ?>
+                    <p style="color: #888; font-size: 0.85rem; text-align: center; margin-top: 2rem;">No tasks linked.</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- Preprints Section -->
+            <div class="card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.1rem; margin: 0;"><i class="fa-solid fa-book-open" style="color: var(--primary-color);"></i> Published Preprints</h3>
+                </div>
+                <?php if ($preprints->num_rows > 0): ?>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.8rem;">
+                        <?php while($p = $preprints->fetch_assoc()): ?>
+                            <li style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding-bottom: 0.5rem; border-bottom: 1px dashed #eee;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <a href="preprint_details.php?id=<?php echo $p['id']; ?>" style="font-weight: 600; text-decoration: none; color: var(--text-color);"><?php echo htmlspecialchars($p['title']); ?></a>
+                                    <span style="font-size: 0.75rem; color: #888;">Published: <?php echo date('M d, Y', strtotime($p['created_at'])); ?> • <?php echo (int)$p['views_count']; ?> views</span>
+                                </div>
+                            </li>
+                        <?php endwhile; ?>
+                    </ul>
+                <?php else: ?>
+                    <p style="color: #888; font-size: 0.85rem; text-align: center; margin-top: 2rem;">No preprints published yet.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
     </main>
 
     <script src="../assets/js/projects.js"></script>

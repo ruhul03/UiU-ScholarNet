@@ -68,7 +68,7 @@ $comments = $c_stmt->get_result();
                     <span><i class="fa-solid fa-code-branch"></i> Version <?php echo $preprint['version']; ?></span>
                     <span><i class="fa-solid fa-scale-balanced"></i> <?php echo htmlspecialchars($preprint['license_type']); ?></span>
                     <?php if($preprint['project_title']): ?>
-                    <span class="text-success"><i class="fa-solid fa-folder"></i> Project: <?php echo htmlspecialchars($preprint['project_title']); ?></span>
+                    <a href="edit_project.php?id=<?php echo $preprint['project_id']; ?>" class="text-success" style="text-decoration:none;"><i class="fa-solid fa-folder"></i> Project: <?php echo htmlspecialchars($preprint['project_title']); ?></a>
                     <?php endif; ?>
                     <span><i class="fa-regular fa-eye"></i> <?php echo $preprint['views_count']; ?> Views</span>
                 </div>
