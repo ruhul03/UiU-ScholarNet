@@ -9,16 +9,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $email = trim((string)($_POST['email'] ?? ''));
     $password = (string)($_POST['password'] ?? '');
-    $role = trim((string)($_POST['role'] ?? 'student'));
-
-    if (!in_array($role, ['student', 'faculty'], true)) {
-        $_SESSION['error'] = "Invalid login role selected.";
-        header("Location: ../auth/login.php");
-        exit();
-    }
-
-    $stmt = $conn->prepare("SELECT id, full_name, email, password, role FROM users WHERE email = ? AND role = ? LIMIT 1");
-    $stmt->bind_param("ss", $email, $role);
+    $stmt = $conn->prepare("SELECT id, full_name, email, password, role, account_status FROM users WHERE email = ? LIMIT 1");
+    $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -26,6 +18,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user = $result->fetch_assoc();
 
         if (password_verify($password, $user['password'])) {
+            if (isset($user['account_status']) && $user['account_status'] === 'banned') {
+                $_SESSION['error'] = "Your account has been suspended.";
+                header("Location: ../auth/login.php");
+                exit();
+            }
+
             session_regenerate_id(true);
             $_SESSION['user_id'] = (int)$user['id'];
             $_SESSION['user_name'] = $user['full_name'];
