@@ -2,6 +2,7 @@
 require_once('../includes/db_connect.php');
 require_once('../includes/auth_check.php');
 require_once('../includes/layout.php');
+require_once('../includes/csrf.php');
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: research_discussion.php");

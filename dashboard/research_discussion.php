@@ -2,6 +2,7 @@
 require_once('../includes/db_connect.php');
 require_once('../includes/auth_check.php');
 require_once('../includes/layout.php');
+require_once('../includes/csrf.php');
 
 // Handle new thread submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title']) && isset($_POST['content']) && isset($_POST['category'])) {
