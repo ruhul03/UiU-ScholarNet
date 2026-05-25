@@ -68,18 +68,8 @@ require_once('../includes/csrf.php');
                     </div>
                 <?php endif; ?>
 
-                <div class="auth-toggle">
-                    <button type="button" class="toggle-btn active" id="studentToggle" data-role="student">
-                        <i class="fa-solid fa-graduation-cap"></i> Student
-                    </button>
-                    <button type="button" class="toggle-btn" id="facultyToggle" data-role="faculty">
-                        <i class="fa-solid fa-user-tie"></i> Faculty
-                    </button>
-                </div>
-
                 <form action="../actions/login.php" method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
-                    <input type="hidden" name="role" id="roleInput" value="student">
                     <div class="form-group">
                         <label>University Email</label>
                         <input type="email" name="email" placeholder="you@university.edu" required>

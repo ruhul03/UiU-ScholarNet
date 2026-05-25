@@ -305,3 +305,39 @@
     from { transform: translateY(10px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+/* Custom Multi Select Search */
+.custom-multi-select {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.custom-multi-select-input {
+    width: 100%;
+}
+
+.researcher-list {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 0.5rem;
+    background: #fff;
+}
+
+.researcher-item {
+    display: block;
+    padding: 0.35rem 0.5rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.researcher-item input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+.researcher-role {
+    color: #888;
+}

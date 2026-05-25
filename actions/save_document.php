@@ -3,6 +3,7 @@ require_once('../includes/session.php');
 start_secure_session();
 require_once('../includes/db_connect.php');
 require_once('../includes/csrf.php');
+require_once('../includes/progress_helper.php');
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header("Location: ../dashboard/document_editor.php");
@@ -87,6 +88,8 @@ $version_name = 'v' . ($vcount + 1) . '.0';
 $v_ins = $conn->prepare("INSERT INTO document_versions (document_id, version_name, content, created_by) VALUES (?, ?, ?, ?)");
 $v_ins->bind_param("issi", $document_id, $version_name, $content, $user_id);
 $v_ins->execute();
+
+update_project_progress($conn, $project_id);
 
 $_SESSION['success'] = "Document saved successfully.";
 header("Location: ../dashboard/document_editor.php?document_id=" . urlencode((string)$document_id));

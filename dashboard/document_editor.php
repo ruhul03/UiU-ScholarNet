@@ -264,11 +264,25 @@ if ($doc['id'] > 0) {
             placeholder: 'Write your research notes, methodology, and draft sections here...'
         });
 
+        var isDirty = false;
+        quill.on('text-change', function() {
+            isDirty = true;
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (isDirty) {
+                var msg = 'You have unsaved changes. Are you sure you want to leave?';
+                e.returnValue = msg;
+                return msg;
+            }
+        });
+
         // Sync Quill HTML content to hidden input before form submit
         var form = document.querySelector('form[action="../actions/save_document.php"]');
         var hiddenContent = document.querySelector('#hidden-content');
         
         form.onsubmit = function() {
+            isDirty = false;
             // Using quill.root.innerHTML gets the exact HTML of the content
             hiddenContent.value = quill.root.innerHTML;
             return true;

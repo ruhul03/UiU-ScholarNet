@@ -3,6 +3,7 @@ require_once('../includes/session.php');
 start_secure_session();
 require_once('../includes/db_connect.php');
 require_once('../includes/csrf.php');
+require_once('../includes/progress_helper.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!isset($_SESSION['user_id'])) {
@@ -44,6 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("ississ", $project_id, $title, $description, $assigned_to, $priority, $due_date);
 
     if ($stmt->execute()) {
+        update_project_progress($conn, $project_id);
         header("Location: ../dashboard/tasks.php?project_id=$project_id&success=1");
         exit();
     }

@@ -39,6 +39,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $supervisor_id = isset($_POST['supervisor_id']) && (int)$_POST['supervisor_id'] > 0 ? (int)$_POST['supervisor_id'] : null;
 
+    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'student') {
+        if (!$supervisor_id) {
+            $_SESSION['error'] = "Students must select a faculty supervisor.";
+            header("Location: ../dashboard/projects.php");
+            exit();
+        }
+        
+        // Verify supervisor is faculty
+        $sup_check = $conn->prepare("SELECT id FROM users WHERE id = ? AND role = 'faculty' AND is_verified = 1");
+        $sup_check->bind_param("i", $supervisor_id);
+        $sup_check->execute();
+        if ($sup_check->get_result()->num_rows === 0) {
+            $_SESSION['error'] = "Invalid faculty supervisor selected.";
+            header("Location: ../dashboard/projects.php");
+            exit();
+        }
+    }
     $stmt = $conn->prepare("INSERT INTO projects (title, description, department, visibility, status, progress, creator_id, supervisor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssssiii", $title, $description, $department, $visibility, $status, $progress, $user_id, $supervisor_id);
 

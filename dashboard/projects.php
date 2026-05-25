@@ -244,8 +244,9 @@ $result = $stmt->get_result();
 
                 <div class="invite-researchers">
                     <label class="invite-label">INVITE RESEARCHERS</label>
-                    <div class="search-container search-container-wide">
-                        <select name="invited_users[]" class="form-input-light" multiple style="height: auto; min-height: 100px;">
+                    <div class="custom-multi-select">
+                        <input type="text" id="researcherSearch" placeholder="Search by name..." class="form-input-light custom-multi-select-input" onkeyup="filterResearchers()">
+                        <div class="researcher-list" id="researcherList">
                             <?php 
                             $users_stmt = $conn->prepare("SELECT id, full_name, role FROM users WHERE id != ? ORDER BY full_name ASC");
                             $users_stmt->bind_param("i", $user_id);
@@ -253,10 +254,12 @@ $result = $stmt->get_result();
                             $users_res = $users_stmt->get_result();
                             while($u = $users_res->fetch_assoc()):
                             ?>
-                                <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['full_name']); ?> (<?php echo ucfirst($u['role']); ?>)</option>
+                                <label class="researcher-item">
+                                    <input type="checkbox" name="invited_users[]" value="<?php echo $u['id']; ?>">
+                                    <span class="researcher-name"><?php echo htmlspecialchars($u['full_name']); ?></span> <small class="researcher-role">(<?php echo ucfirst($u['role']); ?>)</small>
+                                </label>
                             <?php endwhile; ?>
-                        </select>
-                        <small style="color:#666; font-size:0.75rem; margin-top:5px; display:block;">Hold Ctrl (Windows) or Command (Mac) to select multiple users.</small>
+                        </div>
                     </div>
                 </div>
 
@@ -269,5 +272,22 @@ $result = $stmt->get_result();
     </div>
 
     <script src="../assets/js/projects.js"></script>
+    <script>
+    function filterResearchers() {
+        var input = document.getElementById('researcherSearch');
+        var filter = input.value.toUpperCase();
+        var list = document.getElementById('researcherList');
+        var items = list.getElementsByClassName('researcher-item');
+        for (var i = 0; i < items.length; i++) {
+            var label = items[i].getElementsByClassName('researcher-name')[0];
+            var txtValue = label.textContent || label.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                items[i].style.display = "block";
+            } else {
+                items[i].style.display = "none";
+            }
+        }
+    }
+    </script>
 </body>
 </html>

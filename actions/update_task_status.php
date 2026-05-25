@@ -3,6 +3,7 @@ require_once('../includes/session.php');
 start_secure_session();
 require_once('../includes/db_connect.php');
 require_once('../includes/csrf.php');
+require_once('../includes/progress_helper.php');
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../auth/login.php');
@@ -21,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($task_id > 0 && in_array($status, ['todo', 'in_progress', 'done'], true)) {
         
         // QUERY: Get task assignee and current status. Verify user has permission (project owner or task assignee)
-        $checkStmt = $conn->prepare("SELECT t.id, t.status, t.assigned_to FROM tasks t JOIN projects p ON t.project_id = p.id LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? WHERE t.id = ? AND (p.creator_id = ? OR t.assigned_to = ? OR pm.role IN ('owner', 'editor'))");
+        $checkStmt = $conn->prepare("SELECT t.id, t.status, t.assigned_to, t.project_id FROM tasks t JOIN projects p ON t.project_id = p.id LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? WHERE t.id = ? AND (p.creator_id = ? OR t.assigned_to = ? OR pm.role IN ('owner', 'editor'))");
         $checkStmt->bind_param("iiii", $user_id, $task_id, $user_id, $user_id);
         $checkStmt->execute();
         $checkRes = $checkStmt->get_result()->fetch_assoc();
@@ -45,6 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $ptsStmt = $conn->prepare("UPDATE users SET points = points + ? WHERE id = ?");
                     $ptsStmt->bind_param("ii", $award_points, $assignee);
                     $ptsStmt->execute();
+                }
+                
+                // Update project progress
+                if (isset($checkRes['project_id']) && $checkRes['project_id'] > 0) {
+                    update_project_progress($conn, $checkRes['project_id']);
                 }
             }
         }

@@ -3,6 +3,7 @@ require_once('../includes/session.php');
 start_secure_session();
 require_once('../includes/db_connect.php');
 require_once('../includes/csrf.php');
+require_once('../includes/progress_helper.php');
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../auth/login.php');
@@ -27,10 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         
         if ($stmt->get_result()->num_rows === 1) {
-            $updStmt = $conn->prepare("UPDATE projects SET title = ?, description = ?, department = ?, progress = ?, visibility = ?, status = ? WHERE id = ? AND creator_id = ?");
-            $updStmt->bind_param("sssissii", $title, $description, $department, $progress, $visibility, $status, $project_id, $user_id);
+            $updStmt = $conn->prepare("UPDATE projects SET title = ?, description = ?, department = ?, visibility = ?, status = ? WHERE id = ? AND creator_id = ?");
+            $updStmt->bind_param("sssssii", $title, $description, $department, $visibility, $status, $project_id, $user_id);
             
             if ($updStmt->execute()) {
+                update_project_progress($conn, $project_id);
                 $_SESSION['success'] = "Project updated successfully.";
             } else {
                 $_SESSION['error'] = "Database error while updating.";

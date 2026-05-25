@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS project_members (
     project_id INT NOT NULL,
     user_id INT NOT NULL,
     role ENUM('owner', 'editor', 'viewer') DEFAULT 'viewer',
+    status ENUM('pending', 'active') DEFAULT 'active',
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uniq_project_user (project_id, user_id),
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
