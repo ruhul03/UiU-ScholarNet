@@ -86,4 +86,3 @@ UiU-ScholarNet/
 ## 📝 License
 
 Built for the UIU Web Programming course — 7th Trimester, 2026.
-Designed by Antigravity AI.
