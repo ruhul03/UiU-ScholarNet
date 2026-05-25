@@ -76,12 +76,23 @@ layout_header("Topic: " . htmlspecialchars($thread['title']) . " | UIU ScholarNe
         <div class="discussion-container">
             <a href="research_discussion.php" style="display: inline-block; margin-bottom: 1.5rem; color: #666; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Back to Discussions</a>
             
-            <div class="discussion-header" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
-                <h1 style="font-size: 2rem; font-family: var(--font-heading); color: var(--primary-color);"><?php echo htmlspecialchars($thread['title']); ?></h1>
-                <div class="thread-meta">
-                    <span><i class="fa-solid fa-clock"></i> Started <?php echo date('M d, Y H:i', strtotime($thread['created_at'])); ?></span>
-                    <span><i class="fa-solid fa-eye"></i> <?php echo $thread['views']; ?> Views</span>
+            <div class="discussion-header" style="flex-direction: row; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <h1 style="font-size: 2rem; font-family: var(--font-heading); color: var(--primary-color);"><?php echo htmlspecialchars($thread['title']); ?></h1>
+                    <div class="thread-meta">
+                        <span><i class="fa-solid fa-clock"></i> Started <?php echo date('M d, Y H:i', strtotime($thread['created_at'])); ?></span>
+                        <span><i class="fa-solid fa-eye"></i> <?php echo $thread['views']; ?> Views</span>
+                    </div>
                 </div>
+                <?php if ($thread['user_id'] == $_SESSION['user_id']): ?>
+                    <form method="POST" action="../actions/delete_discussion_thread.php" onsubmit="return confirm('Are you sure you want to delete this topic completely?');">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                        <input type="hidden" name="thread_id" value="<?php echo $thread['id']; ?>">
+                        <button type="submit" class="btn btn-outline" style="color: #ef4444; border-color: #ef4444;">
+                            <i class="fa-solid fa-trash"></i> Delete Topic
+                        </button>
+                    </form>
+                <?php endif; ?>
             </div>
             
             <?php if (isset($_GET['success'])): ?>
@@ -99,12 +110,28 @@ layout_header("Topic: " . htmlspecialchars($thread['title']) . " | UIU ScholarNe
                         <div class="post-role"><?php echo ucfirst($thread['role']); ?></div>
                     </div>
                     <div class="post-content">
-                        <div class="post-meta">
-                            <span>Posted on <?php echo date('M d, Y H:i', strtotime($thread['created_at'])); ?></span>
+                        <div class="post-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="font-size: 0.8rem; color: #666;"><i class="fa-solid fa-clock"></i> Posted on <?php echo date('M d, Y H:i', strtotime($thread['created_at'])); ?></span>
+                            <?php if ($thread['user_id'] == $_SESSION['user_id']): ?>
+                                <button type="button" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="document.getElementById('edit-thread').style.display='block'; document.getElementById('view-thread').style.display='none';">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </button>
+                            <?php endif; ?>
                         </div>
-                        <div class="post-text">
+                        <div id="view-thread" class="post-text">
                             <?php echo nl2br(htmlspecialchars($thread['content'])); ?>
                         </div>
+                        <?php if ($thread['user_id'] == $_SESSION['user_id']): ?>
+                            <form id="edit-thread" method="POST" action="../actions/edit_discussion_thread.php" style="display: none; margin-top: 1rem;">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="hidden" name="thread_id" value="<?php echo $thread['id']; ?>">
+                                <textarea name="content" rows="4" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem;" required><?php echo htmlspecialchars($thread['content']); ?></textarea>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button type="submit" class="btn btn-primary" style="padding: 0.3rem 1rem; font-size: 0.8rem;">Save</button>
+                                    <button type="button" class="btn btn-outline" style="padding: 0.3rem 1rem; font-size: 0.8rem;" onclick="document.getElementById('edit-thread').style.display='none'; document.getElementById('view-thread').style.display='block';">Cancel</button>
+                                </div>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -117,12 +144,39 @@ layout_header("Topic: " . htmlspecialchars($thread['title']) . " | UIU ScholarNe
                             <div class="post-role"><?php echo ucfirst($reply['role']); ?></div>
                         </div>
                         <div class="post-content">
-                            <div class="post-meta">
-                                <span>Replied on <?php echo date('M d, Y H:i', strtotime($reply['created_at'])); ?></span>
+                            <div class="post-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.8rem; color: #666;"><i class="fa-solid fa-clock"></i> Replied on <?php echo date('M d, Y H:i', strtotime($reply['created_at'])); ?></span>
+                                <?php if ($reply['user_id'] == $_SESSION['user_id']): ?>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button type="button" style="background: none; border: none; color: #666; cursor: pointer;" title="Edit" onclick="document.getElementById('edit-reply-<?php echo $reply['id']; ?>').style.display='block'; document.getElementById('view-reply-<?php echo $reply['id']; ?>').style.display='none';">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <form method="POST" action="../actions/delete_discussion_reply.php" onsubmit="return confirm('Are you sure you want to delete this reply?');" style="margin: 0;">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                            <input type="hidden" name="reply_id" value="<?php echo $reply['id']; ?>">
+                                            <input type="hidden" name="thread_id" value="<?php echo $thread_id; ?>">
+                                            <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer;" title="Delete">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="post-text">
+                            <div id="view-reply-<?php echo $reply['id']; ?>" class="post-text">
                                 <?php echo nl2br(htmlspecialchars($reply['content'])); ?>
                             </div>
+                            <?php if ($reply['user_id'] == $_SESSION['user_id']): ?>
+                                <form id="edit-reply-<?php echo $reply['id']; ?>" method="POST" action="../actions/edit_discussion_reply.php" style="display: none; margin-top: 1rem;">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                    <input type="hidden" name="reply_id" value="<?php echo $reply['id']; ?>">
+                                    <input type="hidden" name="thread_id" value="<?php echo $thread_id; ?>">
+                                    <textarea name="content" rows="3" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem;" required><?php echo htmlspecialchars($reply['content']); ?></textarea>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button type="submit" class="btn btn-primary" style="padding: 0.3rem 1rem; font-size: 0.8rem;">Save</button>
+                                        <button type="button" class="btn btn-outline" style="padding: 0.3rem 1rem; font-size: 0.8rem;" onclick="document.getElementById('edit-reply-<?php echo $reply['id']; ?>').style.display='none'; document.getElementById('view-reply-<?php echo $reply['id']; ?>').style.display='block';">Cancel</button>
+                                    </div>
+                                </form>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endwhile; ?>
