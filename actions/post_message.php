@@ -48,8 +48,9 @@ if ($receiver_id && $receiver_id > 0) {
     $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, channel, message) VALUES (?, ?, 'dm', ?)");
     $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
     $stmt->execute();
+    $message_id = $conn->insert_id;
     
-    if ($is_ajax) { echo json_encode(['success' => true]); exit(); }
+    if ($is_ajax) { echo json_encode(['success' => true, 'message_id' => $message_id]); exit(); }
     header("Location: ../dashboard/messages.php?user_id=" . $receiver_id);
     exit();
 } else {
@@ -57,8 +58,9 @@ if ($receiver_id && $receiver_id > 0) {
     $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, channel, message) VALUES (?, NULL, ?, ?)");
     $stmt->bind_param("iss", $sender_id, $channel, $message);
     $stmt->execute();
+    $message_id = $conn->insert_id;
     
-    if ($is_ajax) { echo json_encode(['success' => true]); exit(); }
+    if ($is_ajax) { echo json_encode(['success' => true, 'message_id' => $message_id]); exit(); }
     header("Location: ../dashboard/messages.php?channel=" . urlencode($channel));
     exit();
 }

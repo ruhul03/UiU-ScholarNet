@@ -18,6 +18,11 @@ $channel = isset($_GET['channel']) ? $_GET['channel'] : '';
 $messages = [];
 
 if ($chat_user_id > 0) {
+    // Mark as read
+    $upd = $conn->prepare("UPDATE messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND is_read = 0");
+    $upd->bind_param("ii", $chat_user_id, $user_id);
+    $upd->execute();
+
     // Direct Message Polling
     $stmt = $conn->prepare("
         SELECT m.*, u.full_name

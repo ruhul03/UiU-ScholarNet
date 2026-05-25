@@ -65,6 +65,11 @@ if ($chat_user_id > 0) {
             'desc' => ucfirst(htmlspecialchars($chat_user_data['role']))
         ];
         
+        // Mark as read
+        $upd = $conn->prepare("UPDATE messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND is_read = 0");
+        $upd->bind_param("ii", $chat_user_id, $user_id);
+        $upd->execute();
+        
         $mstmt = $conn->prepare("
             SELECT m.*, u.full_name
             FROM messages m
@@ -121,7 +126,8 @@ if ($chat_user_id === 0) {
 
 // Fetch users for the sidebar (Connections from projects OR users you've DM'd)
 $dmStmt = $conn->prepare("
-    SELECT DISTINCT u.id, u.full_name, u.role
+    SELECT DISTINCT u.id, u.full_name, u.role,
+           (SELECT COUNT(*) FROM messages m_un WHERE m_un.sender_id = u.id AND m_un.receiver_id = ? AND m_un.is_read = 0) as unread_count
     FROM users u
     WHERE u.id != ? 
     AND (
@@ -137,10 +143,10 @@ $dmStmt = $conn->prepare("
                OR (m.sender_id = u.id AND m.receiver_id = ?)
         )
     )
-    ORDER BY u.full_name ASC
+    ORDER BY unread_count DESC, u.full_name ASC
     LIMIT 50
 ");
-$dmStmt->bind_param("iiii", $user_id, $user_id, $user_id, $user_id);
+$dmStmt->bind_param("iiiii", $user_id, $user_id, $user_id, $user_id, $user_id);
 $dmStmt->execute();
 $dm_users_res = $dmStmt->get_result();
 
@@ -189,9 +195,14 @@ $dm_users_res = $dmStmt->get_result();
                         <?php while ($dm_user = $dm_users_res->fetch_assoc()): ?>
                             <a href="?user_id=<?php echo $dm_user['id']; ?>" class="dm-item <?php echo ($chat_user_id === (int)$dm_user['id']) ? 'active' : ''; ?>">
                                 <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($dm_user['full_name']); ?>&background=<?php echo ($chat_user_id === (int)$dm_user['id']) ? '0a1128' : 'f8f7f2'; ?>&color=<?php echo ($chat_user_id === (int)$dm_user['id']) ? 'fff' : '0a1128'; ?>" class="avatar-badge">
-                                <div class="item-info">
-                                    <div class="item-name"><?php echo htmlspecialchars($dm_user['full_name']); ?></div>
-                                    <div class="item-preview"><?php echo htmlspecialchars($dm_user['role']); ?></div>
+                                <div class="item-info" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <div>
+                                        <div class="item-name"><?php echo htmlspecialchars($dm_user['full_name']); ?></div>
+                                        <div class="item-preview"><?php echo htmlspecialchars($dm_user['role']); ?></div>
+                                    </div>
+                                    <?php if ($dm_user['unread_count'] > 0): ?>
+                                        <span class="notification-dot" style="display:inline-block; width:10px; height:10px; background:var(--secondary-color); border-radius:50%;"></span>
+                                    <?php endif; ?>
                                 </div>
                             </a>
                         <?php endwhile; ?>
@@ -364,6 +375,9 @@ $dm_users_res = $dmStmt->get_result();
                         bubble.querySelector('.msg-text').style.opacity = '1';
                         bubble.querySelector('.msg-meta').innerText = 'You • Just now';
                         bubble.classList.remove('temp-bubble');
+                        if (data.message_id) {
+                            bubble.setAttribute('data-msg-id', data.message_id);
+                        }
                         pollMessages(); // Immediately poll after sending
                     }
                 });

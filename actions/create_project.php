@@ -70,10 +70,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user_stmt->execute();
             $user_data = $user_stmt->get_result()->fetch_assoc();
             
+            $sup_title = "Supervision Request";
             $sup_msg = $user_data['full_name'] . " has requested your supervision for the project: " . $title;
-            $notif_stmt = $conn->prepare("INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, 'system', 'Supervision Request', ?, '../dashboard/projects.php')");
-            $notif_stmt->bind_param("is", $supervisor_id, $sup_msg);
-            $notif_stmt->execute();
+            $sup_notif = $conn->prepare("INSERT INTO notifications (user_id, title, message, is_read, created_at) VALUES (?, ?, ?, 0, NOW())");
+            $sup_notif->bind_param("iss", $supervisor_id, $sup_title, $sup_msg);
+            $sup_notif->execute();
         }
         
         // Add creator as owner

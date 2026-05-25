@@ -1,4 +1,12 @@
 <!-- Sidebar Component -->
+<?php
+if (!isset($unread_messages_count)) {
+    $um_stmt = $conn->prepare("SELECT COUNT(*) as total FROM messages WHERE receiver_id = ? AND is_read = 0");
+    $um_stmt->bind_param("i", $user_id);
+    $um_stmt->execute();
+    $unread_messages_count = (int)($um_stmt->get_result()->fetch_assoc()['total'] ?? 0);
+}
+?>
 <aside class="sidebar">
     <div class="logo">UIU ScholarNet</div>
     <div class="sidebar-subtitle">RESEARCH & COLLABORATION</div>
@@ -16,11 +24,14 @@
         <a href="tasks.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'tasks.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-square-check"></i> Tasks
         </a>
-        <a href="document_editor.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'document_editor.php') ? 'active' : ''; ?>">
+        <a href="documents.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'documents.php' || basename($_SERVER['PHP_SELF']) == 'document_editor.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-file-lines"></i> Document Editor
         </a>
         <a href="messages.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'messages.php' && (!isset($_GET['channel']) || $_GET['channel'] !== 'discussion')) ? 'active' : ''; ?>">
             <i class="fa-solid fa-message"></i> Messages
+            <?php if (($unread_messages_count ?? 0) > 0): ?>
+                <span class="notification-dot" style="display:inline-block; margin-left:auto; width:8px; height:8px; background:var(--secondary-color); border-radius:50%;"></span>
+            <?php endif; ?>
         </a>
         <a href="file_upload.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'file_upload.php') ? 'active' : ''; ?>">
             <i class="fa-solid fa-paperclip"></i> File Upload

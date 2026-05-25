@@ -96,8 +96,7 @@ if ($doc['id'] > 0) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
-    <!-- Quill CSS -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/document_editor.css">
 </head>
 <body class="dashboard-page">
 
@@ -163,10 +162,29 @@ if ($doc['id'] > 0) {
 
                 <!-- Editor Body -->
                 <div class="editor-main" style="padding: 0; background: transparent; border: none; box-shadow: none;">
-                    <label class="editor-label">CONTENT</label>
-                    <div id="quill-editor"><?php
-                        echo $doc['content'] !== '' ? $doc['content'] : "<h2>Introduction</h2><p>Write your research notes, methodology, and draft sections here.</p><h2>References</h2><ul><li>Add citations and links...</li></ul>";
-                    ?></div>
+                    <div class="editor-wrapper">
+                        <!-- Custom Handmade Toolbar -->
+                        <div class="handmade-toolbar">
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('bold')" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('italic')" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('underline')" title="Underline"><i class="fa-solid fa-underline"></i></button>
+                            <span style="border-left: 1px solid #ddd; margin: 0 5px;"></span>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('formatBlock', 'H1')" title="Heading 1"><i class="fa-solid fa-heading"></i>1</button>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('formatBlock', 'H2')" title="Heading 2"><i class="fa-solid fa-heading"></i>2</button>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('formatBlock', 'P')" title="Paragraph"><i class="fa-solid fa-paragraph"></i></button>
+                            <span style="border-left: 1px solid #ddd; margin: 0 5px;"></span>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
+                            <span style="border-left: 1px solid #ddd; margin: 0 5px;"></span>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('justifyLeft')" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
+                            <button type="button" class="toolbar-btn" onclick="formatDoc('justifyCenter')" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
+                        </div>
+                        
+                        <!-- Contenteditable Canvas -->
+                        <div id="handmade-editor" class="handmade-editor" contenteditable="true"><?php
+                            echo $doc['content'] !== '' ? $doc['content'] : "<h1>Introduction</h1><p>Write your research notes, methodology, and draft sections here.</p>";
+                        ?></div>
+                    </div>
                     <input type="hidden" name="content" id="hidden-content">
                 </div>
                 </form>
@@ -239,33 +257,17 @@ if ($doc['id'] > 0) {
         </div>
     </main>
 
-    <!-- Quill.js JS -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- Custom Handmade Editor Logic -->
     <script>
-        var quill = new Quill('#quill-editor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['blockquote', 'code-block'],
-                    [{ 'header': 1 }, { 'header': 2 }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'script': 'sub'}, { 'script': 'super' }],
-                    [{ 'indent': '-1'}, { 'indent': '+1' }],
-                    [{ 'size': ['small', false, 'large', 'huge'] }],
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'font': [] }],
-                    [{ 'align': [] }],
-                    ['link', 'image', 'video'],
-                    ['clean']
-                ]
-            },
-            placeholder: 'Write your research notes, methodology, and draft sections here...'
-        });
+        function formatDoc(cmd, value=null) {
+            document.execCommand(cmd, false, value);
+            document.getElementById('handmade-editor').focus();
+        }
 
         var isDirty = false;
-        quill.on('text-change', function() {
+        var editor = document.getElementById('handmade-editor');
+        
+        editor.addEventListener('input', function() {
             isDirty = true;
         });
 
@@ -277,16 +279,17 @@ if ($doc['id'] > 0) {
             }
         });
 
-        // Sync Quill HTML content to hidden input before form submit
+        // Sync HTML content to hidden input before form submit
         var form = document.querySelector('form[action="../actions/save_document.php"]');
         var hiddenContent = document.querySelector('#hidden-content');
         
-        form.onsubmit = function() {
-            isDirty = false;
-            // Using quill.root.innerHTML gets the exact HTML of the content
-            hiddenContent.value = quill.root.innerHTML;
-            return true;
-        };
+        if (form) {
+            form.addEventListener('submit', function() {
+                isDirty = false;
+                hiddenContent.value = editor.innerHTML;
+                return true;
+            });
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,85 @@
+/* Handmade Document Editor Styling */
+.editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 30px 10px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border: 1px solid #eaeaea;
+}
+
+.handmade-toolbar {
+    background: white;
+    border-radius: 4px;
+    padding: 10px 20px;
+    margin-bottom: 25px;
+    position: sticky;
+    top: 20px;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    border: 1px solid #ddd;
+    width: 100%;
+    max-width: 850px;
+}
+
+.toolbar-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    color: #4b5563;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.toolbar-btn:hover {
+    background: #f3f4f6;
+    color: var(--primary-color);
+}
+
+.handmade-editor {
+    background: white;
+    width: 100%;
+    max-width: 850px;
+    min-height: 1000px;
+    padding: 80px 100px;
+    border-radius: 4px;
+    border: 1px solid #eaeaea;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: #2c3e50;
+    outline: none;
+}
+
+.handmade-editor h1, .handmade-editor h2, .handmade-editor h3 {
+    font-family: 'Playfair Display', serif;
+    color: #111827;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+    font-weight: 700;
+}
+
+.handmade-editor h1 { font-size: 2.8rem; line-height: 1.2; }
+.handmade-editor h2 { font-size: 2.2rem; }
+
+.handmade-editor p {
+    margin-bottom: 1.2rem;
+}
+
+.handmade-editor ul, .handmade-editor ol {
+    margin-left: 2rem;
+    margin-bottom: 1.2rem;
+}
+
+.editor-label { display: none !important; }
+
+@media (max-width: 768px) {
+    .handmade-editor { padding: 40px 30px; min-height: 600px; }
+}
