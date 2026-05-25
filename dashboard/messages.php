@@ -163,6 +163,7 @@ $dm_users_res = $dmStmt->get_result();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/messages.css">
 </head>
 <body class="dashboard-page">
 
@@ -218,8 +219,21 @@ $dm_users_res = $dmStmt->get_result();
                         <div class="chat-title"><?php echo htmlspecialchars($chat_target_info['name']); ?></div>
                         <div class="chat-subtitle">Online • <?php echo htmlspecialchars($chat_target_info['desc']); ?></div>
                     </div>
-                    <div class="chat-actions">
-                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    <div class="chat-actions" style="position: relative;" id="chatActionsMenu">
+                        <i class="fa-solid fa-ellipsis-vertical" onclick="document.getElementById('chatDropdown').classList.toggle('show')"></i>
+                        <div class="dropdown-menu" id="chatDropdown">
+                            <form action="../actions/clear_chat.php" method="POST" onsubmit="return confirm('Clear this chat history?');">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                <?php if ($chat_user_id > 0): ?>
+                                    <input type="hidden" name="user_id" value="<?php echo $chat_user_id; ?>">
+                                <?php else: ?>
+                                    <input type="hidden" name="channel" value="<?php echo htmlspecialchars($channel, ENT_QUOTES, 'UTF-8'); ?>">
+                                <?php endif; ?>
+                                <button type="submit" class="dropdown-item" style="border:none; background:none; width:100%; text-align:left;">
+                                    <i class="fa-solid fa-trash"></i> Clear Chat
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -236,9 +250,20 @@ $dm_users_res = $dmStmt->get_result();
                                 <div class="msg-content">
                                     <div class="msg-text">
                                         <?php echo nl2br(htmlspecialchars((string)$msg['message'])); ?>
+                                        <?php if (!empty($msg['file_path'])): ?>
+                                            <a href="../<?php echo htmlspecialchars($msg['file_path']); ?>" target="_blank" class="file-attachment">
+                                                <i class="fa-solid fa-paperclip file-icon"></i>
+                                                <span style="font-size: 0.85rem; word-break: break-all;"><?php echo htmlspecialchars($msg['file_name']); ?></span>
+                                            </a>
+                                        <?php endif; ?>
                                     </div>
-                                    <div class="msg-meta">
-                                        <?php echo htmlspecialchars($sender_name); ?> • <?php echo date('g:i A', strtotime($msg['created_at'])); ?>
+                                    <div class="msg-meta" style="display:flex; justify-content: <?php echo $is_self ? 'flex-end' : 'flex-start'; ?>; align-items:center; gap: 10px;">
+                                        <?php if ($is_self): ?>
+                                            <div class="msg-actions" onclick="deleteMessage(<?php echo $msg['id']; ?>, this)">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                        <span><?php echo htmlspecialchars($sender_name); ?> • <?php echo date('g:i A', strtotime($msg['created_at'])); ?></span>
                                     </div>
                                 </div>
                             </div>
@@ -258,7 +283,7 @@ $dm_users_res = $dmStmt->get_result();
 
                 <?php if ($chat_user_id > 0 || $channel): ?>
                 <div class="chat-input-wrapper">
-                    <form class="chat-form" action="../actions/post_message.php" method="POST" id="chatForm">
+                    <form class="chat-form" action="../actions/post_message.php" method="POST" id="chatForm" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                         
                         <?php if ($chat_user_id > 0): ?>
@@ -267,14 +292,20 @@ $dm_users_res = $dmStmt->get_result();
                             <input type="hidden" name="channel" value="<?php echo htmlspecialchars($channel, ENT_QUOTES, 'UTF-8'); ?>">
                         <?php endif; ?>
                         
-                        <i class="fa-solid fa-plus icon-btn"></i>
-                        <input name="message" type="text" class="chat-input" placeholder="Type your message..." autocomplete="off" required>
-                        <i class="fa-regular fa-face-smile icon-btn" style="margin-right: 0.5rem;"></i>
+                        <label for="chatFileInput" class="icon-btn" style="margin-bottom:0;" title="Attach file">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </label>
+                        <input type="file" name="chat_file" id="chatFileInput" style="display:none;" onchange="updateFileLabel(this)">
+                        
+                        <input name="message" type="text" class="chat-input" id="chatTextInput" placeholder="Type your message..." autocomplete="off">
                         
                         <button type="submit" class="send-btn">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
+                    <div id="fileAttachmentPreview" style="display:none; font-size:0.8rem; color:var(--primary-color); margin-top:5px; padding-left:40px;">
+                        Attached: <span id="fileNameDisplay"></span>
+                    </div>
                 </div>
                 <?php endif; ?>
             </div>
@@ -433,10 +464,22 @@ $dm_users_res = $dmStmt->get_result();
                             const date = new Date(msg.created_at);
                             const timeStr = date.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
 
+                            let attachmentHtml = '';
+                            if (msg.file_path && msg.file_name) {
+                                attachmentHtml = `
+                                <a href="../${msg.file_path}" target="_blank" class="file-attachment">
+                                    <i class="fa-solid fa-paperclip file-icon"></i>
+                                    <span style="font-size: 0.85rem; word-break: break-all;">${msg.file_name}</span>
+                                </a>`;
+                            }
+
                             html += `
                                 <div class="msg-content">
-                                    <div class="msg-text">${msg.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
-                                    <div class="msg-meta">${senderName} • ${timeStr}</div>
+                                    <div class="msg-text">${msg.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")} ${attachmentHtml}</div>
+                                    <div class="msg-meta" style="display:flex; justify-content: ${isSelf ? 'flex-end' : 'flex-start'}; align-items:center; gap: 10px;">
+                                        ${isSelf ? `<div class="msg-actions" onclick="deleteMessage(${msg.id}, this)"><i class="fa-solid fa-trash"></i></div>` : ''}
+                                        <span>${senderName} • ${timeStr}</span>
+                                    </div>
                                 </div>
                             `;
                             bubble.innerHTML = html;
@@ -456,6 +499,61 @@ $dm_users_res = $dmStmt->get_result();
 
         // Poll every 3 seconds
         setInterval(pollMessages, 3000);
+
+        // Click outside dropdown to close
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('chatDropdown');
+            if (menu && menu.classList.contains('show') && !e.target.closest('#chatActionsMenu')) {
+                menu.classList.remove('show');
+            }
+        });
+
+        function updateFileLabel(input) {
+            const display = document.getElementById('fileAttachmentPreview');
+            const nameSpan = document.getElementById('fileNameDisplay');
+            const textInput = document.getElementById('chatTextInput');
+            if (input.files.length > 0) {
+                nameSpan.textContent = input.files[0].name;
+                display.style.display = 'block';
+                textInput.removeAttribute('required'); // message text not required if file is attached
+            } else {
+                display.style.display = 'none';
+                textInput.setAttribute('required', 'true');
+            }
+        }
+
+        function deleteMessage(msgId, el) {
+            if (!confirm('Delete this message?')) return;
+            const formData = new FormData();
+            formData.append('csrf_token', '<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>');
+            formData.append('message_id', msgId);
+
+            fetch('../actions/delete_message.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    el.closest('.msg-bubble').remove();
+                } else {
+                    alert('Failed to delete message: ' + (data.message || 'Unknown error'));
+                }
+            });
+        }
+
+        // Intercept form submit to handle files properly in JS if needed
+        // The existing JS fetch already handles FormData which includes files!
+        if (chatForm) {
+            const oldSubmit = chatForm.onsubmit;
+            chatForm.addEventListener('submit', function(e) {
+                // If the old JS is catching it, let's just make sure it clears the file input
+                setTimeout(() => {
+                    document.getElementById('chatFileInput').value = '';
+                    updateFileLabel(document.getElementById('chatFileInput'));
+                }, 100);
+            });
+        }
     </script>
 </body>
 </html>

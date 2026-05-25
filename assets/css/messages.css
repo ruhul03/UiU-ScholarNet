@@ -116,6 +116,7 @@
     display: flex;
     flex-direction: column;
     background: var(--white);
+    min-height: 0;
 }
 
 .chat-header {
@@ -160,6 +161,7 @@
 
 .chat-messages {
     flex: 1;
+    min-height: 0;
     padding: 2rem;
     overflow-y: auto;
     display: flex;
@@ -366,3 +368,54 @@
     padding: 3rem;
     margin: auto;
 }
+
+/* --- Added from inline styles --- */
+.msg-actions {
+    font-size: 0.75rem;
+    opacity: 0.3; /* changed from 0 to 0.3 to make it visible */
+    transition: opacity 0.2s;
+    cursor: pointer;
+    margin-top: 0.3rem;
+}
+.msg-bubble:hover .msg-actions {
+    opacity: 0.8;
+}
+.msg-actions:hover {
+    opacity: 1 !important;
+    color: #ef4444;
+}
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 10;
+    min-width: 150px;
+}
+.dropdown-menu.show { display: block; }
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    color: #ef4444;
+    text-decoration: none;
+    display: block;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.dropdown-item:hover { background: #fef2f2; }
+.file-attachment {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.05);
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+}
+.file-attachment:hover { background: rgba(0,0,0,0.08); }
+.file-icon { font-size: 1.2rem; }

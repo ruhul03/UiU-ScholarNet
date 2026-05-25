@@ -5,11 +5,11 @@ $filter = $_GET['filter'] ?? 'all';
 $whereSql = '';
 
 if ($filter === 'thesis') {
-    $whereSql = "WHERE r.category = 'Paper'";
+    $whereSql = "WHERE r.category IN ('Thesis', 'Research Paper')";
 } elseif ($filter === 'lecture') {
-    $whereSql = "WHERE r.category = 'Report' OR r.category = 'General'";
+    $whereSql = "WHERE r.category IN ('Lecture Notes', 'Presentation')";
 } elseif ($filter === 'dataset') {
-    $whereSql = "WHERE r.resource_type IN ('Dataset', 'CSV')";
+    $whereSql = "WHERE r.category = 'Dataset' OR r.resource_type IN ('Dataset', 'CSV')";
 }
 
 // Fetch Resources

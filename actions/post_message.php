@@ -43,24 +43,45 @@ if (!preg_match('/^[a-z0-9_-]{1,50}$/', $channel)) {
     $channel = 'general';
 }
 
+// Handle file upload
+$file_path = null;
+$file_name = null;
+if (isset($_FILES['chat_file']) && $_FILES['chat_file']['error'] === UPLOAD_ERR_OK) {
+    $upload_dir = '../uploads/chat/';
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0777, true);
+    }
+    
+    $file = $_FILES['chat_file'];
+    $original_name = basename($file['name']);
+    $safe_base = preg_replace('/[^A-Za-z0-9._-]/', '_', $original_name);
+    $new_name = time() . '_' . $safe_base;
+    $target_path = $upload_dir . $new_name;
+    
+    if (move_uploaded_file($file['tmp_name'], $target_path)) {
+        $file_path = 'uploads/chat/' . $new_name;
+        $file_name = $original_name;
+    }
+}
+
 if ($receiver_id && $receiver_id > 0) {
     // DIRECT MESSAGE
-    $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, channel, message) VALUES (?, ?, 'dm', ?)");
-    $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
+    $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, channel, message, file_path, file_name) VALUES (?, ?, 'dm', ?, ?, ?)");
+    $stmt->bind_param("iisss", $sender_id, $receiver_id, $message, $file_path, $file_name);
     $stmt->execute();
     $message_id = $conn->insert_id;
     
-    if ($is_ajax) { echo json_encode(['success' => true, 'message_id' => $message_id]); exit(); }
+    if ($is_ajax) { echo json_encode(['success' => true, 'message_id' => $message_id, 'file_path' => $file_path, 'file_name' => $file_name]); exit(); }
     header("Location: ../dashboard/messages.php?user_id=" . $receiver_id);
     exit();
 } else {
     // CHANNEL CHAT
-    $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, channel, message) VALUES (?, NULL, ?, ?)");
-    $stmt->bind_param("iss", $sender_id, $channel, $message);
+    $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, channel, message, file_path, file_name) VALUES (?, NULL, ?, ?, ?, ?)");
+    $stmt->bind_param("issss", $sender_id, $channel, $message, $file_path, $file_name);
     $stmt->execute();
     $message_id = $conn->insert_id;
     
-    if ($is_ajax) { echo json_encode(['success' => true, 'message_id' => $message_id]); exit(); }
+    if ($is_ajax) { echo json_encode(['success' => true, 'message_id' => $message_id, 'file_path' => $file_path, 'file_name' => $file_name]); exit(); }
     header("Location: ../dashboard/messages.php?channel=" . urlencode($channel));
     exit();
 }
