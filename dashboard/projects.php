@@ -43,14 +43,42 @@ $collabStmt->bind_param("ii", $user_id, $user_id);
 $collabStmt->execute();
 $peer_collaborators = (int)($collabStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
+// Fetch Pending Project Invitations
+$invStmt = $conn->prepare("
+    SELECT p.*, pm.role 
+    FROM projects p 
+    JOIN project_members pm ON pm.project_id = p.id 
+    WHERE pm.user_id = ? AND pm.status = 'pending'
+    ORDER BY p.created_at DESC
+");
+$invStmt->bind_param("i", $user_id);
+$invStmt->execute();
+$pending_invites = $invStmt->get_result();
+
+// Fetch Pending Supervision Requests
+$pending_supervisions = null;
+if (isset($user_data['role']) && $user_data['role'] === 'faculty') {
+    $supStmt = $conn->prepare("
+        SELECT p.*, u.full_name as creator_name
+        FROM projects p
+        JOIN users u ON p.creator_id = u.id
+        WHERE p.supervisor_id = ? AND p.supervisor_approved = 0
+        ORDER BY p.created_at DESC
+    ");
+    $supStmt->bind_param("i", $user_id);
+    $supStmt->execute();
+    $pending_supervisions = $supStmt->get_result();
+}
+
 // Fetch Projects
 $stmt = $conn->prepare("
     SELECT p.*, 
-           (SELECT COUNT(DISTINCT user_id) FROM project_members WHERE project_id = p.id) as contributors_count,
+           (SELECT COUNT(DISTINCT user_id) FROM project_members WHERE project_id = p.id AND status = 'active') as contributors_count,
+           (SELECT GROUP_CONCAT(u.full_name SEPARATOR ', ') FROM project_members pm2 JOIN users u ON pm2.user_id = u.id WHERE pm2.project_id = p.id AND pm2.status = 'active') as contributor_names,
            (SELECT COUNT(*) FROM collaboration_posts WHERE project_id = p.id AND status = 'open') as active_collabs
     FROM projects p 
     LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
-    WHERE p.creator_id = ? OR pm.user_id = ?
+    WHERE p.creator_id = ? OR (pm.user_id = ? AND pm.status = 'active')
     ORDER BY p.created_at DESC
 ");
 $stmt->bind_param("iii", $user_id, $user_id, $user_id);
@@ -94,6 +122,46 @@ $result = $stmt->get_result();
 
             <?php include('../includes/alerts.php'); ?>
 
+            <?php if ($pending_invites && $pending_invites->num_rows > 0): ?>
+            <div class="pending-section">
+                <h3 class="pending-section-title">Pending Project Invitations</h3>
+                <div class="pending-list">
+                    <?php while($inv = $pending_invites->fetch_assoc()): ?>
+                    <div class="pending-card">
+                        <div>
+                            <h4 class="pending-card-title"><?php echo htmlspecialchars($inv['title']); ?></h4>
+                            <p class="pending-card-subtitle"><i class="fa-solid fa-building" style="margin-right:5px;"></i> <?php echo htmlspecialchars($inv['department']); ?></p>
+                        </div>
+                        <div class="pending-actions">
+                            <a href="../actions/respond_invitation.php?project_id=<?php echo $inv['id']; ?>&action=accept" class="btn btn-accept"><i class="fa-solid fa-check"></i> Accept</a>
+                            <a href="../actions/respond_invitation.php?project_id=<?php echo $inv['id']; ?>&action=decline" class="btn btn-decline"><i class="fa-solid fa-xmark"></i> Decline</a>
+                        </div>
+                    </div>
+                    <?php endwhile; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($pending_supervisions && $pending_supervisions->num_rows > 0): ?>
+            <div class="pending-section">
+                <h3 class="pending-section-title">Pending Supervision Requests</h3>
+                <div class="pending-list">
+                    <?php while($sup = $pending_supervisions->fetch_assoc()): ?>
+                    <div class="pending-card">
+                        <div>
+                            <h4 class="pending-card-title"><?php echo htmlspecialchars($sup['title']); ?></h4>
+                            <p class="pending-card-subtitle"><i class="fa-solid fa-user" style="margin-right:5px;"></i> Created by: <?php echo htmlspecialchars($sup['creator_name']); ?> &middot; <?php echo htmlspecialchars($sup['department']); ?></p>
+                        </div>
+                        <div class="pending-actions">
+                            <a href="../actions/respond_supervision.php?project_id=<?php echo $sup['id']; ?>&action=accept" class="btn btn-accept"><i class="fa-solid fa-check"></i> Approve</a>
+                            <a href="../actions/respond_supervision.php?project_id=<?php echo $sup['id']; ?>&action=decline" class="btn btn-decline"><i class="fa-solid fa-xmark"></i> Reject</a>
+                        </div>
+                    </div>
+                    <?php endwhile; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <div class="project-horizontal-list">
                 <?php while($row = $result->fetch_assoc()): ?>
                 <!-- Dynamic Horizontal Card -->
@@ -109,6 +177,9 @@ $result = $stmt->get_result();
                                 <span class="status-chip" style="background: #e3f2fd; color: #1565c0;"><i class="fa-solid fa-users-viewfinder"></i> COLLAB ACTIVE</span>
                             <?php endif; ?>
                             <span class="contributors-count"><i class="fa-solid fa-user-group"></i> <?php echo (int)$row['contributors_count']; ?> Contributors</span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                            <strong>Team:</strong> <?php echo htmlspecialchars($row['contributor_names'] ?? 'Just you'); ?>
                         </div>
                         
                         <!-- Lifecycle Stepper -->

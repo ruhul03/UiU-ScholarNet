@@ -63,6 +63,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt->execute()) {
         $project_id = $conn->insert_id;
         
+        // Notify Supervisor
+        if ($supervisor_id) {
+            $user_stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
+            $user_stmt->bind_param("i", $user_id);
+            $user_stmt->execute();
+            $user_data = $user_stmt->get_result()->fetch_assoc();
+            
+            $sup_msg = $user_data['full_name'] . " has requested your supervision for the project: " . $title;
+            $notif_stmt = $conn->prepare("INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, 'system', 'Supervision Request', ?, '../dashboard/projects.php')");
+            $notif_stmt->bind_param("is", $supervisor_id, $sup_msg);
+            $notif_stmt->execute();
+        }
+        
         // Add creator as owner
         $m_stmt = $conn->prepare("INSERT INTO project_members (project_id, user_id, role) VALUES (?, ?, 'owner')");
         $m_stmt->bind_param("ii", $project_id, $user_id);
@@ -70,12 +83,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Handle invited researchers
         if (isset($_POST['invited_users']) && is_array($_POST['invited_users'])) {
-            $inv_stmt = $conn->prepare("INSERT IGNORE INTO project_members (project_id, user_id, role) VALUES (?, ?, 'editor')");
+            $inv_stmt = $conn->prepare("INSERT IGNORE INTO project_members (project_id, user_id, role, status) VALUES (?, ?, 'editor', 'pending')");
+            $notif_stmt = $conn->prepare("INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, 'system', 'Project Invitation', ?, '../dashboard/projects.php')");
             foreach ($_POST['invited_users'] as $inv_uid) {
                 $inv_uid = (int)$inv_uid;
                 if ($inv_uid > 0 && $inv_uid !== $user_id) {
                     $inv_stmt->bind_param("ii", $project_id, $inv_uid);
                     $inv_stmt->execute();
+                    
+                    // Send Notification
+                    $msg = "You have been invited to join the project: " . $title;
+                    $notif_stmt->bind_param("is", $inv_uid, $msg);
+                    $notif_stmt->execute();
                 }
             }
         }

@@ -17,6 +17,12 @@ if (!isset($pending_tasks) || !isset($collab_requests)) {
             $cr_stmt->execute();
             $collab_requests = (int)($cr_stmt->get_result()->fetch_assoc()['total'] ?? 0);
         }
+        if (!isset($unread_notifications)) {
+            $un_stmt = $conn->prepare("SELECT COUNT(*) as total FROM notifications WHERE user_id = ? AND is_read = 0");
+            $un_stmt->bind_param("i", $user_id);
+            $un_stmt->execute();
+            $unread_notifications = (int)($un_stmt->get_result()->fetch_assoc()['total'] ?? 0);
+        }
     }
 }
 ?>
@@ -28,7 +34,7 @@ if (!isset($pending_tasks) || !isset($collab_requests)) {
     <div class="header-actions" style="display: flex; align-items: center; justify-content: flex-end; gap: 1.5rem;">
         <a href="notifications.php" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; display: flex; align-items: center; height: 36px;">
             <i class="fa-regular fa-bell header-icon" style="font-size: 1.2rem; line-height: 1;"></i>
-            <?php if (($collab_requests ?? 0) > 0 || ($pending_tasks ?? 0) > 0): ?>
+            <?php if (($collab_requests ?? 0) > 0 || ($pending_tasks ?? 0) > 0 || ($unread_notifications ?? 0) > 0): ?>
                 <span class="notification-dot" style="top: 2px; right: -2px; position: absolute; width: 10px; height: 10px; background: var(--secondary-color); border-radius: 50%; border: 2px solid #fff;"></span>
             <?php endif; ?>
         </a>

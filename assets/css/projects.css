@@ -341,3 +341,69 @@
 .researcher-role {
     color: #888;
 }
+
+/* Pending Requests Section */
+.pending-section {
+    margin-bottom: 2.5rem;
+    background: #fffdf5;
+    border-left: 4px solid var(--secondary-color);
+    padding: 1.5rem;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.pending-section-title {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    font-size: 1.3rem;
+}
+
+.pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.pending-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.pending-card-title {
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+}
+
+.pending-card-subtitle {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0;
+}
+
+.pending-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-accept {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    background: #1e8e3e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.btn-decline {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    background: #fff;
+    color: #d93025;
+    border: 1px solid #d93025;
+    border-radius: 4px;
+}
