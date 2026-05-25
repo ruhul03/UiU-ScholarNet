@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($stmt->get_result()->num_rows === 1) {
             $updStmt = $conn->prepare("UPDATE projects SET title = ?, description = ?, department = ?, progress = ?, visibility = ?, status = ? WHERE id = ? AND creator_id = ?");
-            $updStmt->bind_param("sssis sii", $title, $description, $department, $progress, $visibility, $status, $project_id, $user_id);
+            $updStmt->bind_param("sssissii", $title, $description, $department, $progress, $visibility, $status, $project_id, $user_id);
             
             if ($updStmt->execute()) {
                 $_SESSION['success'] = "Project updated successfully.";

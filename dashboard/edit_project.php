@@ -69,6 +69,7 @@ $preprints = $prepStmt->get_result();
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/projects.css">
+    <link rel="stylesheet" href="../assets/css/lifecycle.css">
     <style>
         .edit-form-card {
             background: white;
@@ -142,12 +143,74 @@ $preprints = $prepStmt->get_result();
 
                 <div class="form-section-title" style="margin-top: 3rem;"><i class="fa-solid fa-shield-halved"></i> GOVERNANCE & STATUS</div>
 
+                <!-- Lifecycle Pipeline Component -->
+                <?php
+                    $stages = ['planning', 'active', 'review', 'completed'];
+                    $current_stage_idx = array_search($project['status'], $stages);
+                ?>
+                <div class="lifecycle-pipeline">
+                    <div class="lifecycle-line">
+                        <div class="lifecycle-progress" style="width: <?php echo ($current_stage_idx / (count($stages)-1)) * 100; ?>%;"></div>
+                    </div>
+                    <?php foreach ($stages as $idx => $stage): 
+                        $status_class = '';
+                        if ($idx < $current_stage_idx) $status_class = 'completed';
+                        elseif ($idx === $current_stage_idx) $status_class = 'active';
+                        
+                        $icons = ['planning' => 'fa-lightbulb', 'active' => 'fa-person-digging', 'review' => 'fa-magnifying-glass-chart', 'completed' => 'fa-flag-checkered'];
+                    ?>
+                    <div class="lifecycle-stage <?php echo $status_class; ?>">
+                        <div class="stage-icon"><i class="fa-solid <?php echo $icons[$stage]; ?>"></i></div>
+                        <div class="stage-name"><?php echo $stage; ?></div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="lifecycle-checklist">
+                    <h4><i class="fa-solid fa-list-check"></i> Stage Progression (Recommended)</h4>
+                    <ul class="checklist-items">
+                        <?php if ($project['status'] === 'planning'): ?>
+                            <li class="done"><i class="fa-solid fa-check"></i> Define project title and abstract</li>
+                            <li class="<?php echo ($tasks->num_rows > 0) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($tasks->num_rows > 0) ? 'check' : 'spinner'; ?>"></i> Create at least 1 task</li>
+                            <p style="font-size: 0.85rem; color: #888; margin-top: 10px;">Move to ACTIVE when you are ready to start executing tasks.</p>
+                        <?php elseif ($project['status'] === 'active'): ?>
+                            <li class="<?php echo ($project['progress'] >= 50) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($project['progress'] >= 50) ? 'check' : 'spinner'; ?>"></i> Reach 50%+ completion on tasks</li>
+                            <li class="<?php echo ($documents->num_rows > 0) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($documents->num_rows > 0) ? 'check' : 'spinner'; ?>"></i> Upload at least 1 document or resource</li>
+                            <p style="font-size: 0.85rem; color: #888; margin-top: 10px;">Move to REVIEW to invite faculty or peers to review your work.</p>
+                        <?php elseif ($project['status'] === 'review'): ?>
+                            <?php if (!empty($project['supervisor_id'])): ?>
+                                <li class="<?php echo ($project['supervisor_approved']) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($project['supervisor_approved']) ? 'check' : 'spinner'; ?>"></i> Faculty Supervisor Approval</li>
+                            <?php else: ?>
+                                <li class="done"><i class="fa-solid fa-check"></i> Peer review phase</li>
+                            <?php endif; ?>
+                            <p style="font-size: 0.85rem; color: #888; margin-top: 10px;">Move to COMPLETED when all feedback is addressed.</p>
+                        <?php elseif ($project['status'] === 'completed'): ?>
+                            <li class="done"><i class="fa-solid fa-check"></i> Project finalized</li>
+                            <p style="font-size: 0.85rem; color: #888; margin-top: 10px;">This project is now locked for editing. You can publish it as a preprint.</p>
+                            <div style="margin-top: 15px;">
+                                <a href="file_upload.php?project_id=<?php echo $project['id']; ?>&type=preprint" class="btn btn-outline" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block;">
+                                    <i class="fa-solid fa-upload"></i> PUBLISH PREPRINT
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    </ul>
+                    
+                    <?php if ($project['status'] === 'review' && $user_id == $project['supervisor_id'] && !$project['supervisor_approved']): ?>
+                        <div style="margin-top: 15px;">
+                            <a href="../actions/approve_project.php?id=<?php echo $project['id']; ?>&token=<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-approve" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block;">
+                                <i class="fa-solid fa-check-double"></i> APPROVE PROJECT
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
                     <div class="form-group">
-                        <label style="font-weight: 700; font-size: 0.8rem; color: #888; margin-bottom: 10px; display: block;">CURRENT STATUS</label>
+                        <label style="font-weight: 700; font-size: 0.8rem; color: #888; margin-bottom: 10px; display: block;">OVERRIDE STAGE</label>
                         <select name="status" class="form-input-light">
                             <option value="planning" <?php echo ($project['status'] === 'planning') ? 'selected' : ''; ?>>PLANNING</option>
                             <option value="active" <?php echo ($project['status'] === 'active') ? 'selected' : ''; ?>>ACTIVE</option>
+                            <option value="review" <?php echo ($project['status'] === 'review') ? 'selected' : ''; ?>>REVIEW</option>
                             <option value="completed" <?php echo ($project['status'] === 'completed') ? 'selected' : ''; ?>>COMPLETED</option>
                         </select>
                     </div>

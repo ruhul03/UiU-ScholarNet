@@ -53,63 +53,30 @@ $proj_result = $proj_stmt->get_result();
             <div class="preprint-feed">
                 <?php if($result->num_rows > 0): ?>
                     <?php while($row = $result->fetch_assoc()): ?>
-                    <div class="preprint-card">
-                        <div class="preprint-meta">
-                            <span><i class="fa-solid fa-user-circle"></i> <?php echo htmlspecialchars($row['full_name']); ?></span>
-                            <span><i class="fa-regular fa-calendar"></i> <?php echo date('M j, Y', strtotime($row['created_at'])); ?></span>
-                            <span><i class="fa-solid fa-code-branch"></i> v<?php echo $row['version']; ?></span>
-                            <?php if($row['project_title']): ?>
-                            <a href="edit_project.php?id=<?php echo $row['project_id']; ?>" class="text-success" style="text-decoration:none;"><i class="fa-solid fa-folder"></i> <?php echo htmlspecialchars($row['project_title']); ?></a>
-                            <?php endif; ?>
-                            <?php if($row['visibility'] == 'private'): ?>
-                            <span class="text-danger"><i class="fa-solid fa-lock"></i> Private</span>
-                            <?php endif; ?>
-                        </div>
-                        
-                        <a href="preprint_details.php?id=<?php echo $row['id']; ?>" class="preprint-title">
-                            <?php echo htmlspecialchars($row['title']); ?>
-                        </a>
-                        
-                        <div class="preprint-abstract">
-                            <?php echo nl2br(htmlspecialchars($row['abstract'])); ?>
-                        </div>
-                        
-                        <?php if($row['keywords']): ?>
-                        <div class="preprint-tags">
-                            <?php 
-                            $tags = explode(',', $row['keywords']);
-                            foreach($tags as $tag): 
-                                if(trim($tag)):
-                            ?>
-                                <span class="preprint-tag"><?php echo htmlspecialchars(trim($tag)); ?></span>
-                            <?php 
-                                endif;
-                            endforeach; 
-                            ?>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <div class="preprint-footer">
-                            <div class="preprint-stats">
-                                <span><i class="fa-regular fa-eye"></i> <?php echo $row['views_count']; ?> Views</span>
-                                <span><i class="fa-solid fa-download"></i> <?php echo $row['downloads_count']; ?> Downloads</span>
-                                <?php
-                                // Get comment count
-                                $c_stmt = $conn->prepare("SELECT COUNT(*) as c FROM preprint_comments WHERE preprint_id = ?");
-                                $c_stmt->bind_param("i", $row['id']);
-                                $c_stmt->execute();
-                                $c_res = $c_stmt->get_result()->fetch_assoc();
-                                ?>
-                                <span><i class="fa-regular fa-comment"></i> <?php echo $c_res['c']; ?> Comments</span>
+                    <div class="preprint-card-simple">
+                        <div class="preprint-card-main">
+                            <a href="preprint_details.php?id=<?php echo $row['id']; ?>" class="preprint-card-title">
+                                <?php echo htmlspecialchars($row['title']); ?>
+                            </a>
+                            <div class="preprint-card-meta">
+                                <span><i class="fa-solid fa-user-circle"></i> <?php echo htmlspecialchars($row['full_name']); ?></span>
+                                <span><i class="fa-regular fa-calendar"></i> <?php echo date('M j, Y', strtotime($row['created_at'])); ?></span>
                             </div>
-                            <div class="preprint-actions">
-                                <a href="preprint_details.php?id=<?php echo $row['id']; ?>" class="btn btn-outline">
-                                    <i class="fa-regular fa-comment-dots"></i> Feedback
-                                </a>
-                                <a href="../<?php echo htmlspecialchars($row['file_path']); ?>" target="_blank" class="btn btn-primary">
-                                    <i class="fa-solid fa-download"></i> PDF
-                                </a>
-                            </div>
+                        </div>
+                        
+                        <div class="preprint-card-actions">
+                            <a href="../<?php echo htmlspecialchars($row['file_path']); ?>" target="_blank" class="btn btn-outline btn-outline-sm">
+                                <i class="fa-solid fa-download"></i> PDF
+                            </a>
+                            
+                            <?php if($row['author_id'] == $user_id): ?>
+                            <form action="../actions/delete_preprint.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this preprint?');" class="form-inline">
+                                <input type="hidden" name="preprint_id" value="<?php echo $row['id']; ?>">
+                                <button type="submit" class="btn btn-outline btn-delete-sm">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                            </form>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endwhile; ?>

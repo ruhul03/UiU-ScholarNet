@@ -71,6 +71,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/lifecycle.css">
 </head>
 <body class="dashboard-page">
 
@@ -108,6 +109,27 @@ $result = $stmt->get_result();
                                 <span class="status-chip" style="background: #e3f2fd; color: #1565c0;"><i class="fa-solid fa-users-viewfinder"></i> COLLAB ACTIVE</span>
                             <?php endif; ?>
                             <span class="contributors-count"><i class="fa-solid fa-user-group"></i> <?php echo (int)$row['contributors_count']; ?> Contributors</span>
+                        </div>
+                        
+                        <!-- Lifecycle Stepper -->
+                        <?php
+                            $p_stages = ['planning', 'active', 'review', 'completed'];
+                            $p_idx = array_search($row['status'], $p_stages);
+                        ?>
+                        <div class="project-stepper">
+                            <?php foreach ($p_stages as $i => $st): 
+                                $s_cls = '';
+                                $s_icon = 'fa-circle';
+                                if ($i < $p_idx) { $s_cls = 'completed'; $s_icon = 'fa-circle-check'; }
+                                elseif ($i === $p_idx) { $s_cls = 'active'; $s_icon = 'fa-circle-dot'; }
+                            ?>
+                            <div class="step <?php echo $s_cls; ?>">
+                                <i class="fa-solid <?php echo $s_icon; ?>"></i> <?php echo ucfirst($st); ?>
+                            </div>
+                            <?php if ($i < count($p_stages)-1): ?>
+                                <span style="color: #cbd5e1; margin: 0 4px;">—</span>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                     <div class="project-progress-block">

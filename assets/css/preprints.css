@@ -6,12 +6,7 @@
     box-shadow: 0 10px 30px rgba(10, 17, 40, 0.15);
     position: relative; overflow: hidden;
 }
-.preprints-header::before {
-    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-    animation: rotate 20s linear infinite; pointer-events: none;
-}
-@keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
 .preprints-header-text h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 0.5rem; }
 .preprints-header-text p { color: rgba(255,255,255,0.8); font-size: 1.1rem; max-width: 600px; }
 
@@ -197,3 +192,62 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 .modal-footer-space { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
 .policy-link { color: #3b82f6; font-size: 0.9rem; text-decoration: none; }
 .modal-actions { display: flex; gap: 1rem; }
+
+/* Simple Preprint Card UI */
+.preprint-card-simple {
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.preprint-card-main {
+    flex: 1;
+}
+.preprint-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.4rem;
+}
+.preprint-card-title:hover {
+    color: #2f6690;
+}
+.preprint-card-meta {
+    font-size: 0.85rem;
+    color: #64748b;
+    display: flex;
+    gap: 15px;
+}
+.preprint-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.preprint-card-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.btn-outline-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+.btn-delete-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+.btn-delete-sm:hover {
+    background: #fef2f2;
+}
+.form-inline {
+    margin: 0;
+}
