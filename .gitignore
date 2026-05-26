@@ -6,4 +6,4 @@
 .agents
 skills-lock.json
 .gemini
-
+.git_commit_msg.txt

@@ -10,15 +10,12 @@ require_once('../includes/csrf.php');
 $channels_map = [];
 
 // Fetch projects user is involved in
-$pStmt = $conn->prepare("
+$pRes = db_query("
     SELECT p.id, p.title, p.description 
     FROM projects p
     LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
     WHERE p.creator_id = ? OR pm.user_id = ?
-");
-$pStmt->bind_param("iii", $user_id, $user_id, $user_id);
-$pStmt->execute();
-$pRes = $pStmt->get_result();
+", [$user_id, $user_id, $user_id], "iii");
 while ($p = $pRes->fetch_assoc()) {
     $c_name = 'project_' . $p['id'];
     $channels_map[$c_name] = [
@@ -30,7 +27,7 @@ while ($p = $pRes->fetch_assoc()) {
 }
 
 // Add custom dynamic channels from database
-$custom_channels_res = mysqli_query($conn, "SELECT DISTINCT channel FROM messages WHERE channel NOT IN ('general') AND channel NOT LIKE 'project_%'");
+$custom_channels_res = db_query("SELECT DISTINCT channel FROM messages WHERE channel NOT IN ('general') AND channel NOT LIKE 'project_%'");
 if ($custom_channels_res) {
     while ($row = mysqli_fetch_assoc($custom_channels_res)) {
         $c_name = $row['channel'];
@@ -52,10 +49,7 @@ $messages = null;
 
 // Case A: Direct Messaging (DM)
 if ($chat_user_id > 0) {
-    $upstmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
-    $upstmt->bind_param("i", $chat_user_id);
-    $upstmt->execute();
-    $chat_user_data = $upstmt->get_result()->fetch_assoc();
+    $chat_user_data = db_query("SELECT * FROM users WHERE id = ?", [$chat_user_id], "i")->fetch_assoc();
     
     if ($chat_user_data) {
         $chat_target_info = [
@@ -70,16 +64,13 @@ if ($chat_user_id > 0) {
         $upd->bind_param("ii", $chat_user_id, $user_id);
         $upd->execute();
         
-        $mstmt = $conn->prepare("
+        $messages = db_query("
             SELECT m.*, u.full_name
             FROM messages m
             JOIN users u ON u.id = m.sender_id
             WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
             ORDER BY m.created_at ASC LIMIT 100
-        ");
-        $mstmt->bind_param("iiii", $user_id, $chat_user_id, $chat_user_id, $user_id);
-        $mstmt->execute();
-        $messages = $mstmt->get_result();
+        ", [$user_id, $chat_user_id, $chat_user_id, $user_id], "iiii");
     } else {
         $chat_user_id = 0; // Fallback to channel
     }
@@ -103,16 +94,13 @@ if ($chat_user_id === 0) {
             'desc' => 'Custom channel.'
         ];
         
-        $mstmt = $conn->prepare("
+        $messages = db_query("
             SELECT m.*, u.full_name
             FROM messages m
             JOIN users u ON u.id = m.sender_id
             WHERE m.channel = ? AND m.receiver_id IS NULL
             ORDER BY m.created_at ASC LIMIT 100
-        ");
-        $mstmt->bind_param("s", $channel);
-        $mstmt->execute();
-        $messages = $mstmt->get_result();
+        ", [$channel], "s");
     } else {
         $chat_target_info = [
             'name' => 'No Team Channels',
@@ -125,7 +113,7 @@ if ($chat_user_id === 0) {
 }
 
 // Fetch users for the sidebar (Connections from projects OR users you've DM'd)
-$dmStmt = $conn->prepare("
+$dm_users_res = db_query("
     SELECT DISTINCT u.id, u.full_name, u.role,
            (SELECT COUNT(*) FROM messages m_un WHERE m_un.sender_id = u.id AND m_un.receiver_id = ? AND m_un.is_read = 0) as unread_count
     FROM users u
@@ -145,10 +133,7 @@ $dmStmt = $conn->prepare("
     )
     ORDER BY unread_count DESC, u.full_name ASC
     LIMIT 50
-");
-$dmStmt->bind_param("iiiii", $user_id, $user_id, $user_id, $user_id, $user_id);
-$dmStmt->execute();
-$dm_users_res = $dmStmt->get_result();
+", [$user_id, $user_id, $user_id, $user_id, $user_id], "iiiii");
 
 
 // STEP 4: PRESENTATION (HTML UI)
@@ -169,7 +154,7 @@ $dm_users_res = $dmStmt->get_result();
 
     <?php include('../includes/sidebar.php'); ?>
 
-    <main class="main-content" style="padding-top: 1rem;">
+    <main class="main-content pt-1">
         
         <div class="messages-layout">
             
@@ -196,13 +181,13 @@ $dm_users_res = $dmStmt->get_result();
                         <?php while ($dm_user = $dm_users_res->fetch_assoc()): ?>
                             <a href="?user_id=<?php echo $dm_user['id']; ?>" class="dm-item <?php echo ($chat_user_id === (int)$dm_user['id']) ? 'active' : ''; ?>">
                                 <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($dm_user['full_name']); ?>&background=<?php echo ($chat_user_id === (int)$dm_user['id']) ? '0a1128' : 'f8f7f2'; ?>&color=<?php echo ($chat_user_id === (int)$dm_user['id']) ? 'fff' : '0a1128'; ?>" class="avatar-badge">
-                                <div class="item-info" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <div class="item-info flex-between-w100">
                                     <div>
                                         <div class="item-name"><?php echo htmlspecialchars($dm_user['full_name']); ?></div>
                                         <div class="item-preview"><?php echo htmlspecialchars($dm_user['role']); ?></div>
                                     </div>
                                     <?php if ($dm_user['unread_count'] > 0): ?>
-                                        <span class="notification-dot" style="display:inline-block; width:10px; height:10px; background:var(--secondary-color); border-radius:50%;"></span>
+                                        <span class="notification-dot notification-dot-inline"></span>
                                     <?php endif; ?>
                                 </div>
                             </a>
@@ -219,7 +204,7 @@ $dm_users_res = $dmStmt->get_result();
                         <div class="chat-title"><?php echo htmlspecialchars($chat_target_info['name']); ?></div>
                         <div class="chat-subtitle">Online • <?php echo htmlspecialchars($chat_target_info['desc']); ?></div>
                     </div>
-                    <div class="chat-actions" style="position: relative;" id="chatActionsMenu">
+                    <div class="chat-actions pos-relative" id="chatActionsMenu">
                         <i class="fa-solid fa-ellipsis-vertical" onclick="document.getElementById('chatDropdown').classList.toggle('show')"></i>
                         <div class="dropdown-menu" id="chatDropdown">
                             <form action="../actions/clear_chat.php" method="POST" onsubmit="return confirm('Clear this chat history?');">
@@ -229,7 +214,7 @@ $dm_users_res = $dmStmt->get_result();
                                 <?php else: ?>
                                     <input type="hidden" name="channel" value="<?php echo htmlspecialchars($channel, ENT_QUOTES, 'UTF-8'); ?>">
                                 <?php endif; ?>
-                                <button type="submit" class="dropdown-item" style="border:none; background:none; width:100%; text-align:left;">
+                                <button type="submit" class="dropdown-item btn-dropdown-clean">
                                     <i class="fa-solid fa-trash"></i> Clear Chat
                                 </button>
                             </form>
@@ -253,11 +238,11 @@ $dm_users_res = $dmStmt->get_result();
                                         <?php if (!empty($msg['file_path'])): ?>
                                             <a href="../<?php echo htmlspecialchars($msg['file_path']); ?>" target="_blank" class="file-attachment">
                                                 <i class="fa-solid fa-paperclip file-icon"></i>
-                                                <span style="font-size: 0.85rem; word-break: break-all;"><?php echo htmlspecialchars($msg['file_name']); ?></span>
+                                                <span class="file-name-sm-break"><?php echo htmlspecialchars($msg['file_name']); ?></span>
                                             </a>
                                         <?php endif; ?>
                                     </div>
-                                    <div class="msg-meta" style="display:flex; justify-content: <?php echo $is_self ? 'flex-end' : 'flex-start'; ?>; align-items:center; gap: 10px;">
+                                    <div class="msg-meta msg-meta-flex <?php echo $is_self ? 'justify-end' : 'justify-start'; ?>">
                                         <?php if ($is_self): ?>
                                             <div class="msg-actions" onclick="deleteMessage(<?php echo $msg['id']; ?>, this)">
                                                 <i class="fa-solid fa-trash"></i>
@@ -292,10 +277,10 @@ $dm_users_res = $dmStmt->get_result();
                             <input type="hidden" name="channel" value="<?php echo htmlspecialchars($channel, ENT_QUOTES, 'UTF-8'); ?>">
                         <?php endif; ?>
                         
-                        <label for="chatFileInput" class="icon-btn" style="margin-bottom:0;" title="Attach file">
+                        <label for="chatFileInput" class="icon-btn mb-0" title="Attach file">
                             <i class="fa-solid fa-paperclip"></i>
                         </label>
-                        <input type="file" name="chat_file" id="chatFileInput" style="display:none;" onchange="updateFileLabel(this)">
+                        <input type="file" name="chat_file" id="chatFileInput" class="d-none" onchange="updateFileLabel(this)">
                         
                         <input name="message" type="text" class="chat-input" id="chatTextInput" placeholder="Type your message..." autocomplete="off">
                         
@@ -303,7 +288,7 @@ $dm_users_res = $dmStmt->get_result();
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
-                    <div id="fileAttachmentPreview" style="display:none; font-size:0.8rem; color:var(--primary-color); margin-top:5px; padding-left:40px;">
+                    <div id="fileAttachmentPreview" class="file-preview-inline">
                         Attached: <span id="fileNameDisplay"></span>
                     </div>
                 </div>
@@ -321,44 +306,38 @@ $dm_users_res = $dmStmt->get_result();
                 <h4 class="info-section-title">Shared Media</h4>
                 <div class="media-grid">
                     <?php 
-                    $mediaStmt = $conn->prepare("SELECT id, title, file_path, created_at FROM resources WHERE user_id = ? ORDER BY created_at DESC LIMIT 3");
-                    $mediaStmt->bind_param("i", $user_id);
-                    $mediaStmt->execute();
-                    $mediaRes = $mediaStmt->get_result();
+                    $mediaRes = db_query("SELECT id, title, file_path, created_at FROM resources WHERE user_id = ? ORDER BY created_at DESC LIMIT 3", [$user_id], "i");
                     if ($mediaRes->num_rows > 0):
                         while ($m = $mediaRes->fetch_assoc()):
                     ?>
-                        <div class="media-item" title="<?php echo htmlspecialchars($m['title']); ?>" style="background-image: url('../<?php echo htmlspecialchars($m['file_path']); ?>'); background-size: cover; background-position: center; border: 1px solid rgba(0,0,0,0.1);"></div>
+                        <div class="media-item media-item-bg" title="<?php echo htmlspecialchars($m['title']); ?>" style="background-image: url('../<?php echo htmlspecialchars($m['file_path']); ?>');"></div>
                     <?php endwhile; else: ?>
-                        <div style="font-size: 0.85rem; color: var(--text-light); text-align: center; margin-top: 1rem; grid-column: span 3;">No media uploaded.</div>
+                        <div class="empty-text-span3">No media uploaded.</div>
                     <?php endif; ?>
                 </div>
 
                 <h4 class="info-section-title">Pinned Artifacts</h4>
                 <?php 
-                $docStmt = $conn->prepare("
+                $docRes = db_query("
                     SELECT d.id, d.title, d.created_at, p.title as project_title 
                     FROM documents d
                     JOIN projects p ON d.project_id = p.id
                     LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
                     WHERE p.creator_id = ? OR pm.user_id = ?
                     ORDER BY d.created_at DESC LIMIT 2
-                ");
-                $docStmt->bind_param("iii", $user_id, $user_id, $user_id);
-                $docStmt->execute();
-                $docRes = $docStmt->get_result();
+                ", [$user_id, $user_id, $user_id], "iii");
                 if ($docRes->num_rows > 0):
                     while ($d = $docRes->fetch_assoc()):
                 ?>
                 <div class="pinned-card">
-                    <i class="fa-solid fa-file-lines" style="color: var(--primary-color); font-size: 1.5rem;"></i>
+                    <i class="fa-solid fa-file-lines icon-lg-primary"></i>
                     <div>
-                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-color);"><?php echo htmlspecialchars($d['title']); ?></div>
-                        <div style="font-size: 0.7rem; color: var(--text-color); opacity: 0.6;">In <?php echo htmlspecialchars($d['project_title']); ?></div>
+                        <div class="pinned-title-sm"><?php echo htmlspecialchars($d['title']); ?></div>
+                        <div class="pinned-meta-xs">In <?php echo htmlspecialchars($d['project_title']); ?></div>
                     </div>
                 </div>
                 <?php endwhile; else: ?>
-                    <div style="font-size: 0.85rem; color: var(--text-light); text-align: center; margin-top: 1rem;">No pinned artifacts found.</div>
+                    <div class="empty-text-center">No pinned artifacts found.</div>
                 <?php endif; ?>
             </aside>
         </div>
@@ -387,7 +366,7 @@ $dm_users_res = $dmStmt->get_result();
                 bubble.className = 'msg-bubble self temp-bubble';
                 bubble.innerHTML = `
                     <div class="msg-content">
-                        <div class="msg-text" style="opacity:0.8">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+                        <div class="msg-text opacity-80">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
                         <div class="msg-meta">You • Sending...</div>
                     </div>
                 `;
@@ -469,14 +448,14 @@ $dm_users_res = $dmStmt->get_result();
                                 attachmentHtml = `
                                 <a href="../${msg.file_path}" target="_blank" class="file-attachment">
                                     <i class="fa-solid fa-paperclip file-icon"></i>
-                                    <span style="font-size: 0.85rem; word-break: break-all;">${msg.file_name}</span>
+                                    <span class="file-name-sm-break">${msg.file_name}</span>
                                 </a>`;
                             }
 
                             html += `
                                 <div class="msg-content">
                                     <div class="msg-text">${msg.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")} ${attachmentHtml}</div>
-                                    <div class="msg-meta" style="display:flex; justify-content: ${isSelf ? 'flex-end' : 'flex-start'}; align-items:center; gap: 10px;">
+                                    <div class="msg-meta msg-meta-flex ${isSelf ? 'justify-end' : 'justify-start'}">
                                         ${isSelf ? `<div class="msg-actions" onclick="deleteMessage(${msg.id}, this)"><i class="fa-solid fa-trash"></i></div>` : ''}
                                         <span>${senderName} • ${timeStr}</span>
                                     </div>

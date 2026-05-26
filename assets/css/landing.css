@@ -212,3 +212,50 @@
     letter-spacing: 1px;
     text-transform: uppercase;
 }
+
+/* Header Profile */
+.landing-header-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+}
+
+.landing-header-profile-img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+/* CTA Banner */
+.cta-section {
+    padding: 8rem 5rem;
+    background: var(--primary-color);
+    color: var(--white);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.cta-heading {
+    font-size: 3rem;
+    font-family: var(--font-heading);
+    max-width: 800px;
+    line-height: 1.2;
+}
+
+.cta-subheading {
+    opacity: 0.8;
+    max-width: 600px;
+    font-size: 1.1rem;
+}
+
+.cta-btn {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    padding: 1rem 2.5rem;
+    font-size: 1rem;
+}

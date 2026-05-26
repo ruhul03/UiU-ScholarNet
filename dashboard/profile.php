@@ -13,30 +13,15 @@ $conn->query(
     )"
 );
 
-$profileStmt = $conn->prepare("SELECT institution, biography FROM user_profiles WHERE user_id = ? LIMIT 1");
-$profileStmt->bind_param("i", $user_id);
-$profileStmt->execute();
-$profileData = $profileStmt->get_result()->fetch_assoc();
+$profileData = db_query("SELECT institution, biography FROM user_profiles WHERE user_id = ? LIMIT 1", [$user_id], "i")->fetch_assoc();
 
-$projectsStmt = $conn->prepare("SELECT COUNT(DISTINCT p.id) AS total FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.creator_id = ? OR pm.user_id = ?");
-$projectsStmt->bind_param("iii", $user_id, $user_id, $user_id);
-$projectsStmt->execute();
-$projectsTotal = (int)($projectsStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$projectsTotal = (int)(db_query("SELECT COUNT(DISTINCT p.id) AS total FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.creator_id = ? OR pm.user_id = ?", [$user_id, $user_id, $user_id], "iii")->fetch_assoc()['total'] ?? 0);
 
-$preprintsStmt = $conn->prepare("SELECT COUNT(*) AS total FROM preprints WHERE author_id = ?");
-$preprintsStmt->bind_param("i", $user_id);
-$preprintsStmt->execute();
-$preprintsTotal = (int)($preprintsStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$preprintsTotal = (int)(db_query("SELECT COUNT(*) AS total FROM preprints WHERE author_id = ?", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
 
-$collabStmt = $conn->prepare("SELECT COUNT(*) AS total FROM collaboration_posts WHERE user_id = ?");
-$collabStmt->bind_param("i", $user_id);
-$collabStmt->execute();
-$collabTotal = (int)($collabStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$collabTotal = (int)(db_query("SELECT COUNT(*) AS total FROM collaboration_posts WHERE user_id = ?", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
 
-$resourcesStmt = $conn->prepare("SELECT COUNT(*) AS total FROM resources WHERE user_id = ?");
-$resourcesStmt->bind_param("i", $user_id);
-$resourcesStmt->execute();
-$resourcesTotal = (int)($resourcesStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$resourcesTotal = (int)(db_query("SELECT COUNT(*) AS total FROM resources WHERE user_id = ?", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
 
 $displayInstitution = trim((string)($profileData['institution'] ?? ''));
 if ($displayInstitution === '') {
@@ -97,17 +82,17 @@ $skillTags = array_values(
                     >
                 </div>
                 <h2><?php echo htmlspecialchars($user_data['full_name']); ?></h2>
-                <div class="profile-role" style="display: flex; align-items: center; gap: 5px;">
+                <div class="profile-role flex-center-gap-5">
                     <?php if ($user_data['role'] === 'admin'): ?>
-                        <span style="background: #eef2ff; color: #4f46e5; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">ADMINISTRATOR</span>
+                        <span class="badge-role-admin">ADMINISTRATOR</span>
                     <?php elseif ($user_data['role'] === 'faculty'): ?>
                         <?php if (isset($user_data['is_verified']) && $user_data['is_verified']): ?>
-                            <span style="background: #e6f4ea; color: #1e8e3e; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.8rem;"><i class="fa-solid fa-circle-check"></i> VERIFIED FACULTY</span>
+                            <span class="badge-role-verified"><i class="fa-solid fa-circle-check"></i> VERIFIED FACULTY</span>
                         <?php else: ?>
-                            <span style="background: #fce8e6; color: #d93025; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">UNVERIFIED FACULTY</span>
+                            <span class="badge-role-unverified">UNVERIFIED FACULTY</span>
                         <?php endif; ?>
                     <?php else: ?>
-                        <span style="background: #f3f4f6; color: #4b5563; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">STUDENT</span>
+                        <span class="badge-role-student">STUDENT</span>
                     <?php endif; ?>
                 </div>
 

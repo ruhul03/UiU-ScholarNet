@@ -1,0 +1,271 @@
+/* 
+ * file-manager.css
+ * Styles for file uploads, previews, and document management.
+ */
+
+/* File Upload Area */
+.upload-zone {
+    border: 2px dashed #ddd;
+    padding: 5rem 3rem;
+    text-align: center;
+    border-radius: 12px;
+    margin-bottom: 4rem;
+    transition: var(--transition);
+    background: #fdfcf8;
+}
+
+.upload-zone:hover {
+    border-color: var(--secondary-color);
+    background: #fffdf5;
+}
+
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.file-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    position: relative;
+    transition: var(--transition);
+}
+
+.file-card:hover {
+    border-color: var(--secondary-color);
+}
+
+.file-card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.file-tag {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.5;
+}
+
+.dash-header-upload {
+    margin-bottom: 2rem;
+}
+
+.filemanager-title {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.filemanager-desc {
+    opacity: 0.5;
+    max-width: 700px;
+    font-size: 1.1rem;
+    margin-bottom: 4rem;
+}
+
+.upload-icon-box {
+    width: 70px;
+    height: 70px;
+    background: var(--secondary-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.upload-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.upload-hint {
+    opacity: 0.5;
+    margin-bottom: 2rem;
+}
+
+.hidden-input {
+    display: none;
+}
+
+.file-preview {
+    display: none;
+    background: #fdfcf8;
+    border: 1px solid #eee;
+    padding: 1.5rem 2rem;
+    border-radius: 8px;
+    margin-top: -2rem;
+    margin-bottom: 2rem;
+}
+
+.file-preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file-info {
+    font-weight: 700;
+}
+
+.file-size {
+    font-size: 0.75rem;
+    opacity: 0.5;
+}
+
+.upload-btn-primary {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.section-meta {
+    opacity: 0.5;
+    font-size: 0.85rem;
+}
+
+.filter-btn {
+    font-size: 0.85rem;
+    font-weight: 700;
+    opacity: 0.5;
+}
+
+.view-toggle-btn {
+    width: 35px;
+    height: 35px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.file-card-dashed {
+    border-style: dashed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+.file-card-content {
+    text-align: center;
+}
+
+.file-card-icon-lg {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.file-card-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* File type colors */
+.file-icon-pdf {
+    background: #fdecea;
+    color: #c62828;
+}
+
+.file-icon-dataset {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.file-icon-image {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.file-icon-default {
+    background: #f5f5f5;
+    color: #555;
+}
+
+.upload-section {
+    margin-bottom: 4rem;
+}
+
+.user-info {
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.file-card-title {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+}
+
+.file-card-meta {
+    font-size: 0.7rem;
+    opacity: 0.4;
+    margin-bottom: 1.5rem;
+}
+
+.file-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.divider-v {
+    width: 1px;
+    height: 30px;
+    background: #eee;
+    margin: 0 1rem;
+}
+
+.filter-select-inline {
+    margin-bottom: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 0.5rem 1rem;
+}
+
+.download-link-sm {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+}
+
+.btn-delete-icon {
+    background: none;
+    border: none;
+    color: #ff4d4d;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+}

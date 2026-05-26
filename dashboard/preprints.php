@@ -2,19 +2,14 @@
 require_once('../includes/auth_check.php');
 
 // Fetch Preprints
-$stmt = $conn->prepare("SELECT p.*, u.full_name, pr.title as project_title 
+$result = db_query("SELECT p.*, u.full_name, pr.title as project_title 
                         FROM preprints p 
                         JOIN users u ON p.author_id = u.id 
                         LEFT JOIN projects pr ON p.project_id = pr.id
                         ORDER BY p.created_at DESC");
-$stmt->execute();
-$result = $stmt->get_result();
 
 // Fetch Projects for the upload modal
-$proj_stmt = $conn->prepare("SELECT id, title FROM projects WHERE creator_id = ? OR id IN (SELECT project_id FROM tasks WHERE assigned_to = ?)");
-$proj_stmt->bind_param("ii", $user_id, $user_id);
-$proj_stmt->execute();
-$proj_result = $proj_stmt->get_result();
+$proj_result = db_query("SELECT id, title FROM projects WHERE creator_id = ? OR id IN (SELECT project_id FROM tasks WHERE assigned_to = ?)", [$user_id, $user_id], "ii");
 ?>
 <!DOCTYPE html>
 <html lang="en">

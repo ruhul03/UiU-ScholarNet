@@ -30,7 +30,7 @@ if (!isset($unread_messages_count)) {
         <a href="messages.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'messages.php' && (!isset($_GET['channel']) || $_GET['channel'] !== 'discussion')) ? 'active' : ''; ?>">
             <i class="fa-solid fa-message"></i> Messages
             <?php if (($unread_messages_count ?? 0) > 0): ?>
-                <span class="notification-dot" style="display:inline-block; margin-left:auto; width:8px; height:8px; background:var(--secondary-color); border-radius:50%;"></span>
+                <span class="notification-dot notification-dot-sidebar"></span>
             <?php endif; ?>
         </a>
         <a href="file_upload.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'file_upload.php') ? 'active' : ''; ?>">
@@ -65,15 +65,15 @@ if (!isset($unread_messages_count)) {
             <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" alt="User">
             <div>
                 <div class="user-name"><?php echo htmlspecialchars($user_data['full_name']); ?></div>
-                <div class="user-role" style="font-size: 0.75rem; font-weight: bold; margin-top: 2px;">
+                <div class="user-role text-0-75rem fw-bold mt-2px">
                     <?php if ($user_data['role'] === 'admin'): ?>
-                        <span style="color: #4f46e5;">ADMIN</span>
+                        <span class="color-admin">ADMIN</span>
                     <?php elseif ($user_data['role'] === 'faculty'): ?>
-                        <span style="color: <?php echo isset($user_data['is_verified']) && $user_data['is_verified'] ? '#1e8e3e' : '#d93025'; ?>;">
+                        <span class="<?php echo isset($user_data['is_verified']) && $user_data['is_verified'] ? 'color-faculty-verified' : 'color-faculty-unverified'; ?>">
                             <?php echo isset($user_data['is_verified']) && $user_data['is_verified'] ? 'VERIFIED FACULTY' : 'UNVERIFIED FACULTY'; ?>
                         </span>
                     <?php else: ?>
-                        <span style="color: #888;">STUDENT</span>
+                        <span class="color-student">STUDENT</span>
                     <?php endif; ?>
                 </div>
             </div>
@@ -131,28 +131,28 @@ if (!function_exists('getSidebarNotifIcon')) {
 }
 ?>
 <!-- Notification Popup Container -->
-<div id="notificationPopup" style="display:none; position:fixed; right:30px; top:80px; width:320px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,0.15); border-radius:12px; z-index:9999; padding:15px; border:1px solid #eee;">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
-        <h3 style="margin:0; font-size:1.1rem; color:var(--text-color);">Notifications</h3>
-        <a href="?mark_read=all" style="font-size:0.75rem; color:var(--primary-color); text-decoration:none;">Mark all read</a>
+<div id="notificationPopup" class="popup-container">
+    <div class="popup-header">
+        <h3 class="popup-title">Notifications</h3>
+        <a href="?mark_read=all" class="popup-link">Mark all read</a>
     </div>
-    <div style="max-height: 350px; overflow-y: auto;">
+    <div class="popup-body">
         <?php if ($popup_notifs && $popup_notifs->num_rows > 0): ?>
             <?php while($n = $popup_notifs->fetch_assoc()): ?>
-                <div style="padding:10px 0; border-bottom:1px solid #f5f5f5; <?php echo $n['is_read'] ? 'opacity:0.6;' : 'background:#f8f7f2; padding:10px; border-radius:8px; margin-bottom:5px;'; ?>">
-                    <div style="font-size:0.85rem; color:#0a1128; font-weight:600;"><?php echo getSidebarNotifIcon($n['type']); ?> <?php echo htmlspecialchars($n['title']); ?></div>
-                    <div style="font-size:0.75rem; color:#666; margin-top:5px; line-height:1.4;"><?php echo htmlspecialchars($n['message']); ?></div>
-                    <div style="margin-top:8px; display:flex; justify-content:space-between;">
-                        <span style="font-size:0.7rem; color:#999;"><?php echo date('M j, g:i a', strtotime($n['created_at'])); ?></span>
+                <div class="popup-item <?php echo $n['is_read'] ? 'read' : 'unread'; ?>">
+                    <div class="popup-item-title"><?php echo getSidebarNotifIcon($n['type']); ?> <?php echo htmlspecialchars($n['title']); ?></div>
+                    <div class="popup-item-desc"><?php echo htmlspecialchars($n['message']); ?></div>
+                    <div class="popup-item-meta">
+                        <span class="popup-item-time"><?php echo date('M j, g:i a', strtotime($n['created_at'])); ?></span>
                         <?php if ($n['link']): ?>
-                            <a href="<?php echo htmlspecialchars($n['link']); ?>" style="font-size:0.75rem; color:var(--secondary-color); text-decoration:none; font-weight:600;">View</a>
+                            <a href="<?php echo htmlspecialchars($n['link']); ?>" class="popup-item-action">View</a>
                         <?php endif; ?>
                     </div>
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
-            <div style="font-size:0.85rem; color:#666; text-align:center; padding:30px 0;">
-                <i class="fa-regular fa-bell-slash" style="font-size: 2rem; opacity:0.5; margin-bottom:10px; display:block;"></i>
+            <div class="popup-empty">
+                <i class="fa-regular fa-bell-slash popup-empty-icon"></i>
                 No new notifications.
             </div>
         <?php endif; ?>

@@ -37,16 +37,13 @@ foreach ($columnsToEnsure as $columnName => $alterSql) {
 // Fetch User's Projects for creating post dropdown
 $userProjects = [];
 if (isset($_SESSION['user_id'])) {
-    $upStmt = $conn->prepare("
+    $upRes = db_query("
         SELECT p.id, p.title 
         FROM projects p 
         LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? 
         WHERE p.creator_id = ? OR pm.role IN ('owner', 'editor')
         ORDER BY p.title ASC
-    ");
-    $upStmt->bind_param("ii", $user_id, $user_id);
-    $upStmt->execute();
-    $upRes = $upStmt->get_result();
+    ", [$user_id, $user_id], "ii");
     while ($p = $upRes->fetch_assoc()) {
         $userProjects[] = $p;
     }
@@ -66,16 +63,9 @@ if ($page < 1) {
 }
 $offset = ($page - 1) * $perPage;
 
-// Fetch notification counts
-$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
-$ptStmt->bind_param("i", $user_id);
-$ptStmt->execute();
-$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
-
-$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
-$crStmt->bind_param("i", $user_id);
-$crStmt->execute();
-$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
+// Fetch notification counts for header
+$pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
+$collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
 
 $bindStmt = static function (mysqli_stmt $stmt, string $types, array $params): void {
     if ($types === '' || count($params) === 0) {
@@ -134,10 +124,8 @@ if (count($where) > 0) {
 
 $countSql = "SELECT COUNT(*) AS total
              FROM collaboration_posts cp" . $whereSql;
-$countStmt = $conn->prepare($countSql);
-$bindStmt($countStmt, $whereTypes, $whereValues);
-$countStmt->execute();
-$totalRows = (int)($countStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$totalRowsResult = db_query($countSql, $whereValues, $whereTypes);
+$totalRows = (int)($totalRowsResult->fetch_assoc()['total'] ?? 0);
 $totalPages = ($totalRows > 0) ? (int)ceil($totalRows / $perPage) : 1;
 if ($page > $totalPages) {
     $page = $totalPages;
@@ -161,14 +149,11 @@ $postsSql = "SELECT cp.*, u.full_name, p.title AS linked_project_title,
              ORDER BY cp.created_at DESC
              LIMIT ? OFFSET ?";
 
-$postsStmt = $conn->prepare($postsSql);
 $postTypes = 'i' . $whereTypes . 'ii';
 $postValues = array_merge([$user_id], $whereValues, [$perPage, $offset]);
-$bindStmt($postsStmt, $postTypes, $postValues);
-$postsStmt->execute();
-$postsResult = $postsStmt->get_result();
+$postsResult = db_query($postsSql, $postValues, $postTypes);
 
-$spotlightStmt = $conn->prepare(
+$spotlight = db_query(
     "SELECT cp.*, u.full_name, COALESCE(a.total_applicants, 0) AS total_applicants
      FROM collaboration_posts cp
      JOIN users u ON cp.user_id = u.id
@@ -180,12 +165,10 @@ $spotlightStmt = $conn->prepare(
      WHERE cp.status = 'open'
      ORDER BY total_applicants DESC, cp.created_at DESC
      LIMIT 1"
-);
-$spotlightStmt->execute();
-$spotlight = $spotlightStmt->get_result()->fetch_assoc();
+)->fetch_assoc();
 
 $departments = [];
-$depRes = $conn->query("SELECT name FROM departments ORDER BY name ASC");
+$depRes = db_query("SELECT name FROM departments ORDER BY name ASC");
 if ($depRes) {
     while ($row = $depRes->fetch_assoc()) {
         $departments[] = $row['name'];
@@ -193,7 +176,7 @@ if ($depRes) {
 }
 
 $types = [];
-$typeRes = $conn->query("SELECT name FROM opportunity_types ORDER BY name ASC");
+$typeRes = db_query("SELECT name FROM opportunity_types ORDER BY name ASC");
 if ($typeRes) {
     while ($row = $typeRes->fetch_assoc()) {
         $types[] = $row['name'];
@@ -201,7 +184,7 @@ if ($typeRes) {
 }
 
 $commonSkills = [];
-$skillRes = $conn->query("SELECT name FROM skills ORDER BY name ASC");
+$skillRes = db_query("SELECT name FROM skills ORDER BY name ASC");
 if ($skillRes) {
     while ($row = $skillRes->fetch_assoc()) {
         $commonSkills[] = $row['name'];
@@ -209,7 +192,7 @@ if ($skillRes) {
 }
 
 $skillPool = [];
-$skillsResult = $conn->query("SELECT skills_required FROM collaboration_posts WHERE skills_required IS NOT NULL AND skills_required <> '' ORDER BY created_at DESC LIMIT 100");
+$skillsResult = db_query("SELECT skills_required FROM collaboration_posts WHERE skills_required IS NOT NULL AND skills_required <> '' ORDER BY created_at DESC LIMIT 100");
 if ($skillsResult) {
     while ($s = $skillsResult->fetch_assoc()) {
         $parts = explode(',', (string)$s['skills_required']);
@@ -330,45 +313,45 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                             <span class="meta-value"><?php echo (int)$row['total_applicants']; ?> people</span>
                         </div>
                         <?php if ($row['linked_project_title']): ?>
-                        <div class="meta-block" style="grid-column: span 2;">
+                        <div class="meta-block col-span-2">
                             <span class="meta-label">Linked Project</span>
-                            <span class="meta-value" style="color: var(--secondary-color); font-weight: 700;">
-                                <i class="fa-solid fa-link" style="font-size: 0.7rem;"></i> <?php echo htmlspecialchars((string)$row['linked_project_title']); ?>
+                            <span class="meta-value text-secondary-bold">
+                                <i class="fa-solid fa-link font-xs"></i> <?php echo htmlspecialchars((string)$row['linked_project_title']); ?>
                             </span>
                         </div>
                         <?php endif; ?>
                     </div>
 
                     <?php if ((int)$row['user_id'] === (int)$user_id): ?>
-                        <div class="owner-actions" style="display: flex; gap: 0.5rem; width: 100%;">
-                            <a href="manage_collaboration.php?id=<?php echo $row['id']; ?>" class="btn btn-apply" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center;">Manage Applicants</a>
-                            <form action="../actions/delete_collaboration_post.php" method="POST" style="flex: 0 0 auto;" onsubmit="return confirm('Permanently delete this collaboration request?');">
+                        <div class="owner-actions flex-gap-sm-full">
+                            <a href="manage_collaboration.php?id=<?php echo $row['id']; ?>" class="btn btn-apply btn-centered">Manage Applicants</a>
+                            <form action="../actions/delete_collaboration_post.php" method="POST" class="flex-none" onsubmit="return confirm('Permanently delete this collaboration request?');">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
-                                <button class="btn btn-outline" type="submit" style="color: #ff4d4d; border-color: #ff4d4d; padding: 0.8rem 1rem;">
+                                <button class="btn btn-outline btn-danger-outline" type="submit">
                                     <i class="fa-regular fa-trash-can"></i>
                                 </button>
                             </form>
                         </div>
                     <?php elseif (!empty($row['user_applied'])): ?>
-                        <div style="display: flex; gap: 0.5rem; width: 100%;">
+                        <div class="flex-gap-sm-full">
                             <?php if ($row['apply_status'] === 'accepted'): ?>
-                                <button class="btn btn-apply" style="flex: 1; background: #1e8e3e; border-color: #1e8e3e; color: white;" type="button" disabled><i class="fa-solid fa-check"></i> Accepted</button>
+                                <button class="btn btn-apply btn-success" type="button" disabled><i class="fa-solid fa-check"></i> Accepted</button>
                             <?php elseif ($row['apply_status'] === 'declined'): ?>
-                                <button class="btn btn-apply" style="flex: 1; background: #fce8e6; border-color: #fce8e6; color: #d93025;" type="button" disabled><i class="fa-solid fa-xmark"></i> Declined</button>
+                                <button class="btn btn-apply btn-danger-light" type="button" disabled><i class="fa-solid fa-xmark"></i> Declined</button>
                             <?php else: ?>
-                                <button class="btn btn-apply btn-applied" style="flex: 1;" type="button" disabled><i class="fa-solid fa-clock"></i> Pending Review</button>
+                                <button class="btn btn-apply btn-applied flex-1" type="button" disabled><i class="fa-solid fa-clock"></i> Pending Review</button>
                             <?php endif; ?>
-                            <a href="messages.php?user_id=<?php echo (int)$row['user_id']; ?>" class="btn btn-outline" style="flex: 0 0 auto; color: var(--secondary-color); border-color: #e2e8f0; display:flex; align-items:center; justify-content:center;" title="Message Poster"><i class="fa-regular fa-comment"></i></a>
+                            <a href="messages.php?user_id=<?php echo (int)$row['user_id']; ?>" class="btn btn-outline btn-icon-secondary" title="Message Poster"><i class="fa-regular fa-comment"></i></a>
                         </div>
                     <?php else: ?>
-                        <div style="display: flex; gap: 0.5rem; width: 100%;">
-                            <form action="../actions/apply_collaboration.php" method="POST" style="flex: 1; display:flex;">
+                        <div class="flex-gap-sm-full">
+                            <form action="../actions/apply_collaboration.php" method="POST" class="flex-1-display">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
-                                <button class="btn btn-apply" style="width: 100%;" type="submit">Apply to Collaborate</button>
+                                <button class="btn btn-apply w-100" type="submit">Apply to Collaborate</button>
                             </form>
-                            <a href="messages.php?user_id=<?php echo (int)$row['user_id']; ?>" class="btn btn-outline" style="flex: 0 0 auto; color: var(--secondary-color); border-color: #e2e8f0; display:flex; align-items:center; justify-content:center;" title="Message Poster"><i class="fa-regular fa-comment"></i></a>
+                            <a href="messages.php?user_id=<?php echo (int)$row['user_id']; ?>" class="btn btn-outline btn-icon-secondary" title="Message Poster"><i class="fa-regular fa-comment"></i></a>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -401,13 +384,13 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                         </div>
                     </div>
 
-                    <div class="spotlight-actions" style="display: flex; gap: 0.5rem; align-items: center;">
-                        <a href="?q=<?php echo urlencode((string)$spotlight['title']); ?>" class="btn btn-primary btn-view-details" style="flex: 1;">VIEW DETAILS</a>
+                    <div class="spotlight-actions flex-gap-sm-align-center">
+                        <a href="?q=<?php echo urlencode((string)$spotlight['title']); ?>" class="btn btn-primary btn-view-details flex-1">VIEW DETAILS</a>
                         <?php if ((int)$spotlight['user_id'] === (int)$user_id): ?>
-                            <form action="../actions/delete_collaboration_post.php" method="POST" onsubmit="return confirm('Permanently delete this spotlight request?');" style="flex: 0 0 auto;">
+                            <form action="../actions/delete_collaboration_post.php" method="POST" onsubmit="return confirm('Permanently delete this spotlight request?');" class="flex-none">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="post_id" value="<?php echo (int)$spotlight['id']; ?>">
-                                <button class="btn btn-outline" type="submit" style="color: #ff4d4d; border-color: rgba(255,77,77,0.3); padding: 0.8rem 1rem; background: rgba(255,255,255,0.1);">
+                                <button class="btn btn-outline btn-danger-outline-glass" type="submit">
                                     <i class="fa-regular fa-trash-can"></i>
                                 </button>
                             </form>
@@ -468,7 +451,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                     <input type="text" name="title" placeholder="e.g. Seeking Data Scientist for AI Ethics Project" class="form-input-bordered" required>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 1.5rem;">
+                <div class="form-group mb-1-5">
                     <label>Link to Existing Project (Optional)</label>
                     <select name="project_id" class="form-input-bordered">
                         <option value="">None (Standalone Request)</option>

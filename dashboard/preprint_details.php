@@ -12,14 +12,11 @@ if ($preprint_id == 0) {
 $conn->query("UPDATE preprints SET views_count = views_count + 1 WHERE id = $preprint_id");
 
 // Fetch Preprint
-$stmt = $conn->prepare("SELECT p.*, u.full_name, u.role, pr.title as project_title 
+$preprint = db_query("SELECT p.*, u.full_name, u.role, pr.title as project_title 
                         FROM preprints p 
                         JOIN users u ON p.author_id = u.id 
                         LEFT JOIN projects pr ON p.project_id = pr.id
-                        WHERE p.id = ?");
-$stmt->bind_param("i", $preprint_id);
-$stmt->execute();
-$preprint = $stmt->get_result()->fetch_assoc();
+                        WHERE p.id = ?", [$preprint_id], "i")->fetch_assoc();
 
 if (!$preprint) {
     header("Location: preprints.php");
@@ -27,14 +24,11 @@ if (!$preprint) {
 }
 
 // Fetch Comments
-$c_stmt = $conn->prepare("SELECT c.*, u.full_name 
+$comments = db_query("SELECT c.*, u.full_name 
                           FROM preprint_comments c
                           JOIN users u ON c.user_id = u.id
                           WHERE c.preprint_id = ?
-                          ORDER BY c.created_at ASC");
-$c_stmt->bind_param("i", $preprint_id);
-$c_stmt->execute();
-$comments = $c_stmt->get_result();
+                          ORDER BY c.created_at ASC", [$preprint_id], "i");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -68,7 +62,7 @@ $comments = $c_stmt->get_result();
                     <span><i class="fa-solid fa-code-branch"></i> Version <?php echo $preprint['version']; ?></span>
                     <span><i class="fa-solid fa-scale-balanced"></i> <?php echo htmlspecialchars($preprint['license_type']); ?></span>
                     <?php if($preprint['project_title']): ?>
-                    <a href="edit_project.php?id=<?php echo $preprint['project_id']; ?>" class="text-success" style="text-decoration:none;"><i class="fa-solid fa-folder"></i> Project: <?php echo htmlspecialchars($preprint['project_title']); ?></a>
+                    <a href="edit_project.php?id=<?php echo $preprint['project_id']; ?>" class="text-success text-deco-none"><i class="fa-solid fa-folder"></i> Project: <?php echo htmlspecialchars($preprint['project_title']); ?></a>
                     <?php endif; ?>
                     <span><i class="fa-regular fa-eye"></i> <?php echo $preprint['views_count']; ?> Views</span>
                 </div>
@@ -190,10 +184,10 @@ $comments = $c_stmt->get_result();
 
     <script>
         function openReportModal() {
-            document.getElementById('reportModal').style.display = 'flex';
+            document.getElementById('reportModal').classList.add('active');
         }
         function closeReportModal() {
-            document.getElementById('reportModal').style.display = 'none';
+            document.getElementById('reportModal').classList.remove('active');
         }
         document.getElementById('reportModal').addEventListener('click', function(e) {
             if(e.target === this) closeReportModal();

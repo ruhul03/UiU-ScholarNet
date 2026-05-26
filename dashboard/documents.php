@@ -5,17 +5,14 @@ require_once('../includes/csrf.php');
 $user_id = (int)$_SESSION['user_id'];
 
 // Fetch all documents accessible to the user
-$dstmt = $conn->prepare("
+$docs_result = db_query("
     SELECT d.id, d.title, d.updated_at, d.visibility, p.title as project_title, p.id as project_id, p.creator_id, pm.role
     FROM documents d
     JOIN projects p ON p.id = d.project_id
     LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
     WHERE p.creator_id = ? OR pm.role IN ('owner', 'editor', 'viewer')
     ORDER BY d.updated_at DESC
-");
-$dstmt->bind_param("ii", $user_id, $user_id);
-$dstmt->execute();
-$docs_result = $dstmt->get_result();
+", [$user_id, $user_id], "ii");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,8 +41,8 @@ $docs_result = $dstmt->get_result();
         <div class="docs-container">
             <div class="page-header">
                 <div>
-                    <h1 style="font-size: 1.8rem; margin-bottom: 0.5rem;">Document Hub</h1>
-                    <p style="color: var(--text-light);">Access and manage all your research drafts.</p>
+                    <h1 class="page-title-lg">Document Hub</h1>
+                    <p class="text-light">Access and manage all your research drafts.</p>
                 </div>
                 <a href="document_editor.php" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Document</a>
             </div>
@@ -62,7 +59,7 @@ $docs_result = $dstmt->get_result();
                 <?php else: ?>
                     <?php while($doc = $docs_result->fetch_assoc()): ?>
                         <div class="doc-card">
-                            <a href="document_editor.php?document_id=<?php echo $doc['id']; ?>" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; flex: 1;">
+                            <a href="document_editor.php?document_id=<?php echo $doc['id']; ?>" class="doc-link-card">
                                 <div class="doc-icon"><i class="fa-solid fa-file-lines"></i></div>
                                 <span class="doc-visibility"><?php echo htmlspecialchars($doc['visibility']); ?></span>
                                 <div class="doc-title"><?php echo htmlspecialchars($doc['title'] ?: 'Untitled Document'); ?></div>
@@ -75,7 +72,7 @@ $docs_result = $dstmt->get_result();
                             $is_leader = ($doc['creator_id'] == $user_id || $doc['role'] === 'owner');
                             if ($is_leader): 
                             ?>
-                            <form action="../actions/delete_document.php" method="POST" style="position: absolute; top: 1.2rem; right: 1.2rem;" onsubmit="return confirm('Are you sure you want to delete this document?');">
+                            <form action="../actions/delete_document.php" method="POST" class="absolute-top-right" onsubmit="return confirm('Are you sure you want to delete this document?');">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="document_id" value="<?php echo $doc['id']; ?>">
                                 <button type="submit" class="btn-delete" title="Delete Document"><i class="fa-solid fa-trash"></i></button>

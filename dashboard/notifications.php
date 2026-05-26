@@ -7,10 +7,7 @@ $upd->bind_param("i", $user_id);
 $upd->execute();
 
 // Fetch notifications
-$stmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 100");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$notifications = $stmt->get_result();
+$notifications = db_query("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 100", [$user_id], "i");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,7 +36,7 @@ $notifications = $stmt->get_result();
         <div class="notifications-container">
             <div class="page-header">
                 <h1>Your Notifications</h1>
-                <p style="color: var(--text-light);">Stay updated on your projects and tasks.</p>
+                <p class="text-light">Stay updated on your projects and tasks.</p>
             </div>
 
             <?php if ($notifications->num_rows === 0): ?>

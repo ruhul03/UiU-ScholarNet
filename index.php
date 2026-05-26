@@ -5,11 +5,10 @@ $is_logged_in = isset($_SESSION['user_id']);
 $user_data = null;
 if ($is_logged_in) {
     require_once(__DIR__ . '/includes/db_connect.php');
+    
+    // Fetch the user's data using our helper function
     $user_id = (int)$_SESSION['user_id'];
-    $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $user_result = $stmt->get_result();
+    $user_result = db_query("SELECT * FROM users WHERE id = ?", [$user_id], "i");
     $user_data = $user_result->fetch_assoc();
 }
 ?>
@@ -58,8 +57,8 @@ if ($is_logged_in) {
                 <i class="fa-regular fa-bell"></i>
             </div>
             <?php if ($is_logged_in && $user_data): ?>
-                <a href="dashboard/index.php" class="btn btn-outline landing-signin" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
-                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" style="width: 24px; height: 24px; border-radius: 50%;">
+                <a href="dashboard/index.php" class="btn btn-outline landing-signin landing-header-profile-btn">
+                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" class="landing-header-profile-img">
                     <span>Dashboard</span>
                 </a>
             <?php else: ?>
@@ -142,14 +141,14 @@ if ($is_logged_in) {
     </section>
 
     <!-- CTA Banner -->
-    <section class="landing-cta" style="padding: 8rem 5rem; background: var(--primary-color); color: var(--white); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem;">
-        <h2 style="font-size: 3rem; font-family: var(--font-heading); max-width: 800px; line-height: 1.2;">Ready to accelerate your research journey?</h2>
-        <p style="opacity: 0.8; max-width: 600px; font-size: 1.1rem;">Connect with ScholarNet's brightest minds today, launch project workspaces, and publish findings.</p>
+    <section class="landing-cta cta-section">
+        <h2 class="cta-heading">Ready to accelerate your research journey?</h2>
+        <p class="cta-subheading">Connect with ScholarNet's brightest minds today, launch project workspaces, and publish findings.</p>
         <div>
             <?php if ($is_logged_in): ?>
-                <a href="dashboard/index.php" class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color); padding: 1rem 2.5rem; font-size: 1rem;">Go to Dashboard <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="dashboard/index.php" class="btn btn-primary cta-btn">Go to Dashboard <i class="fa-solid fa-arrow-right"></i></a>
             <?php else: ?>
-                <a href="auth/register.php" class="btn btn-primary" style="background-color: var(--secondary-color); color: var(--primary-color); padding: 1rem 2.5rem; font-size: 1rem;">Get Started Free <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="auth/register.php" class="btn btn-primary cta-btn">Get Started Free <i class="fa-solid fa-arrow-right"></i></a>
             <?php endif; ?>
         </div>
     </section>

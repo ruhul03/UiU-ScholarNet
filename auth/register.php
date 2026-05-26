@@ -1,3 +1,10 @@
+<?php
+// Start the session to handle error messages
+session_start();
+
+// Include CSRF token functions for security
+require_once('../includes/csrf.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,7 +31,7 @@
                 Connect with 2,400+ Researchers in a curated environment built for scientific rigor and breakthrough collaboration.
             </p>
 
-            <div style="margin-top: auto;">
+            <div class="margin-top-auto">
                 <div class="avatar-group">
                     <div class="avatar-placeholder"></div>
                     <div class="avatar-placeholder secondary"></div>
@@ -43,19 +50,22 @@
                 <h1>Scholar Registration</h1>
                 <p>Please provide your institutional credentials to begin.</p>
 
-                <?php 
-                session_start();
-                if(isset($_SESSION['error'])): ?>
+                <!-- Display any error messages stored in the session -->
+                <?php if (isset($_SESSION['error'])): ?>
                     <div class="alert-error">
-                        <i class="fa-solid fa-circle-exclamation"></i> <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                        <i class="fa-solid fa-circle-exclamation"></i> 
+                        <?php 
+                            echo $_SESSION['error']; 
+                            // Remove the error message from the session so it doesn't show again
+                            unset($_SESSION['error']); 
+                        ?>
                     </div>
                 <?php endif; ?>
 
+                <!-- Registration form -->
                 <form action="../actions/register.php" method="POST">
-                    <input type="hidden" name="csrf_token" value="<?php 
-                        require_once('../includes/csrf.php');
-                        echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8');
-                    ?>">
+                    <!-- CSRF Token to protect against Cross-Site Request Forgery -->
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="form-row">
                         <div class="form-group">
                             <label>Full Name</label>
@@ -84,7 +94,7 @@
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group" style="flex:1;">
+                        <div class="form-group flex-1">
                             <label>Role</label>
                             <select name="role" required>
                                 <option value="student">Student</option>

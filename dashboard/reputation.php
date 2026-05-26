@@ -4,9 +4,7 @@ require_once('../includes/auth_check.php');
 require_once('../includes/csrf.php');
 
 // QUERY: Fetch all researchers (users) from the database sorted by reputation points descending
-$leadStmt = $conn->prepare("SELECT full_name, role, department, points FROM users ORDER BY points DESC LIMIT 100");
-$leadStmt->execute();
-$leadRes = $leadStmt->get_result();
+$leadRes = db_query("SELECT full_name, role, department, points FROM users ORDER BY points DESC LIMIT 100", [], "");
 
 // Store users into a list for easy ranking splits (podium vs list table)
 $ranked_users = [];
@@ -15,9 +13,7 @@ while ($row = $leadRes->fetch_assoc()) {
 }
 
 // Fetch reputation rules dynamically
-$rulesStmt = $conn->prepare("SELECT title, description, points, icon FROM reputation_rules ORDER BY points DESC");
-$rulesStmt->execute();
-$reputation_rules = $rulesStmt->get_result();
+$reputation_rules = db_query("SELECT title, description, points, icon FROM reputation_rules ORDER BY points DESC", [], "");
 
 // Get the top 3 for the podium blocks
 $top_1 = isset($ranked_users[0]) ? $ranked_users[0] : null;
@@ -100,11 +96,11 @@ $top_3 = isset($ranked_users[2]) ? $ranked_users[2] : null;
                 <table class="leaderboard-table">
                     <thead>
                         <tr>
-                            <th style="width: 80px;">Rank</th>
+                            <th class="th-rank-w">Rank</th>
                             <th>Full Name</th>
                             <th>Role</th>
                             <th>Department</th>
-                            <th style="text-align: right; width: 150px;">Points</th>
+                            <th class="th-points-w">Points</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -119,7 +115,7 @@ $top_3 = isset($ranked_users[2]) ? $ranked_users[2] : null;
                                 <td class="rank-number">#<?php echo ($i + 1); ?></td>
                                 <td class="user-name-col"><?php echo htmlspecialchars($user['full_name']); ?></td>
                                 <td class="table-role-badge"><?php echo htmlspecialchars($user['role']); ?></td>
-                                <td style="opacity: 0.7;"><?php echo htmlspecialchars($user['department']); ?></td>
+                                <td class="opacity-70"><?php echo htmlspecialchars($user['department']); ?></td>
                                 <td class="table-points-col"><?php echo number_format($user['points']); ?></td>
                             </tr>
                         <?php 
@@ -128,7 +124,7 @@ $top_3 = isset($ranked_users[2]) ? $ranked_users[2] : null;
                             if ($count <= 3):
                         ?>
                             <tr>
-                                <td colspan="5" style="text-align: center; opacity: 0.5; padding: 2rem;">No other ranked researchers yet. Keep building!</td>
+                                <td colspan="5" class="td-empty-ranked">No other ranked researchers yet. Keep building!</td>
                             </tr>
                         <?php 
                             endif;
@@ -139,7 +135,7 @@ $top_3 = isset($ranked_users[2]) ? $ranked_users[2] : null;
             </div>
 
             <!-- Guide on how to earn reputation -->
-            <h3 style="margin-bottom: 2rem; color: var(--primary-color);">How to Earn Reputation</h3>
+            <h3 class="rep-guide-title">How to Earn Reputation</h3>
             <div class="earning-guide">
                 <?php while ($rule = $reputation_rules->fetch_assoc()): ?>
                 <div class="guide-card">

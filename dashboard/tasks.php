@@ -4,57 +4,40 @@ require_once('../includes/csrf.php');
 
 $project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : null;
 
-// Fetch notification counts
-$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
-$ptStmt->bind_param("i", $user_id);
-$ptStmt->execute();
-$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+// Fetch notification counts for header badges
+$pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
+$collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
 
-$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
-$crStmt->bind_param("i", $user_id);
-$crStmt->execute();
-$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
-
-// Fetch team members
-$teamStmt = $conn->prepare("
+// Fetch team members for task assignment dropdown
+$team_members = db_query("
     SELECT DISTINCT u.id, u.full_name 
     FROM project_members pm
     JOIN projects p ON pm.project_id = p.id
     LEFT JOIN project_members me ON p.id = me.project_id AND me.user_id = ?
     JOIN users u ON pm.user_id = u.id
     WHERE p.creator_id = ? OR me.user_id = ?
-");
-$teamStmt->bind_param("iii", $user_id, $user_id, $user_id);
-$teamStmt->execute();
-$team_members = $teamStmt->get_result();
+", [$user_id, $user_id, $user_id], "iii");
 
-// Fetch Projects for the dropdown
-$pstmt = $conn->prepare("
+// Fetch active projects to assign tasks to
+$projects_result = db_query("
     SELECT p.id, p.title 
     FROM projects p
     LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
     WHERE p.creator_id = ? OR pm.user_id = ?
     ORDER BY p.created_at DESC
-");
-$pstmt->bind_param("iii", $user_id, $user_id, $user_id);
-$pstmt->execute();
-$projects_result = $pstmt->get_result();
+", [$user_id, $user_id, $user_id], "iii");
 
-// Fetch Tasks
+// Fetch all tasks or filter by project_id if specified in the URL
 $task_sql = "SELECT t.*, p.title as project_title FROM tasks t 
              JOIN projects p ON t.project_id = p.id 
              LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
              WHERE (p.creator_id = ? OR pm.user_id = ?)";
 if ($project_id) {
     $task_sql .= " AND t.project_id = ?";
-    $tstmt = $conn->prepare($task_sql);
-    $tstmt->bind_param("iiii", $user_id, $user_id, $user_id, $project_id);
+    $task_result = db_query($task_sql, [$user_id, $user_id, $user_id, $project_id], "iiii");
 } else {
-    $tstmt = $conn->prepare($task_sql);
-    $tstmt->bind_param("iii", $user_id, $user_id, $user_id);
+    $task_result = db_query($task_sql, [$user_id, $user_id, $user_id], "iii");
 }
-$tstmt->execute();
-$task_result = $tstmt->get_result();
 
 $tasks_todo = [];
 $tasks_done = [];
@@ -108,12 +91,12 @@ while ($task = $task_result->fetch_assoc()) {
                         
                         <div class="task-meta-footer">
                             <span><i class="fa-regular fa-clock"></i> <?php echo date('M d', strtotime($task['due_date'])); ?></span>
-                            <div class="task-actions" style="margin-left:auto;">
-                                <form method="POST" action="../actions/update_task_status.php" style="display:inline;">
+                            <div class="task-actions margin-left-auto">
+                                <form method="POST" action="../actions/update_task_status.php" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                     <input type="hidden" name="task_id" value="<?php echo $task['id']; ?>">
                                     <input type="hidden" name="status" value="done">
-                                    <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;"><i class="fa-solid fa-check"></i> Finish</button>
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i> Finish</button>
                                 </form>
                             </div>
 
@@ -133,7 +116,7 @@ while ($task = $task_result->fetch_assoc()) {
                     <div class="done-header">
                         <h3 class="done-title"><span class="column-badge"><i class="fa-solid fa-circle dot-green"></i> Done (<?php echo count($tasks_done); ?>)</span></h3>
                         
-                        <form action="../actions/clear_completed_tasks.php" method="POST" id="clearTasksForm" style="display:none;">
+                        <form action="../actions/clear_completed_tasks.php" method="POST" id="clearTasksForm" class="hidden">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                             <?php if ($project_id): ?>
                                 <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
@@ -173,7 +156,7 @@ while ($task = $task_result->fetch_assoc()) {
                 </div>
                 
                 <div class="form-row">
-                    <div class="form-group" style="flex: 1;">
+                    <div class="form-group flex-1">
                         <label>PROJECT SELECTION</label>
                         <select name="project_id" class="form-input-light" required>
                             <option value="">Select Project</option>
@@ -186,7 +169,7 @@ while ($task = $task_result->fetch_assoc()) {
                             <?php endwhile; ?>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 1;">
+                    <div class="form-group flex-1">
                         <label>ASSIGN TO COLLABORATOR</label>
                         <select name="assigned_to" class="form-input-light">
                             <option value="<?php echo $user_id; ?>">Assign to Myself</option>
@@ -220,7 +203,7 @@ while ($task = $task_result->fetch_assoc()) {
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 1rem;">
+                <div class="form-group margin-top-md">
                     <label>TASK DESCRIPTION</label>
                     <textarea name="description" rows="5" class="textarea-task" placeholder="Briefly outline the task details..."></textarea>
                 </div>

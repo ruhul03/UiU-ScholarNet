@@ -12,19 +12,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title']) && isset($_P
     $user_id = $_SESSION['user_id'];
 
     if (!empty($title) && !empty($content)) {
-        $query = "INSERT INTO discussion_threads (user_id, title, category, content) VALUES ('$user_id', '$title', '$category', '$content')";
-        if (mysqli_query($conn, $query)) {
-            // Give reputation point for starting a discussion
-            mysqli_query($conn, "UPDATE users SET reputation = reputation + 2 WHERE id = '$user_id'");
-            
-            // Add notification
-            $notif_title = mysqli_real_escape_string($conn, "New Discussion Thread");
-            $notif_msg = mysqli_real_escape_string($conn, "You started a new research discussion.");
-            mysqli_query($conn, "INSERT INTO notifications (user_id, type, title, message) VALUES ('$user_id', 'system', '$notif_title', '$notif_msg')");
-            
-            header("Location: research_discussion.php?success=1");
-            exit;
-        }
+        $query = "INSERT INTO discussion_threads (user_id, title, category, content) VALUES (?, ?, ?, ?)";
+        db_query($query, [$user_id, $_POST['title'], $_POST['category'], $_POST['content']], "isss");
+        
+        // Give reputation point for starting a discussion
+        db_query("UPDATE users SET points = points + 2 WHERE id = ?", [$user_id], "i");
+        
+        // Add notification
+        db_query("INSERT INTO notifications (user_id, type, title, message) VALUES (?, 'system', 'New Discussion Thread', 'You started a new research discussion.')", [$user_id], "i");
+        
+        header("Location: research_discussion.php?success=1");
+        exit;
     }
 }
 
@@ -32,12 +30,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title']) && isset($_P
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, trim($_GET['search'])) : '';
 $filter_category = isset($_GET['category']) ? mysqli_real_escape_string($conn, trim($_GET['category'])) : '';
 
+$params = [];
+$types = "";
 $where_clauses = [];
 if (!empty($search)) {
-    $where_clauses[] = "(t.title LIKE '%$search%' OR t.content LIKE '%$search%')";
+    $where_clauses[] = "(t.title LIKE ? OR t.content LIKE ?)";
+    $search_term = "%" . $_GET['search'] . "%";
+    $params[] = $search_term;
+    $params[] = $search_term;
+    $types .= "ss";
 }
 if (!empty($filter_category)) {
-    $where_clauses[] = "t.category = '$filter_category'";
+    $where_clauses[] = "t.category = ?";
+    $params[] = $_GET['category'];
+    $types .= "s";
 }
 $where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
 
@@ -50,7 +56,7 @@ $query = "
     $where_sql
     ORDER BY t.created_at DESC
 ";
-$result = mysqli_query($conn, $query);
+$result = db_query($query, $params, $types);
 
 $current_user_id = $_SESSION['user_id'];
 
@@ -65,26 +71,26 @@ layout_header("Research Discussion | UIU ScholarNet");
         <div class="discussion-container">
             <div class="discussion-header">
                 <div>
-                    <h1 style="font-size: 2.2rem; font-family: var(--font-heading); color: var(--primary-color);">Research Discussion</h1>
-                    <p style="opacity: 0.7; margin-top: 0.5rem;">Share ideas, ask questions, and collaborate openly.</p>
+                    <h1 class="discussion-headline">Research Discussion</h1>
+                    <p class="discussion-desc">Share ideas, ask questions, and collaborate openly.</p>
                 </div>
                 <button class="btn btn-primary" onclick="document.getElementById('newThreadForm').style.display='block'">+ New Topic</button>
             </div>
             
             <?php if (isset($_GET['success'])): ?>
-                <div style="background: #e6f4ea; color: #1e8e3e; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <div class="alert-success-box">
                     Discussion thread posted successfully!
                 </div>
             <?php endif; ?>
 
             <!-- Search and Filter Bar -->
-            <div style="background: var(--white); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--accent-color); margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-                <form method="GET" action="research_discussion.php" style="display: flex; gap: 1rem; flex: 1; margin: 0;">
-                    <div style="flex: 2;">
-                        <input type="text" name="search" placeholder="Search discussions..." value="<?php echo htmlspecialchars($search); ?>" style="width: 100%; padding: 0.8rem 1rem; border: 1px solid #ddd; border-radius: 4px; font-family: var(--font-body);">
+            <div class="search-filter-bar">
+                <form method="GET" action="research_discussion.php" class="form-flex-1">
+                    <div class="flex-2">
+                        <input type="text" name="search" placeholder="Search discussions..." value="<?php echo htmlspecialchars($search); ?>" class="input-search">
                     </div>
-                    <div style="flex: 1;">
-                        <select name="category" style="width: 100%; padding: 0.8rem 1rem; border: 1px solid #ddd; border-radius: 4px; background: white; font-family: var(--font-body);">
+                    <div class="flex-1">
+                        <select name="category" class="select-filter">
                             <option value="">All Categories</option>
                             <option value="Computer Science" <?php echo $filter_category === 'Computer Science' ? 'selected' : ''; ?>>Computer Science</option>
                             <option value="Data Science & AI" <?php echo $filter_category === 'Data Science & AI' ? 'selected' : ''; ?>>Data Science & AI</option>
@@ -93,19 +99,19 @@ layout_header("Research Discussion | UIU ScholarNet");
                             <option value="General" <?php echo $filter_category === 'General' ? 'selected' : ''; ?>>General</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem;">Search</button>
+                    <button type="submit" class="btn btn-primary btn-p-lg">Search</button>
                     <?php if(!empty($search) || !empty($filter_category)): ?>
-                        <a href="research_discussion.php" class="btn btn-outline" style="padding: 0.8rem 1.5rem; text-decoration: none; line-height: 1.5;">Clear</a>
+                        <a href="research_discussion.php" class="btn btn-outline btn-clear-filter">Clear</a>
                     <?php endif; ?>
                 </form>
             </div>
 
-            <div id="newThreadForm" style="display: none; background: #fdfcf8; padding: 2rem; border-radius: 8px; border: 1px solid #eee; margin-bottom: 2rem;">
-                <h3 style="margin-bottom: 1rem;">Start a New Topic</h3>
+            <div id="newThreadForm" class="new-thread-form-box">
+                <h3 class="mb-1">Start a New Topic</h3>
                 <form method="POST" action="research_discussion.php">
-                    <div class="form-group" style="margin-bottom: 1rem; display: flex; gap: 1rem;">
-                        <input type="text" name="title" placeholder="Discussion Title" required style="flex: 2; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
-                        <select name="category" required style="flex: 1; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                    <div class="form-group form-group-flex">
+                        <input type="text" name="title" placeholder="Discussion Title" required class="input-thread-title">
+                        <select name="category" required class="select-thread-category">
                             <option value="" disabled selected>Select Category</option>
                             <option value="Computer Science">Computer Science</option>
                             <option value="Data Science & AI">Data Science & AI</option>
@@ -114,10 +120,10 @@ layout_header("Research Discussion | UIU ScholarNet");
                             <option value="General">General</option>
                         </select>
                     </div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <textarea name="content" rows="4" placeholder="What's on your mind?" required style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                    <div class="form-group mb-1">
+                        <textarea name="content" rows="4" placeholder="What's on your mind?" required class="textarea-thread-content"></textarea>
                     </div>
-                    <div style="display: flex; gap: 1rem;">
+                    <div class="flex-gap-1">
                         <button type="submit" class="btn btn-primary">Post Topic</button>
                         <button type="button" class="btn btn-outline" onclick="document.getElementById('newThreadForm').style.display='none'">Cancel</button>
                     </div>
@@ -129,16 +135,16 @@ layout_header("Research Discussion | UIU ScholarNet");
                     <?php while ($thread = mysqli_fetch_assoc($result)): ?>
                         <a href="discussion_thread.php?id=<?php echo $thread['id']; ?>" class="thread-item">
                             <div class="thread-main">
-                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
-                                    <span style="background: #e2e8f0; color: #475569; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 600;"><?php echo htmlspecialchars($thread['category']); ?></span>
+                                <div class="thread-meta-top">
+                                    <span class="badge-category"><?php echo htmlspecialchars($thread['category']); ?></span>
                                 </div>
-                                <div class="thread-title" style="margin-bottom: 0.3rem;"><?php echo htmlspecialchars($thread['title']); ?></div>
+                                <div class="thread-title mb-0-3"><?php echo htmlspecialchars($thread['title']); ?></div>
                                 <div class="thread-meta">
                                     <span><i class="fa-solid fa-user"></i> <?php echo htmlspecialchars($thread['full_name']); ?> (<?php echo ucfirst($thread['role']); ?>)</span>
                                     <span><i class="fa-solid fa-clock"></i> <?php echo date('M d, Y H:i', strtotime($thread['created_at'])); ?></span>
                                 </div>
                             </div>
-                            <div class="thread-stats" style="display: flex; align-items: center; gap: 1rem;">
+                            <div class="thread-stats thread-stats-flex">
                                 <div class="stat-box">
                                     <span><?php echo $thread['reply_count']; ?></span>
                                     <small>Replies</small>
@@ -148,10 +154,10 @@ layout_header("Research Discussion | UIU ScholarNet");
                                     <small>Views</small>
                                 </div>
                                 <?php if ($thread['user_id'] == $current_user_id): ?>
-                                    <form method="POST" action="../actions/delete_discussion_thread.php" onsubmit="return confirm('Are you sure you want to delete this topic?');" style="margin-left: 1rem;">
+                                    <form method="POST" action="../actions/delete_discussion_thread.php" onsubmit="return confirm('Are you sure you want to delete this topic?');" class="ml-1">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                         <input type="hidden" name="thread_id" value="<?php echo $thread['id']; ?>">
-                                        <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem;" title="Delete Topic" onclick="event.stopPropagation();">
+                                        <button type="submit" class="btn-thread-delete" title="Delete Topic" onclick="event.stopPropagation();">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
@@ -160,7 +166,7 @@ layout_header("Research Discussion | UIU ScholarNet");
                         </a>
                     <?php endwhile; ?>
                 <?php else: ?>
-                    <p style="text-align: center; padding: 3rem; color: #888;">No discussions yet. Be the first to start a topic!</p>
+                    <p class="empty-thread-state">No discussions yet. Be the first to start a topic!</p>
                 <?php endif; ?>
             </div>
         </div>

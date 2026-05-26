@@ -360,3 +360,17 @@
     font-weight: 500;
 }
 
+/* Custom utility classes replacing inline styles */
+.margin-top-auto {
+    margin-top: auto;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.security-notice {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 1rem 0;
+}

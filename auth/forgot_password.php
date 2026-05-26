@@ -1,6 +1,9 @@
 <?php
+// Initialize session securely
 require_once('../includes/session.php');
 start_secure_session();
+
+// Include CSRF token functions for security
 require_once('../includes/csrf.php');
 ?>
 <!DOCTYPE html>
@@ -29,20 +32,28 @@ require_once('../includes/csrf.php');
                 <h1>Forgot Password</h1>
                 <p>Submit your university email to continue.</p>
 
+                <!-- Display any error messages stored in the session -->
                 <?php if (isset($_SESSION['error'])): ?>
                     <div class="alert-error">
-                        <i class="fa-solid fa-circle-exclamation"></i> <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                        <i class="fa-solid fa-circle-exclamation"></i> 
+                        <?php 
+                            echo $_SESSION['error']; 
+                            // Remove the error message from the session so it doesn't show again
+                            unset($_SESSION['error']); 
+                        ?>
                     </div>
                 <?php endif; ?>
 
+                <!-- Password reset form -->
                 <form action="../actions/forgot_password.php" method="POST">
+                    <!-- CSRF Token to protect against Cross-Site Request Forgery -->
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="form-group">
                         <label>University Email</label>
                         <input type="email" name="email" placeholder="you@uiu.ac.bd" required>
                     </div>
                     
-                    <p style="font-size: 0.8rem; color: #666; margin: 1rem 0;">For security, please verify your identity by entering your exact full name and department as they appear on your profile.</p>
+                    <p class="security-notice">For security, please verify your identity by entering your exact full name and department as they appear on your profile.</p>
 
                     <div class="form-group">
                         <label>Full Name (Verification)</label>
