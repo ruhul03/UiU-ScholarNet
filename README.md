@@ -34,11 +34,17 @@ A full-stack, high-fidelity academic research collaboration platform custom-buil
    - Select the `database.sql` file located in the root of the project.
    - Click **"Go"** to initialize the `uiu_scholarnet` database and load seed data.
 
-3. **Configure Environment Variables**:
-   Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
+3. **Configure the database**:
+   This project reads DB credentials from environment variables (recommended), with safe defaults for XAMPP.
+   - `DB_HOST` (default `127.0.0.1`)
+   - `DB_USER` (default `root`)
+   - `DB_PASS` (default empty)
+   - `DB_NAME` (default `uiu_scholarnet`)
+   - `EMAIL_USER` (Gmail address for password reset emails)
+   - `EMAIL_PASS` (Gmail App Password)
+   - `EMAIL_HOST` (default `smtp.gmail.com`)
+   - `EMAIL_PORT` (default `587`)
+
    Configure connection credentials inside the `.env` file:
    ```ini
    DB_HOST=127.0.0.1
@@ -46,6 +52,10 @@ A full-stack, high-fidelity academic research collaboration platform custom-buil
    DB_PASS=
    DB_NAME=uiu_scholarnet
    DB_PORT=3306
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-gmail-app-password
+   EMAIL_HOST=smtp.gmail.com
+   EMAIL_PORT=587
    ```
    *Note: Defaults are pre-configured to match standard XAMPP out-of-the-box settings.*
 
@@ -108,12 +118,12 @@ UiU-ScholarNet/
 ## 🏛️ System Architecture
 
 ### 1. Database Wrapper & Helper
-All database access is centralized through the custom `db_query()` function defined in [includes/db_connect.php](file:///d:/UiU/7th%20trimester/Web%20Programming/UiU-ScholarNet/includes/db_connect.php). 
+All database access is centralized through the custom `db_query()` function defined in [includes/db_connect.php](file:///d:/UiU/7th%20trimester/Web%20Programming/UiU-ScholarNet/includes/db_connect.php).
 - **Auto-Type Binding**: The helper automatically evaluates parameters (e.g. integer `i`, double `d`, or string `s`) to prevent manual type mappings, keeping backend logic readable and minimal.
 - **SQL Injection Defense**: Prepared statements are strictly enforced via parameterization, eliminating direct concatenation vectors.
 ```php
 $result = db_query(
-    "SELECT * FROM users WHERE email = ? AND role = ?", 
+    "SELECT * FROM users WHERE email = ? AND role = ?",
     [$email, $role]
 );
 ```
@@ -131,7 +141,7 @@ Form action endpoints use a hybrid wrapper structure:
 
 ### 3. Security Lifecycle
 ```
-Client Request (POST) 
+Client Request (POST)
    │
    ├──► CSRF Validation ──► [includes/csrf.php] (csrf_validate_or_die)
    │

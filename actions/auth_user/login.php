@@ -7,7 +7,7 @@ require_once(__DIR__ . '/../../includes/csrf.php');
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     csrf_validate_or_die();
 
-    $email = trim((string)($_POST['email'] ?? ''));
+    $email = strtolower(trim((string)($_POST['email'] ?? '')));
     $password = (string)($_POST['password'] ?? '');
 
     // Fetch user by email using simplified db_query

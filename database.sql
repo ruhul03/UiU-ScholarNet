@@ -8,10 +8,13 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('student', 'faculty') DEFAULT 'student',
+    is_verified TINYINT(1) DEFAULT 1,
+    account_status ENUM('active', 'banned') DEFAULT 'active',
     department VARCHAR(100),
     interests TEXT,
     skills TEXT,
     points INT DEFAULT 0,
+    reputation INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -21,6 +24,21 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     institution VARCHAR(150),
     biography TEXT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 1.2 Password Reset Codes
+CREATE TABLE IF NOT EXISTS password_reset_codes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    code_hash CHAR(64) NOT NULL,
+    attempts TINYINT UNSIGNED DEFAULT 0,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_prc_email (email),
+    INDEX idx_prc_expires (expires_at),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -116,6 +134,8 @@ CREATE TABLE IF NOT EXISTS messages (
     receiver_id INT,
     channel VARCHAR(100) DEFAULT 'general',
     message TEXT NOT NULL,
+    file_path VARCHAR(255) NULL,
+    file_name VARCHAR(255) NULL,
     is_read TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -150,6 +170,31 @@ CREATE TABLE IF NOT EXISTS document_versions (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- 7.2 Admin Lookup Tables
+CREATE TABLE IF NOT EXISTS departments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS skills (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS opportunity_types (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS reputation_rules (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    action_key VARCHAR(100) NOT NULL UNIQUE,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    points INT NOT NULL DEFAULT 0,
+    icon VARCHAR(100) DEFAULT 'fa-solid fa-star'
+);
+
 -- ===========================
 -- Seed Data (password is hashed version of 'password')
 -- Generated via: password_hash('password', PASSWORD_DEFAULT)
@@ -177,6 +222,22 @@ INSERT INTO collaboration_posts (user_id, title, department, description, skills
 VALUES
 (1, 'AI Ethics Research Partner', 'Computer Science', 'Looking for a research partner to explore ethical implications of LLMs in academic settings. Focus on bias detection and mitigation strategies.', 'Python, NLP, Ethics'),
 (1, 'Cross-Campus Data Visualization', 'CSE', 'Need a skilled data visualization expert for our urban development research project. D3.js and Tableau experience preferred.', 'D3.js, Tableau, Statistics');
+
+INSERT IGNORE INTO departments (name)
+VALUES ('CSE'), ('EEE'), ('BBA'), ('Economics'), ('English');
+
+INSERT IGNORE INTO skills (name)
+VALUES ('Python'), ('Machine Learning'), ('Data Mining'), ('LaTeX'), ('SPSS'), ('NLP'), ('Statistics');
+
+INSERT IGNORE INTO opportunity_types (name)
+VALUES ('Research'), ('Project'), ('Thesis'), ('Publication'), ('Dataset');
+
+INSERT IGNORE INTO reputation_rules (action_key, title, description, points, icon)
+VALUES
+('task_completed', 'Complete a Task', 'Earn points when an assigned project task is completed.', 50, 'fa-solid fa-list-check'),
+('preprint_published', 'Publish a Preprint', 'Earn points for sharing academic work.', 100, 'fa-solid fa-file-lines'),
+('collaboration_posted', 'Post Collaboration', 'Earn points for opening a collaboration opportunity.', 20, 'fa-solid fa-users'),
+('discussion_started', 'Start Discussion', 'Earn points for starting a research discussion.', 2, 'fa-solid fa-comments');
 
 -- 8. Preprints Table
 CREATE TABLE IF NOT EXISTS preprints (
