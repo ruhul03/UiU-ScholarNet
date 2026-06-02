@@ -34,7 +34,7 @@ layout_header("Admin Panel | UIU ScholarNet");
         <?php include('../includes/header.php'); ?>
         <?php include('../includes/alerts.php'); ?>
 
-        <section class="greeting mb-2">
+        <section class="greeting mb-2" id="admin-overview">
             <h1>Admin Panel</h1>
             <p>Manage users, verify faculty, and handle platform data.</p>
         </section>
@@ -71,7 +71,7 @@ layout_header("Admin Panel | UIU ScholarNet");
             </div>
         </section>
 
-        <div class="card admin-card-main">
+        <div class="card admin-card-main" id="admin-users">
             <h3 class="admin-card-title">System Users</h3>
             
             <table class="leaderboard-table admin-table">
@@ -149,7 +149,7 @@ layout_header("Admin Panel | UIU ScholarNet");
         </div>
 
         <!-- Dynamic Data Management -->
-        <div class="admin-grid">
+        <div class="admin-grid" id="admin-data">
             <!-- Departments -->
             <div class="card admin-card-sub">
                 <h4 class="admin-card-sub-title">Departments</h4>

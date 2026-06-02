@@ -6,55 +6,67 @@ if (!isset($unread_messages_count)) {
     $um_stmt->execute();
     $unread_messages_count = (int)($um_stmt->get_result()->fetch_assoc()['total'] ?? 0);
 }
+$is_admin_sidebar = isset($user_data['role']) && $user_data['role'] === 'admin';
+$current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <aside class="sidebar">
-    <div class="logo">UIU ScholarNet</div>
-    <div class="sidebar-subtitle">RESEARCH & COLLABORATION</div>
+    <div class="logo"><?php echo $is_admin_sidebar ? 'Admin Console' : 'UIU ScholarNet'; ?></div>
+    <div class="sidebar-subtitle"><?php echo $is_admin_sidebar ? 'PLATFORM MANAGEMENT' : 'RESEARCH & COLLABORATION'; ?></div>
 
     <nav class="sidebar-menu">
-        <a href="index.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-house"></i> Dashboard
-        </a>
-        <a href="collaboration.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'collaboration.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-magnifying-glass"></i> Collaboration Finder
-        </a>
-        <a href="projects.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'projects.php' || basename($_SERVER['PHP_SELF']) == 'edit_project.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-folder"></i> Projects
-        </a>
-        <a href="tasks.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'tasks.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-square-check"></i> Tasks
-        </a>
-        <a href="documents.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'documents.php' || basename($_SERVER['PHP_SELF']) == 'document_editor.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-file-lines"></i> Document Editor
-        </a>
-        <a href="messages.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'messages.php' && (!isset($_GET['channel']) || $_GET['channel'] !== 'discussion')) ? 'active' : ''; ?>">
-            <i class="fa-solid fa-message"></i> Messages
-            <?php if (($unread_messages_count ?? 0) > 0): ?>
-                <span class="notification-dot notification-dot-sidebar"></span>
-            <?php endif; ?>
-        </a>
-        <a href="file_upload.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'file_upload.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-paperclip"></i> File Upload
-        </a>
-        <a href="resources.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'resources.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-book"></i> Resource Hub
-        </a>
-        <a href="preprints.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'preprints.php' || basename($_SERVER['PHP_SELF']) == 'preprint_details.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-file-pdf"></i> Preprints
-        </a>
-        <a href="reputation.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'reputation.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-award"></i> Reputation
-        </a>
-        <a href="research_discussion.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'research_discussion.php' || basename($_SERVER['PHP_SELF']) == 'discussion_thread.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-comments"></i> Research Discussion
-        </a>
-        <a href="profile.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'profile.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-user"></i> My Profile
-        </a>
-        <?php if (isset($user_data['role']) && $user_data['role'] === 'admin'): ?>
-        <a href="admin.php" class="menu-item <?php echo (basename($_SERVER['PHP_SELF']) == 'admin.php') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-shield-halved"></i> Admin Panel
-        </a>
+        <?php if ($is_admin_sidebar): ?>
+            <a href="admin.php#admin-overview" class="menu-item <?php echo ($current_page == 'admin.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-gauge-high"></i> Overview
+            </a>
+            <a href="admin.php#admin-users" class="menu-item">
+                <i class="fa-solid fa-users-gear"></i> User Management
+            </a>
+            <a href="admin.php#admin-data" class="menu-item">
+                <i class="fa-solid fa-table-list"></i> Platform Data
+            </a>
+            <a href="notifications.php" class="menu-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-bell"></i> Notifications
+            </a>
+        <?php else: ?>
+            <a href="index.php" class="menu-item <?php echo ($current_page == 'index.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-house"></i> Dashboard
+            </a>
+            <a href="collaboration.php" class="menu-item <?php echo ($current_page == 'collaboration.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-magnifying-glass"></i> Collaboration Finder
+            </a>
+            <a href="projects.php" class="menu-item <?php echo ($current_page == 'projects.php' || $current_page == 'edit_project.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-folder"></i> Projects
+            </a>
+            <a href="tasks.php" class="menu-item <?php echo ($current_page == 'tasks.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-square-check"></i> Tasks
+            </a>
+            <a href="documents.php" class="menu-item <?php echo ($current_page == 'documents.php' || $current_page == 'document_editor.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-file-lines"></i> Document Editor
+            </a>
+            <a href="messages.php" class="menu-item <?php echo ($current_page == 'messages.php' && (!isset($_GET['channel']) || $_GET['channel'] !== 'discussion')) ? 'active' : ''; ?>">
+                <i class="fa-solid fa-message"></i> Messages
+                <?php if (($unread_messages_count ?? 0) > 0): ?>
+                    <span class="notification-dot notification-dot-sidebar"></span>
+                <?php endif; ?>
+            </a>
+            <a href="file_upload.php" class="menu-item <?php echo ($current_page == 'file_upload.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-paperclip"></i> File Upload
+            </a>
+            <a href="resources.php" class="menu-item <?php echo ($current_page == 'resources.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-book"></i> Resource Hub
+            </a>
+            <a href="preprints.php" class="menu-item <?php echo ($current_page == 'preprints.php' || $current_page == 'preprint_details.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-file-pdf"></i> Preprints
+            </a>
+            <a href="reputation.php" class="menu-item <?php echo ($current_page == 'reputation.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-award"></i> Reputation
+            </a>
+            <a href="research_discussion.php" class="menu-item <?php echo ($current_page == 'research_discussion.php' || $current_page == 'discussion_thread.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-comments"></i> Research Discussion
+            </a>
+            <a href="profile.php" class="menu-item <?php echo ($current_page == 'profile.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-user"></i> My Profile
+            </a>
         <?php endif; ?>
     </nav>
 
