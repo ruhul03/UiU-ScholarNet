@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('student', 'faculty') DEFAULT 'student',
+    role ENUM('student', 'faculty', 'admin') DEFAULT 'student',
     is_verified TINYINT(1) DEFAULT 1,
     account_status ENUM('active', 'banned') DEFAULT 'active',
     department VARCHAR(100),
@@ -201,6 +201,10 @@ CREATE TABLE IF NOT EXISTS reputation_rules (
 -- ===========================
 INSERT INTO users (full_name, email, password, role, department, points)
 VALUES ('Sabbir Ahmed', 'sabbir@uiu.ac.bd', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student', 'CSE', 1245);
+
+-- Dev/testing admin account. Change or remove before production deployment.
+INSERT INTO users (full_name, email, password, role, department, is_verified, account_status, points)
+VALUES ('Admin User', 'admin', '$2y$10$l/4O6miJLHF6T0sBfkdZSOFyIdhzopaqTDglGkpWsjbAr24PXgHf6', 'admin', 'Administration', 1, 'active', 0);
 
 INSERT INTO projects (title, description, status, progress, creator_id)
 VALUES 

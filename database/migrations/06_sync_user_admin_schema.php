@@ -34,7 +34,10 @@ foreach ($columnQueries as [$table, $column, $query]) {
     }
 }
 
+$adminPasswordHash = $conn->real_escape_string('$2y$10$l/4O6miJLHF6T0sBfkdZSOFyIdhzopaqTDglGkpWsjbAr24PXgHf6');
+
 $queries = [
+    "ALTER TABLE users MODIFY role ENUM('student','faculty','admin') DEFAULT 'student'",
     "CREATE TABLE IF NOT EXISTS departments (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100) NOT NULL UNIQUE)",
     "CREATE TABLE IF NOT EXISTS skills (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100) NOT NULL UNIQUE)",
     "CREATE TABLE IF NOT EXISTS opportunity_types (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100) NOT NULL UNIQUE)",
@@ -54,6 +57,9 @@ $queries = [
         ('preprint_published','Publish a Preprint','Earn points for sharing academic work.',100,'fa-solid fa-file-lines'),
         ('collaboration_posted','Post Collaboration','Earn points for opening a collaboration opportunity.',20,'fa-solid fa-users'),
         ('discussion_started','Start Discussion','Earn points for starting a research discussion.',2,'fa-solid fa-comments')",
+    "INSERT INTO users (full_name, email, password, role, department, is_verified, account_status, points) VALUES
+        ('Admin User','admin','{$adminPasswordHash}','admin','Administration',1,'active',0)
+        ON DUPLICATE KEY UPDATE password = VALUES(password), role = 'admin', is_verified = 1, account_status = 'active'",
     "UPDATE users SET is_verified = 1 WHERE is_verified IS NULL",
     "UPDATE users SET account_status = 'active' WHERE account_status IS NULL",
 ];
