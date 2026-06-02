@@ -1,0 +1,106 @@
+/* 
+ * collaboration.css
+ * Styles for collaboration management, opportunities, and interactions.
+ */
+
+.card-manage-collab {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.manage-collab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+}
+
+.badge-opp-type {
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+}
+
+.slots-total-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.p-1-message-col {
+    padding: 1rem;
+    opacity: 0.8;
+    font-size: 0.85rem;
+    max-width: 250px;
+}
+
+.badge-status-accepted {
+    background: #e6f4ea;
+    color: #1e8e3e;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-status-declined {
+    background: #fce8e6;
+    color: #d93025;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-status-pending {
+    background: #fef7e0;
+    color: #f29900;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.btn-action-accept {
+    background: #e6f4ea;
+    color: #1e8e3e;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    border: 1px solid #1e8e3e;
+}
+
+.btn-action-decline {
+    background: #fff;
+    color: #d93025;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    border: 1px solid #d93025;
+}
+
+.btn-action-message {
+    background: #e3f2fd;
+    color: #1967d2;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    border: 1px solid #1967d2;
+    text-decoration: none;
+}
+
+.empty-state-manage {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #666;
+}
+
+.empty-state-manage-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}

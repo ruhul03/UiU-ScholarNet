@@ -1,0 +1,202 @@
+/* 
+ * admin.css
+ * Styles for the admin dashboard panel.
+ */
+
+.admin-card-main {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    margin-bottom: 2rem;
+}
+
+.admin-card-title {
+    margin-bottom: 1.5rem;
+    font-family: var(--font-heading);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-tr-header {
+    border-bottom: 2px solid #eee;
+}
+
+.admin-th-left {
+    padding: 1rem;
+    text-align: left;
+}
+
+.admin-th-center {
+    padding: 1rem;
+    text-align: center;
+}
+
+.admin-th-right {
+    padding: 1rem;
+    text-align: right;
+}
+
+.admin-tr-body {
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.admin-td {
+    padding: 1rem;
+}
+
+.admin-td-muted {
+    padding: 1rem;
+    opacity: 0.7;
+}
+
+.admin-td-center {
+    padding: 1rem;
+    text-align: center;
+}
+
+.admin-td-right {
+    padding: 1rem;
+    text-align: right;
+}
+
+.admin-role-text {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+
+.badge-banned {
+    background: #333;
+    color: #fff;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.badge-admin {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.badge-verified {
+    background: #e6f4ea;
+    color: #1e8e3e;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.badge-pending {
+    background: #fce8e6;
+    color: #d93025;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.btn-sm-success {
+    background: #e6f4ea;
+    color: #1e8e3e;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    border: 1px solid #1e8e3e;
+}
+
+.btn-sm-danger-outline {
+    background: #fff;
+    color: #d93025;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    border: 1px solid #d93025;
+}
+
+.btn-sm-dark-outline {
+    background: #fff;
+    color: #333;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    border: 1px solid #333;
+}
+
+.btn-sm-danger {
+    background: #d93025;
+    color: #fff;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    border: none;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.admin-card-sub {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.admin-card-sub-title {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.admin-form-flex {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.admin-input-sm {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-p-sm {
+    padding: 0.5rem 1rem;
+}
+
+.admin-list-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 0.5rem;
+}
+
+.admin-list-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem;
+    border-bottom: 1px solid #f9f9f9;
+}
+
+.admin-list-text {
+    font-size: 0.85rem;
+}
+
+.btn-remove-sm {
+    background: none;
+    border: none;
+    color: #d93025;
+    cursor: pointer;
+}

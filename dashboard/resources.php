@@ -5,11 +5,11 @@ $filter = $_GET['filter'] ?? 'all';
 $whereSql = '';
 
 if ($filter === 'thesis') {
-    $whereSql = "WHERE r.category = 'Paper'";
+    $whereSql = "WHERE r.category IN ('Thesis', 'Research Paper')";
 } elseif ($filter === 'lecture') {
-    $whereSql = "WHERE r.category = 'Report' OR r.category = 'General'";
+    $whereSql = "WHERE r.category IN ('Lecture Notes', 'Presentation')";
 } elseif ($filter === 'dataset') {
-    $whereSql = "WHERE r.resource_type IN ('Dataset', 'CSV')";
+    $whereSql = "WHERE r.category = 'Dataset' OR r.resource_type IN ('Dataset', 'CSV')";
 }
 
 // Fetch Resources
@@ -18,20 +18,11 @@ $sql = "SELECT r.*, u.full_name
         JOIN users u ON r.user_id = u.id 
         $whereSql
         ORDER BY r.created_at DESC";
-$stmt = $conn->prepare($sql);
-$stmt->execute();
-$result = $stmt->get_result();
+$result = db_query($sql, [], "");
 
 // Fetch notification counts
-$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
-$ptStmt->bind_param("i", $user_id);
-$ptStmt->execute();
-$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
-
-$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
-$crStmt->bind_param("i", $user_id);
-$crStmt->execute();
-$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
+$collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -54,36 +45,17 @@ $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header dash-header-resources">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search resources...">
-            </div>
-            <div class="header-actions">
-                <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
-                    <?php endif; ?>
-                </a>
-                <a href="profile.php" style="color: inherit; text-decoration: none; margin-right: 15px;">
-                    <i class="fa-regular fa-user header-icon"></i>
-                </a>
-                <a href="file_upload.php" class="btn btn-primary btn-upload-resource" style="text-decoration: none;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resource
-                </a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="resources-section">
             <h1 class="resources-title">Resource Hub</h1>
             <p class="resources-desc">Access shared thesis papers, datasets, lecture notes, and research materials from across the university.</p>
 
             <div class="resource-filters">
-                <a href="?filter=all" class="btn btn-outline <?php echo ($filter === 'all') ? 'filter-active' : ''; ?>" style="text-decoration: none;">All Materials</a>
-                <a href="?filter=thesis" class="btn btn-outline <?php echo ($filter === 'thesis') ? 'filter-active' : ''; ?>" style="text-decoration: none;">Thesis Papers</a>
-                <a href="?filter=lecture" class="btn btn-outline <?php echo ($filter === 'lecture') ? 'filter-active' : ''; ?>" style="text-decoration: none;">Lecture Notes</a>
-                <a href="?filter=dataset" class="btn btn-outline <?php echo ($filter === 'dataset') ? 'filter-active' : ''; ?>" style="text-decoration: none;">Research Datasets</a>
+                <a href="?filter=all" class="btn btn-outline text-deco-none <?php echo ($filter === 'all') ? 'filter-active' : ''; ?>">All Materials</a>
+                <a href="?filter=thesis" class="btn btn-outline text-deco-none <?php echo ($filter === 'thesis') ? 'filter-active' : ''; ?>">Thesis Papers</a>
+                <a href="?filter=lecture" class="btn btn-outline text-deco-none <?php echo ($filter === 'lecture') ? 'filter-active' : ''; ?>">Lecture Notes</a>
+                <a href="?filter=dataset" class="btn btn-outline text-deco-none <?php echo ($filter === 'dataset') ? 'filter-active' : ''; ?>">Research Datasets</a>
             </div>
         </section>
 
@@ -113,7 +85,7 @@ $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
                             • <span><?php echo $row['file_size']; ?></span>
                         <?php endif; ?>
                     </div>
-                    <a href="<?php echo $row['file_path'] ? ('../' . htmlspecialchars($row['file_path'])) : '#'; ?>" class="btn btn-outline" style="width: 100%; justify-content: center; font-size: 0.8rem;">
+                    <a href="<?php echo $row['file_path'] ? ('../' . htmlspecialchars($row['file_path'])) : '#'; ?>" class="btn btn-outline btn-full-sm">
                         <i class="fa-solid fa-download"></i> Download
                     </a>
                 </div>

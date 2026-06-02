@@ -2,45 +2,64 @@
 require_once('../includes/auth_check.php');
 require_once('../includes/csrf.php');
 
-// Fetch notification counts
-$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
-$ptStmt->bind_param("i", $user_id);
-$ptStmt->execute();
-$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
+// Fetch verified faculty to populate the supervisor dropdown for student projects
+$faculty_res = db_query("SELECT id, full_name, department FROM users WHERE role = 'faculty' AND is_verified = 1 ORDER BY full_name ASC");
+$faculty_list = [];
+while ($f = $faculty_res->fetch_assoc()) {
+    $faculty_list[] = $f;
+}
 
-$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
-$crStmt->bind_param("i", $user_id);
-$crStmt->execute();
-$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
+// Fetch counts for notification badges
+$pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
+$collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
 
-// Insights queries
-$activeProjStmt = $conn->prepare("SELECT COUNT(*) as total FROM projects WHERE creator_id = ? AND status = 'active'");
-$activeProjStmt->bind_param("i", $user_id);
-$activeProjStmt->execute();
-$active_projects = (int)($activeProjStmt->get_result()->fetch_assoc()['total'] ?? 0);
+// Fetch stats for the dashboard insight section
+$active_projects = (int)(db_query("
+    SELECT COUNT(DISTINCT p.id) as total 
+    FROM projects p 
+    LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? 
+    WHERE (p.creator_id = ? OR pm.user_id = ?) AND p.status = 'active'
+", [$user_id, $user_id, $user_id], "iii")->fetch_assoc()['total'] ?? 0);
 
-$collabStmt = $conn->prepare("
-    SELECT COUNT(DISTINCT t.assigned_to) as total 
-    FROM tasks t 
-    JOIN projects p ON t.project_id = p.id 
-    WHERE p.creator_id = ? AND t.assigned_to != ? AND t.assigned_to IS NOT NULL
-");
-$collabStmt->bind_param("ii", $user_id, $user_id);
-$collabStmt->execute();
-$peer_collaborators = (int)($collabStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$peer_collaborators = (int)(db_query("
+    SELECT COUNT(DISTINCT m.user_id) as total 
+    FROM project_members m 
+    JOIN project_members me ON m.project_id = me.project_id 
+    WHERE me.user_id = ? AND m.user_id != ?
+", [$user_id, $user_id], "ii")->fetch_assoc()['total'] ?? 0);
 
-// Fetch Projects
-$stmt = $conn->prepare("
+// Fetch Project Invitations where the user has been invited to join a team
+$pending_invites = db_query("
+    SELECT p.*, pm.role 
+    FROM projects p 
+    JOIN project_members pm ON pm.project_id = p.id 
+    WHERE pm.user_id = ? AND pm.status = 'pending'
+    ORDER BY p.created_at DESC
+", [$user_id], "i");
+
+// Fetch Pending Supervision Requests if the user is a faculty member
+$pending_supervisions = null;
+if (isset($user_data['role']) && $user_data['role'] === 'faculty') {
+    $pending_supervisions = db_query("
+        SELECT p.*, u.full_name as creator_name
+        FROM projects p
+        JOIN users u ON p.creator_id = u.id
+        WHERE p.supervisor_id = ? AND p.supervisor_approved = 0
+        ORDER BY p.created_at DESC
+    ", [$user_id], "i");
+}
+
+// Fetch all active projects where the user is either the creator or an active team member
+$result = db_query("
     SELECT p.*, 
-           (SELECT COUNT(DISTINCT assigned_to) FROM tasks WHERE project_id = p.id AND assigned_to IS NOT NULL) as contributors_count,
+           (SELECT COUNT(DISTINCT user_id) FROM project_members WHERE project_id = p.id AND status = 'active') as contributors_count,
+           (SELECT GROUP_CONCAT(u.full_name SEPARATOR ', ') FROM project_members pm2 JOIN users u ON pm2.user_id = u.id WHERE pm2.project_id = p.id AND pm2.status = 'active') as contributor_names,
            (SELECT COUNT(*) FROM collaboration_posts WHERE project_id = p.id AND status = 'open') as active_collabs
     FROM projects p 
-    WHERE p.creator_id = ? 
+    LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
+    WHERE p.creator_id = ? OR (pm.user_id = ? AND pm.status = 'active')
     ORDER BY p.created_at DESC
-");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
+", [$user_id, $user_id, $user_id], "iii");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -56,6 +75,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/lifecycle.css">
 </head>
 <body class="dashboard-page">
 
@@ -63,23 +83,7 @@ $result = $stmt->get_result();
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header dash-header-lg">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search repository, projects, or collaborators...">
-            </div>
-            <div class="header-actions">
-                <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
-                    <?php endif; ?>
-                </a>
-                <a href="profile.php" class="user-info" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-regular fa-user header-icon"></i>
-                </a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="projects-section">
             <div class="projects-header">
@@ -94,6 +98,46 @@ $result = $stmt->get_result();
 
             <?php include('../includes/alerts.php'); ?>
 
+            <?php if ($pending_invites && $pending_invites->num_rows > 0): ?>
+            <div class="pending-section">
+                <h3 class="pending-section-title">Pending Project Invitations</h3>
+                <div class="pending-list">
+                    <?php while($inv = $pending_invites->fetch_assoc()): ?>
+                    <div class="pending-card">
+                        <div>
+                            <h4 class="pending-card-title"><?php echo htmlspecialchars($inv['title']); ?></h4>
+                            <p class="pending-card-subtitle"><i class="fa-solid fa-building margin-right-sm"></i> <?php echo htmlspecialchars($inv['department']); ?></p>
+                        </div>
+                        <div class="pending-actions">
+                            <a href="../actions/respond_invitation.php?project_id=<?php echo $inv['id']; ?>&action=accept" class="btn btn-accept"><i class="fa-solid fa-check"></i> Accept</a>
+                            <a href="../actions/respond_invitation.php?project_id=<?php echo $inv['id']; ?>&action=decline" class="btn btn-decline"><i class="fa-solid fa-xmark"></i> Decline</a>
+                        </div>
+                    </div>
+                    <?php endwhile; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($pending_supervisions && $pending_supervisions->num_rows > 0): ?>
+            <div class="pending-section">
+                <h3 class="pending-section-title">Pending Supervision Requests</h3>
+                <div class="pending-list">
+                    <?php while($sup = $pending_supervisions->fetch_assoc()): ?>
+                    <div class="pending-card">
+                        <div>
+                            <h4 class="pending-card-title"><?php echo htmlspecialchars($sup['title']); ?></h4>
+                            <p class="pending-card-subtitle"><i class="fa-solid fa-user margin-right-sm"></i> Created by: <?php echo htmlspecialchars($sup['creator_name']); ?> &middot; <?php echo htmlspecialchars($sup['department']); ?></p>
+                        </div>
+                        <div class="pending-actions">
+                            <a href="../actions/respond_supervision.php?project_id=<?php echo $sup['id']; ?>&action=accept" class="btn btn-accept"><i class="fa-solid fa-check"></i> Approve</a>
+                            <a href="../actions/respond_supervision.php?project_id=<?php echo $sup['id']; ?>&action=decline" class="btn btn-decline"><i class="fa-solid fa-xmark"></i> Reject</a>
+                        </div>
+                    </div>
+                    <?php endwhile; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <div class="project-horizontal-list">
                 <?php while($row = $result->fetch_assoc()): ?>
                 <!-- Dynamic Horizontal Card -->
@@ -106,9 +150,33 @@ $result = $stmt->get_result();
                         <div class="project-stats-row">
                             <span class="status-chip status-<?php echo $row['status']; ?>"><?php echo strtoupper($row['status']); ?></span>
                             <?php if ($row['active_collabs'] > 0): ?>
-                                <span class="status-chip" style="background: #e3f2fd; color: #1565c0;"><i class="fa-solid fa-users-viewfinder"></i> COLLAB ACTIVE</span>
+                                <span class="status-chip status-chip-blue"><i class="fa-solid fa-users-viewfinder"></i> COLLAB ACTIVE</span>
                             <?php endif; ?>
                             <span class="contributors-count"><i class="fa-solid fa-user-group"></i> <?php echo (int)$row['contributors_count']; ?> Contributors</span>
+                        </div>
+                        <div class="project-team-info">
+                            <strong>Team:</strong> <?php echo htmlspecialchars($row['contributor_names'] ?? 'Just you'); ?>
+                        </div>
+                        
+                        <!-- Lifecycle Stepper -->
+                        <?php
+                            $p_stages = ['planning', 'active', 'review', 'completed'];
+                            $p_idx = array_search($row['status'], $p_stages);
+                        ?>
+                        <div class="project-stepper">
+                            <?php foreach ($p_stages as $i => $st): 
+                                $s_cls = '';
+                                $s_icon = 'fa-circle';
+                                if ($i < $p_idx) { $s_cls = 'completed'; $s_icon = 'fa-circle-check'; }
+                                elseif ($i === $p_idx) { $s_cls = 'active'; $s_icon = 'fa-circle-dot'; }
+                            ?>
+                            <div class="step <?php echo $s_cls; ?>">
+                                <i class="fa-solid <?php echo $s_icon; ?>"></i> <?php echo ucfirst($st); ?>
+                            </div>
+                            <?php if ($i < count($p_stages)-1): ?>
+                                <span class="stepper-separator">—</span>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                     <div class="project-progress-block">
@@ -120,8 +188,7 @@ $result = $stmt->get_result();
                             <div class="progress-fill progress-fill-dynamic" style="width: <?php echo $row['progress']; ?>%;"></div>
                         </div>
                     </div>
-                    <div class="project-actions" style="position: relative; display: flex; align-items: center; gap: 1rem;">
-                        <a href="preprints.php" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;"><i class="fa-solid fa-file-pdf"></i> Publish as Preprint</a>
+                    <div class="project-actions project-actions-container">
                         <div class="options-wrapper">
                             <div class="options-icon" onclick="toggleProjectOptions(event, <?php echo $row['id']; ?>)">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -131,11 +198,11 @@ $result = $stmt->get_result();
                                 
                                 <div class="dropdown-divider"></div>
                                 
-                                <form action="../actions/delete_project.php" method="POST" id="delete-form-<?php echo $row['id']; ?>" style="display:none;">
+                                <form action="../actions/delete_project.php" method="POST" id="delete-form-<?php echo $row['id']; ?>" class="hidden">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                     <input type="hidden" name="project_id" value="<?php echo $row['id']; ?>">
                                 </form>
-                                <a href="javascript:void(0)" class="delete-option delete-trigger" style="color: #ff4d4d;" data-id="<?php echo $row['id']; ?>">
+                                <a href="javascript:void(0)" class="delete-option delete-trigger text-danger" data-id="<?php echo $row['id']; ?>">
                                     <i class="fa-regular fa-trash-can"></i> Remove Project
                                 </a>
                             </div>
@@ -155,32 +222,6 @@ $result = $stmt->get_result();
             </div>
         </section>
 
-        <!-- Insights Section -->
-        <section class="insights-grid">
-            <div>
-                <h2 class="insights-title">Project Insights</h2>
-                <div class="insights-list">
-                    <div class="insights-item">
-                        <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-gold"></i> Research Domains</span>
-                        <span class="insights-value"><?php echo $active_projects; ?> Active</span>
-                    </div>
-                    <div class="insights-item">
-                        <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-blue"></i> Peer Collaborators</span>
-                        <span class="insights-value"><?php echo $peer_collaborators; ?> Scientists</span>
-                    </div>
-                    <div class="insights-item">
-                        <span class="insights-label"><i class="fa-solid fa-circle stat-dot stat-dot-brown"></i> Platform Updates</span>
-                        <span class="insights-value">Syncing</span>
-                    </div>
-                </div>
-            </div>
-            <div class="collab-heat-card">
-                <div class="collab-heat-pattern"></div>
-                <div class="collab-heat-label">COLLABORATION HEAT</div>
-                <h3 class="collab-heat-title">High Intensity</h3>
-                <p class="collab-heat-desc">Peak interaction at 14:00 GMT</p>
-            </div>
-        </section>
     </main>
 
     <!-- Create Project Modal (High-Fidelity) -->
@@ -236,14 +277,34 @@ $result = $stmt->get_result();
                     <textarea name="description" rows="4" class="textarea-light" placeholder="Briefly outline the scope and research objectives..."></textarea>
                 </div>
 
+                <?php if ($user_data['role'] === 'student'): ?>
+                <div class="form-group">
+                    <label>FACULTY SUPERVISOR</label>
+                    <select name="supervisor_id" class="form-input-light" required>
+                        <option value="">Select a Verified Faculty</option>
+                        <?php foreach ($faculty_list as $fac): ?>
+                            <option value="<?php echo $fac['id']; ?>"><?php echo htmlspecialchars($fac['full_name']); ?> (<?php echo htmlspecialchars($fac['department']); ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
+
                 <div class="invite-researchers">
                     <label class="invite-label">INVITE RESEARCHERS</label>
-                    <div class="researcher-tags" id="invitedResearchersProject">
-                        <!-- Dynamic tags will appear here -->
-                    </div>
-                    <div class="search-container search-container-wide">
-                        <i class="fa-solid fa-user-plus" style="opacity: 0.3;"></i>
-                        <input type="text" placeholder="Search by name or ORCID...">
+                    <div class="custom-multi-select">
+                        <input type="text" id="researcherSearch" placeholder="Search by name..." class="form-input-light custom-multi-select-input" onkeyup="filterResearchers()">
+                        <div class="researcher-list" id="researcherList">
+                            <?php 
+                            // Fetch users to invite to the new project
+                            $users_res = db_query("SELECT id, full_name, role FROM users WHERE id != ? ORDER BY full_name ASC", [$user_id], "i");
+                            while($u = $users_res->fetch_assoc()):
+                            ?>
+                                <label class="researcher-item">
+                                    <input type="checkbox" name="invited_users[]" value="<?php echo $u['id']; ?>">
+                                    <span class="researcher-name"><?php echo htmlspecialchars($u['full_name']); ?></span> <small class="researcher-role">(<?php echo ucfirst($u['role']); ?>)</small>
+                                </label>
+                            <?php endwhile; ?>
+                        </div>
                     </div>
                 </div>
 
@@ -256,5 +317,22 @@ $result = $stmt->get_result();
     </div>
 
     <script src="../assets/js/projects.js"></script>
+    <script>
+    function filterResearchers() {
+        var input = document.getElementById('researcherSearch');
+        var filter = input.value.toUpperCase();
+        var list = document.getElementById('researcherList');
+        var items = list.getElementsByClassName('researcher-item');
+        for (var i = 0; i < items.length; i++) {
+            var label = items[i].getElementsByClassName('researcher-name')[0];
+            var txtValue = label.textContent || label.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                items[i].style.display = "block";
+            } else {
+                items[i].style.display = "none";
+            }
+        }
+    }
+    </script>
 </body>
 </html>

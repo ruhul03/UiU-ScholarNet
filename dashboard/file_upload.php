@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['research_file'])) {
     $db_path = 'uploads/' . $file_name;
     $file_size_bytes = $file['size'];
 
-    // Human readable size
+
     if ($file_size_bytes >= 1073741824) {
         $file_size = round($file_size_bytes / 1073741824, 1) . ' GB';
     } elseif ($file_size_bytes >= 1048576) {
@@ -59,22 +59,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['research_file'])) {
 }
 
 // Fetch uploaded files
-$files_stmt = $conn->prepare("SELECT * FROM resources WHERE user_id = ? ORDER BY created_at DESC");
-$files_stmt->bind_param("i", $user_id);
-$files_stmt->execute();
-$files_result = $files_stmt->get_result();
+$files_result = db_query("SELECT * FROM resources WHERE user_id = ? ORDER BY created_at DESC", [$user_id], "i");
 
 // Fetch notification counts
-$ptStmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'");
-$ptStmt->bind_param("i", $user_id);
-$ptStmt->execute();
-$pending_tasks = (int)($ptStmt->get_result()->fetch_assoc()['total'] ?? 0);
-
-$crStmt = $conn->prepare("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'");
-$crStmt->bind_param("i", $user_id);
-$crStmt->execute();
-$collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
+$pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status != 'done'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
+$collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'", [$user_id], "i")->fetch_assoc()['total'] ?? 0);
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,23 +88,7 @@ $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="dash-header dash-header-upload">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" placeholder="Search archive...">
-            </div>
-            <div class="header-actions">
-                <a href="#" class="notification-icon" style="color: inherit; text-decoration: none; position: relative; margin-right: 15px;">
-                    <i class="fa-regular fa-bell header-icon"></i>
-                    <?php if ($collab_requests > 0 || $pending_tasks > 0): ?>
-                        <span class="notification-dot" style="top: 0px; right: 2px;"></span>
-                    <?php endif; ?>
-                </a>
-                <a href="profile.php" style="color: inherit; text-decoration: none;">
-                    <i class="fa-regular fa-user header-icon"></i>
-                </a>
-            </div>
-        </header>
+        <?php include('../includes/header.php'); ?>
 
         <section class="upload-section">
             <h1 class="filemanager-title">File Manager</h1>
@@ -138,12 +114,12 @@ $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
                 </div>
                 <div id="filePreview" class="file-preview">
                     <div class="file-preview-row">
-                        <div style="flex: 1;">
+                        <div class="flex-1">
                             <div class="file-info" id="previewName"></div>
                             <div class="file-size" id="previewSize"></div>
                         </div>
-                        <div class="category-select-wrapper" style="margin-right: 1.5rem;">
-                            <select name="category" class="filter-select" style="margin-bottom: 0; background: #fff; border: 1px solid #ddd; padding: 0.5rem 1rem;">
+                        <div class="category-select-wrapper mr-1-5">
+                            <select name="category" class="filter-select filter-select-inline">
                                 <option value="General">Select Category</option>
                                 <option value="Research Paper">Research Paper</option>
                                 <option value="Thesis">Thesis</option>
@@ -203,14 +179,14 @@ $collab_requests = (int)($crStmt->get_result()->fetch_assoc()['total'] ?? 0);
                     <p class="file-card-meta"><?php echo $file['file_size']; ?> • Modified <?php echo date('M d', strtotime($file['created_at'])); ?></p>
                     <div class="file-card-footer">
                         <span class="file-tag"><?php echo strtoupper($file['category']); ?></span>
-                        <div style="display: flex; gap: 0.8rem; align-items: center;">
-                            <a href="../<?php echo htmlspecialchars($file['file_path']); ?>" style="font-size: 0.75rem; font-weight: 700; color: var(--secondary-color);">
+                        <div class="flex-gap-0-8-center">
+                            <a href="../<?php echo htmlspecialchars($file['file_path']); ?>" class="download-link-sm">
                                 <i class="fa-solid fa-download"></i> Download
                             </a>
-                            <form action="../actions/delete_resource.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this resource? This action cannot be undone.');" style="display: inline;">
+                            <form action="../actions/delete_resource.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this resource? This action cannot be undone.');" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="resource_id" value="<?php echo $file['id']; ?>">
-                                <button type="submit" style="background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 0.85rem; padding: 0;" title="Delete Resource">
+                                <button type="submit" class="btn-delete-icon" title="Delete Resource">
                                     <i class="fa-regular fa-trash-can"></i>
                                 </button>
                             </form>

@@ -1,0 +1,197 @@
+/* 
+ * modals.css
+ * Styles for modals, overlays, and popups.
+ */
+
+/* Modals */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--white);
+    padding: 3rem;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 600px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+/* Modal Refinements - Premium Entry */
+.visibility-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.visibility-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.visibility-item input[type="radio"] {
+    accent-color: var(--secondary-color);
+    width: 15px;
+    height: 15px;
+}
+
+.invite-researchers {
+    margin-top: 1.5rem;
+}
+
+.researcher-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.researcher-tag {
+    background: #f5f5f5;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.researcher-tag i {
+    cursor: pointer;
+    opacity: 0.3;
+}
+
+.modal-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+/* Popup styles (Notifications) */
+.popup-container {
+    display: none;
+    position: fixed;
+    right: 30px;
+    top: 80px;
+    width: 320px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    z-index: 9999;
+    padding: 15px;
+    border: 1px solid #eee;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.popup-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.popup-link {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.popup-body {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.popup-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.popup-item.unread {
+    background: #f8f7f2;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.popup-item.read {
+    opacity: 0.6;
+}
+
+.popup-item-title {
+    font-size: 0.85rem;
+    color: #0a1128;
+    font-weight: 600;
+}
+
+.popup-item-desc {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.popup-item-meta {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.popup-item-time {
+    font-size: 0.7rem;
+    color: #999;
+}
+
+.popup-item-action {
+    font-size: 0.75rem;
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.popup-empty {
+    font-size: 0.85rem;
+    color: #666;
+    text-align: center;
+    padding: 30px 0;
+}
+
+.popup-empty-icon {
+    font-size: 2rem;
+    opacity: 0.5;
+    margin-bottom: 10px;
+    display: block;
+}

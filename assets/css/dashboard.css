@@ -18,7 +18,7 @@
 /* Stats Cards */
 .dash-stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1.5rem;
     margin-bottom: 3rem;
 }
@@ -30,7 +30,13 @@
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon {
@@ -65,7 +71,8 @@
     gap: 3rem;
 }
 
-.activity-feed h3, .quick-actions h3 {
+.activity-feed h3,
+.quick-actions h3 {
     margin-bottom: 1.5rem;
     display: flex;
     justify-content: space-between;
@@ -128,7 +135,7 @@
     align-items: center;
     font-weight: 600;
     font-size: 0.9rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
 }
 
 /* Project Spotlight */
@@ -299,7 +306,7 @@
 }
 
 .spotlight-progress-bar {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     height: 4px;
 }
 

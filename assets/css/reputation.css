@@ -1,0 +1,218 @@
+/* reputation.css - Premium Scholar Leaderboard Styles */
+.reputation-container {
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.reputation-headline {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.reputation-headline h1 {
+    font-size: 3rem;
+    color: var(--primary-color);
+}
+
+.reputation-headline p {
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* Podium styling */
+.podium-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 2rem;
+    align-items: flex-end;
+    margin-bottom: 5rem;
+}
+
+.podium-card {
+    background: var(--white);
+    border: 1px solid rgba(10, 17, 40, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.podium-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+}
+
+.podium-1st {
+    border: 2px solid var(--secondary-color);
+    background: linear-gradient(180deg, var(--white) 0%, rgba(197, 160, 34, 0.05) 100%);
+    transform: scale(1.05);
+}
+
+.podium-1st:hover {
+    transform: scale(1.05) translateY(-5px);
+}
+
+.podium-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+    border: 3px solid #eee;
+    object-fit: cover;
+}
+
+.podium-1st .podium-avatar {
+    width: 90px;
+    height: 90px;
+    border-color: var(--secondary-color);
+}
+
+.medal-badge {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.podium-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.2rem;
+}
+
+.podium-role {
+    font-size: 0.75rem;
+    font-weight: 800;
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+}
+
+.podium-points {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+
+.podium-points-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.5;
+}
+
+/* Leaderboard table */
+.leaderboard-section {
+    background: var(--white);
+    border: 1px solid rgba(10, 17, 40, 0.1);
+    border-radius: 8px;
+    padding: 2.5rem;
+    margin-bottom: 4rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+.leaderboard-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table th {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 2px solid #eee;
+    font-size: 0.8rem;
+    font-weight: 800;
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.leaderboard-table td {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+}
+
+.leaderboard-table tr:last-child td {
+    border-bottom: none;
+}
+
+.rank-number {
+    font-weight: 700;
+    color: var(--primary-color);
+    opacity: 0.6;
+}
+
+.user-name-col {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.table-role-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.table-points-col {
+    font-weight: 800;
+    color: var(--primary-color);
+    text-align: right;
+}
+
+/* Rules card */
+.earning-guide {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.guide-card {
+    background: var(--white);
+    border: 1px solid rgba(10, 17, 40, 0.1);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+.guide-card i {
+    font-size: 2rem;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.guide-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.guide-card p {
+    font-size: 0.85rem;
+    opacity: 0.6;
+}
+
+.guide-points {
+    font-weight: 800;
+    color: var(--secondary-color);
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    display: block;
+}

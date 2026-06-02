@@ -49,8 +49,24 @@ CREATE TABLE IF NOT EXISTS projects (
     status ENUM('planning', 'active', 'review', 'completed') DEFAULT 'active',
     progress INT DEFAULT 0,
     creator_id INT,
+    supervisor_id INT,
+    supervisor_approved TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (supervisor_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 2.1 Project Members
+CREATE TABLE IF NOT EXISTS project_members (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role ENUM('owner', 'editor', 'viewer') DEFAULT 'viewer',
+    status ENUM('pending', 'active') DEFAULT 'active',
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_project_user (project_id, user_id),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 3. Tasks Table (KanBan)
@@ -137,6 +153,18 @@ CREATE TABLE IF NOT EXISTS documents (
     FOREIGN KEY (last_edited_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- 7.1 Document Versions
+CREATE TABLE IF NOT EXISTS document_versions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    document_id INT NOT NULL,
+    version_name VARCHAR(100),
+    content LONGTEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- ===========================
 -- Seed Data (password is hashed version of 'password')
 -- Generated via: password_hash('password', PASSWORD_DEFAULT)
@@ -206,4 +234,29 @@ CREATE TABLE IF NOT EXISTS reports (
     status ENUM('pending', 'reviewed', 'resolved') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (reported_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+-- 11. Discussion Threads Table
+CREATE TABLE IF NOT EXISTS discussion_threads (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(50) DEFAULT 'General',
+    content TEXT NOT NULL,
+    views INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 12. Discussion Replies Table
+CREATE TABLE IF NOT EXISTS discussion_replies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    thread_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (thread_id) REFERENCES discussion_threads(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

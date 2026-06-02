@@ -16,7 +16,7 @@ $stmt->execute();
 $user_result = $stmt->get_result();
 $user_data = $user_result->fetch_assoc();
 
-if (!$user_data) {
+if (!$user_data || (isset($user_data['account_status']) && $user_data['account_status'] === 'banned')) {
     session_destroy();
     header("Location: ../auth/login.php");
     exit();
