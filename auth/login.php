@@ -88,8 +88,8 @@ require_once('../includes/csrf.php');
                     <!-- CSRF Token to protect against Cross-Site Request Forgery -->
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="form-group">
-                        <label>University Email</label>
-                        <input type="email" name="email" placeholder="you@university.edu" required>
+                        <label>Email or Admin Username</label>
+                        <input type="text" name="email" placeholder="you@university.edu or admin" required>
                     </div>
                     <div class="form-group">
                         <div class="form-label-row">
