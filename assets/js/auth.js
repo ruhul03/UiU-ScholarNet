@@ -1,6 +1,27 @@
 /* auth.js - Authentication Page Scripts */
 
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.password-field').forEach((field) => {
+        const input = field.querySelector('input[type="password"], input[data-password-input]');
+        const toggle = field.querySelector('.password-toggle');
+        const icon = toggle ? toggle.querySelector('i') : null;
+
+        if (!input || !toggle || !icon) {
+            return;
+        }
+
+        input.setAttribute('data-password-input', 'true');
+
+        toggle.addEventListener('click', () => {
+            const shouldShow = input.type === 'password';
+            input.type = shouldShow ? 'text' : 'password';
+            toggle.setAttribute('aria-label', shouldShow ? 'Hide password' : 'Show password');
+            toggle.setAttribute('title', shouldShow ? 'Hide password' : 'Show password');
+            icon.classList.toggle('fa-eye', !shouldShow);
+            icon.classList.toggle('fa-eye-slash', shouldShow);
+        });
+    });
+
     // Student/Faculty toggle functionality
     const studentToggle = document.getElementById('studentToggle');
     const facultyToggle = document.getElementById('facultyToggle');

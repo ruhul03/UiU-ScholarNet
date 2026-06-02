@@ -19,7 +19,7 @@ require_once('../includes/csrf.php');
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=20260602">
 </head>
 <body>
 
@@ -96,7 +96,12 @@ require_once('../includes/csrf.php');
                             <label>Password</label>
                             <a href="forgot_password.php" class="forgot-link">FORGOT PASSWORD?</a>
                         </div>
-                        <input type="password" name="password" placeholder="********" required>
+                        <div class="password-field">
+                            <input type="password" name="password" placeholder="********" required>
+                            <button type="button" class="password-toggle" aria-label="Show password" title="Show password">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="remember-me-container">
@@ -119,6 +124,6 @@ require_once('../includes/csrf.php');
         </div>
     </div>
 
-    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/auth.js?v=20260602"></script>
 </body>
 </html>

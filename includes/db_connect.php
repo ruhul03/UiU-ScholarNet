@@ -58,7 +58,7 @@ mysqli_set_charset($conn, "utf8mb4");
  * @param string $sql The SQL query with ? placeholders
  * @param array $params The values to bind to the placeholders
  * @param string $types The parameter types (e.g., 'i' for integer, 's' for string)
- * @return mysqli_result The result set from the query
+ * @return mysqli_result|bool The result set for SELECT queries, true for write queries
  */
 function db_query($sql, $params = [], $types = "") {
     global $conn;
@@ -90,6 +90,11 @@ function db_query($sql, $params = [], $types = "") {
         die("Query execution failed: " . $stmt->error);
     }
     
-    return $stmt->get_result();
+    $result = $stmt->get_result();
+    if ($result === false && $stmt->field_count === 0) {
+        return true;
+    }
+
+    return $result;
 }
 ?>
