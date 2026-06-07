@@ -25,8 +25,8 @@
 
 /* Podium styling */
 .podium-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr 1fr;
+    display: flex;
+    justify-content: center;
     gap: 2rem;
     align-items: flex-end;
     margin-bottom: 5rem;
@@ -43,6 +43,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex: 1;
+    max-width: 300px;
 }
 
 .podium-card:hover {

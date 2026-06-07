@@ -64,8 +64,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 7. Handle success or failure
     if ($taskInsertResult) {
-        // Automatically update project progress when a new task is added
-        update_project_progress($conn, $project_id);
         header("Location: ../dashboard/tasks.php?project_id=$project_id&success=1");
         exit();
     } else {

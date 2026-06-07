@@ -92,10 +92,6 @@ db_query(
     "issi"
 );
 
-// Auto-update project progress since a document was edited
-update_project_progress($conn, $project_id);
-
 $_SESSION['success'] = "Document saved successfully.";
 header("Location: ../dashboard/document_editor.php?document_id=" . urlencode((string)$document_id));
 exit();
-

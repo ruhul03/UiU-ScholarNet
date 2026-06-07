@@ -60,11 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $updatePointsQuery = "UPDATE users SET points = points + ? WHERE id = ?";
             db_query($updatePointsQuery, [$award_points, $assignee_id], "ii");
         }
-        
-        // 5. Update project progress
-        if (isset($taskData['project_id']) && $taskData['project_id'] > 0) {
-            update_project_progress($conn, $taskData['project_id']);
-        }
     }
 }
 

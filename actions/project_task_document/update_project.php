@@ -48,18 +48,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 2. Update project details (Note: only creator can update main project details in this logic flow)
     $updateProjectQuery = "
         UPDATE projects 
-        SET title = ?, description = ?, department = ?, visibility = ?, status = ? 
+        SET title = ?, description = ?, department = ?, visibility = ?, status = ?, progress = ? 
         WHERE id = ? AND creator_id = ?
     ";
     
     $updateResult = db_query(
         $updateProjectQuery,
-        [$title, $description, $department, $visibility, $status, $project_id, $current_user_id],
-        "sssssii"
+        [$title, $description, $department, $visibility, $status, $progress, $project_id, $current_user_id],
+        "sssssiii"
     );
     
     if ($updateResult) {
-        update_project_progress($conn, $project_id);
         $_SESSION['success'] = "Project updated successfully.";
     } else {
         $_SESSION['error'] = "Database error while updating.";

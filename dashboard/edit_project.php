@@ -52,29 +52,75 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
     <link rel="stylesheet" href="../assets/css/projects.css">
     <link rel="stylesheet" href="../assets/css/lifecycle.css">
     <style>
+        .edit-hero {
+            position: relative;
+            z-index: 2;
+        }
         .edit-form-card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 40px rgba(10, 17, 40, 0.04), 0 1px 3px rgba(0,0,0,0.02);
+            border: 1px solid rgba(255, 255, 255, 0.6);
             margin-top: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .edit-form-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--secondary-color), #f1c40f);
         }
         .form-section-title {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 800;
-            letter-spacing: 1.5px;
-            color: var(--secondary-color);
-            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            color: var(--primary-color);
+            margin-bottom: 2.5rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            text-transform: uppercase;
+        }
+        .form-section-title i {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
         }
         .form-section-title::after {
             content: '';
             flex: 1;
             height: 1px;
-            background: #eee;
+            background: linear-gradient(90deg, rgba(10, 17, 40, 0.1), transparent);
+        }
+        .form-input-light {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(10, 17, 40, 0.08);
+            border-radius: 8px;
+            padding: 1rem 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+        }
+        .form-input-light:focus {
+            background: #fff;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(197, 160, 34, 0.1);
+            transform: translateY(-1px);
+        }
+        .ecosystem-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .ecosystem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
         }
     </style>
 </head>
