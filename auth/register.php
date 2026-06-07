@@ -50,21 +50,17 @@ require_once('../includes/csrf.php');
                 <h1>Scholar Registration</h1>
                 <p>Please provide your institutional credentials to begin.</p>
 
-                <!-- Display any error messages stored in the session -->
                 <?php if (isset($_SESSION['error'])): ?>
                     <div class="alert-error">
                         <i class="fa-solid fa-circle-exclamation"></i> 
                         <?php 
                             echo $_SESSION['error']; 
-                            // Remove the error message from the session so it doesn't show again
                             unset($_SESSION['error']); 
                         ?>
                     </div>
                 <?php endif; ?>
 
-                <!-- Registration form -->
-                <form action="../actions/register.php" method="POST">
-                    <!-- CSRF Token to protect against Cross-Site Request Forgery -->
+                <form action="../actions/auth_user/register.php" method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="form-row">
                         <div class="form-group">

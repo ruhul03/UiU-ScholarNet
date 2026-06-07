@@ -20,7 +20,9 @@ function setPriority(level, btn) {
         priorityInput.value = level;
     }
     const btns = document.querySelectorAll('.priority-btn');
-    btns.forEach(b => b.classList.remove('active'));
+    btns.forEach(function(b) {
+        b.classList.remove('active');
+    });
     btn.classList.add('active');
 }
 

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     const editBtn = document.getElementById('openProfileEdit');
     const modal = document.getElementById('profileEditModal');
     const closeBtn = document.getElementById('closeProfileEdit');
@@ -8,11 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const closeModal = () => {
+    function closeModal() {
         modal.classList.add('modal-hidden');
-    };
+    }
 
-    editBtn.addEventListener('click', () => {
+    editBtn.addEventListener('click', function() {
         modal.classList.remove('modal-hidden');
     });
 
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelBtn.addEventListener('click', closeModal);
     }
 
-    modal.addEventListener('click', (event) => {
+    modal.addEventListener('click', function(event) {
         if (event.target === modal) {
             closeModal();
         }

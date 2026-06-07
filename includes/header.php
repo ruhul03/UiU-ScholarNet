@@ -1,7 +1,5 @@
 <?php
-// includes/header.php
 
-// Ensure pending tasks / collab requests are available for the notification dot
 if (!isset($pending_tasks) || !isset($collab_requests)) {
     $user_id = $_SESSION['user_id'] ?? 0;
     if ($user_id > 0 && isset($conn)) {

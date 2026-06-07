@@ -98,10 +98,46 @@ erDiagram
 - Users log in via `auth/login.php` -> processes via `actions/auth_user/login.php` -> sets `$_SESSION['user_id']`.
 - CSRF protection is implemented globally via `includes/csrf.php`. Forms must include a `csrf_token` input.
 
-### 2. The "Action" Pattern
+### 2. The "Action" Pattern & Comprehensive Directory Context
 - Frontend views (`dashboard/*.php`) submit forms to PHP processing scripts inside the `actions/` directory.
 - The action scripts validate data, perform database operations via `db_query()` (located in `db_connect.php`), and redirect back to the frontend with success/error alerts.
 - **Alerts System:** Actions set `$_SESSION['success']` or `$_SESSION['error']`. These are rendered by `includes/alerts.php` in the view.
+- **Refactoring & Standardization:** Code across all directories has been simplified for readability. Nested conditionals have been flattened, obvious/redundant comments have been removed, variables are clearly named, and all SQL statements use multi-line strings for readability.
+
+#### Breakdown of the `actions/` Directory:
+- **`actions/admin_misc/`**: Contains administrative and general platform actions like reporting content.
+- **`actions/auth_user/`**: Handles authentication flows (Login, Register) and User Profile operations.
+- **`actions/collaboration_messaging/`**: Manages the collaboration board and direct messaging logic.
+- **`actions/discussion_preprints/`**: Dedicated to academic discourse and document publishing.
+- **`actions/project_task_document/`**: The core workspace engine. Handles CRUD operations for research projects, Kanban tasks, and documents.
+
+#### Breakdown of the `dashboard/` Directory:
+The `dashboard/` directory contains all the authenticated frontend views.
+- Each view typically enforces access control via `require_once('../includes/auth_check.php');` and defines its own unique layout elements using shared `includes/header.php` and `includes/sidebar.php`.
+- State-changing actions are strictly delegated to the `actions/` subdirectories.
+
+#### Breakdown of the `auth/` Directory:
+Contains the frontend views for unauthenticated users (Login, Register, Forgot Password).
+- Like `dashboard/`, these views submit data directly to the `actions/auth_user/` controllers.
+- Also includes `email_service.php` which handles raw SMTP communication for password resets.
+
+#### Breakdown of the `includes/` Directory:
+Contains the foundational logic imported by almost every view.
+- `db_connect.php`: Initializes the MySQL connection and exposes the secure `db_query()` helper.
+- `session.php`: Configures secure PHP session parameters (HTTPS, HttpOnly, SameSite).
+- `csrf.php`: Provides `csrf_token()` generation and `csrf_validate_or_die()` validation functions.
+- `auth_check.php`: Enforces authentication logic at the top of protected views.
+- `header.php`, `sidebar.php`, `layout.php`: Shared HTML UI components.
+
+#### Breakdown of the `database/` Directory:
+Contains database schema definitions and migration scripts.
+- `migrations/`: Sequential `.php` scripts used to modify the DB schema (e.g., adding tables or fields).
+- `scripts/`: Diagnostic and utility scripts for verifying DB integrity.
+
+#### Breakdown of the `assets/` Directory:
+Contains static frontend files.
+- `css/`: Modular CSS files implementing the glassmorphism design.
+- `js/`: Vanilla JS files managing DOM manipulation, modals, and AJAX operations without heavy frameworks.
 
 ### 3. Asynchronous Operations (AJAX)
 - Some features like fetching user profiles (`actions/get_user_profile.php`) and fetching direct messages (`actions/collaboration_messaging/fetch_messages.php`) bypass full page reloads using the native `fetch()` API in vanilla JavaScript.

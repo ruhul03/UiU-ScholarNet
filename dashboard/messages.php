@@ -135,7 +135,6 @@ $dm_users_res = db_query("
     LIMIT 50
 ", [$user_id, $user_id, $user_id, $user_id, $user_id], "iiiii");
 
-
 // STEP 4: PRESENTATION (HTML UI)
 
 ?>
@@ -211,7 +210,7 @@ $dm_users_res = db_query("
                     <div class="chat-actions pos-relative" id="chatActionsMenu">
                         <i class="fa-solid fa-ellipsis-vertical" onclick="document.getElementById('chatDropdown').classList.toggle('show')"></i>
                         <div class="dropdown-menu" id="chatDropdown">
-                            <form action="../actions/clear_chat.php" method="POST" onsubmit="return confirm('Clear this chat history?');">
+                            <form action="../actions/collaboration_messaging/clear_chat.php" method="POST" onsubmit="return confirm('Clear this chat history?');">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <?php if ($chat_user_id > 0): ?>
                                     <input type="hidden" name="user_id" value="<?php echo $chat_user_id; ?>">
@@ -293,7 +292,7 @@ $dm_users_res = db_query("
 
                 <?php if ($chat_user_id > 0 || $channel): ?>
                 <div class="chat-input-wrapper">
-                    <form class="chat-form" action="../actions/post_message.php" method="POST" id="chatForm" enctype="multipart/form-data">
+                    <form class="chat-form" action="../actions/collaboration_messaging/post_message.php" method="POST" id="chatForm" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                         
                         <?php if ($chat_user_id > 0): ?>

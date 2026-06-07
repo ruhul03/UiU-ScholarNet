@@ -155,7 +155,7 @@ layout_header("Research Discussion | UIU ScholarNet");
                                     <small>Views</small>
                                 </div>
                                 <?php if ($thread['user_id'] == $current_user_id): ?>
-                                    <form method="POST" action="../actions/delete_discussion_thread.php" onsubmit="return confirm('Are you sure you want to delete this topic?');" class="ml-1">
+                                    <form method="POST" action="../actions/discussion_preprints/delete_discussion_thread.php" onsubmit="return confirm('Are you sure you want to delete this topic?');" class="ml-1">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                         <input type="hidden" name="thread_id" value="<?php echo $thread['id']; ?>">
                                         <button type="submit" class="btn-thread-delete" title="Delete Topic" onclick="event.stopPropagation();">

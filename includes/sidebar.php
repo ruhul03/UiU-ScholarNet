@@ -1,4 +1,4 @@
-<!-- Sidebar Component -->
+
 <?php
 if (!isset($unread_messages_count)) {
     $um_stmt = $conn->prepare("SELECT COUNT(*) as total FROM messages WHERE receiver_id = ? AND is_read = 0");
@@ -82,7 +82,7 @@ $is_admin_sidebar = $is_admin_user && $current_page === 'admin.php';
 </aside>
 
 <?php
-// Ensure table exists for notifications
+
 $conn->query("CREATE TABLE IF NOT EXISTS notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -95,7 +95,6 @@ $conn->query("CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )");
 
-// Handle mark as read
 if (isset($_GET['mark_read'])) {
     if ($_GET['mark_read'] === 'all') {
         $mrStmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
@@ -107,13 +106,12 @@ if (isset($_GET['mark_read'])) {
         $mrStmt->bind_param("ii", $notif_id, $user_id);
         $mrStmt->execute();
     }
-    // Remove query param to prevent resubmission
+    
     $url = strtok($_SERVER["REQUEST_URI"], '?');
     header("Location: " . $url);
     exit;
 }
 
-// Fetch latest notifications for the popup
 $notifStmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
 $notifStmt->bind_param("i", $user_id);
 $notifStmt->execute();
@@ -131,7 +129,7 @@ if (!function_exists('getSidebarNotifIcon')) {
 }
 ?>
 <?php if (!isset($is_admin_sidebar) || !$is_admin_sidebar): ?>
-<!-- Notification Popup Container -->
+
 <div id="notificationPopup" class="popup-container">
     <div class="popup-header">
         <h3 class="popup-title">Notifications</h3>

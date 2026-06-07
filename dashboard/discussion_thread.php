@@ -86,7 +86,7 @@ layout_header("Topic: " . htmlspecialchars($thread['title']) . " | UIU ScholarNe
                     </div>
                 </div>
                 <?php if ($thread['user_id'] == $_SESSION['user_id']): ?>
-                    <form method="POST" action="../actions/delete_discussion_thread.php" onsubmit="return confirm('Are you sure you want to delete this topic completely?');">
+                    <form method="POST" action="../actions/discussion_preprints/delete_discussion_thread.php" onsubmit="return confirm('Are you sure you want to delete this topic completely?');">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                         <input type="hidden" name="thread_id" value="<?php echo $thread['id']; ?>">
                         <button type="submit" class="btn btn-outline btn-danger-outline">
@@ -123,7 +123,7 @@ layout_header("Topic: " . htmlspecialchars($thread['title']) . " | UIU ScholarNe
                             <?php echo nl2br(htmlspecialchars($thread['content'])); ?>
                         </div>
                         <?php if ($thread['user_id'] == $_SESSION['user_id']): ?>
-                            <form id="edit-thread" method="POST" action="../actions/edit_discussion_thread.php" style="display: none;" class="margin-top-md">
+                            <form id="edit-thread" method="POST" action="../actions/discussion_preprints/edit_discussion_thread.php" style="display: none;" class="margin-top-md">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="thread_id" value="<?php echo $thread['id']; ?>">
                                 <textarea name="content" rows="4" class="form-textarea" required><?php echo htmlspecialchars($thread['content']); ?></textarea>
@@ -152,7 +152,7 @@ layout_header("Topic: " . htmlspecialchars($thread['title']) . " | UIU ScholarNe
                                         <button type="button" class="btn-icon-muted" title="Edit" onclick="document.getElementById('edit-reply-<?php echo $reply['id']; ?>').style.display='block'; document.getElementById('view-reply-<?php echo $reply['id']; ?>').style.display='none';">
                                             <i class="fa-solid fa-pen"></i>
                                         </button>
-                                        <form method="POST" action="../actions/delete_discussion_reply.php" onsubmit="return confirm('Are you sure you want to delete this reply?');" class="m-0">
+                                        <form method="POST" action="../actions/discussion_preprints/delete_discussion_reply.php" onsubmit="return confirm('Are you sure you want to delete this reply?');" class="m-0">
                                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                             <input type="hidden" name="reply_id" value="<?php echo $reply['id']; ?>">
                                             <input type="hidden" name="thread_id" value="<?php echo $thread_id; ?>">
@@ -167,7 +167,7 @@ layout_header("Topic: " . htmlspecialchars($thread['title']) . " | UIU ScholarNe
                                 <?php echo nl2br(htmlspecialchars($reply['content'])); ?>
                             </div>
                             <?php if ($reply['user_id'] == $_SESSION['user_id']): ?>
-                                <form id="edit-reply-<?php echo $reply['id']; ?>" method="POST" action="../actions/edit_discussion_reply.php" style="display: none;" class="margin-top-md">
+                                <form id="edit-reply-<?php echo $reply['id']; ?>" method="POST" action="../actions/discussion_preprints/edit_discussion_reply.php" style="display: none;" class="margin-top-md">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                     <input type="hidden" name="reply_id" value="<?php echo $reply['id']; ?>">
                                     <input type="hidden" name="thread_id" value="<?php echo $thread_id; ?>">

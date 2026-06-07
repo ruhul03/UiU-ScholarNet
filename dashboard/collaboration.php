@@ -325,7 +325,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                     <?php if ((int)$row['user_id'] === (int)$user_id): ?>
                         <div class="owner-actions flex-gap-sm-full">
                             <a href="manage_collaboration.php?id=<?php echo $row['id']; ?>" class="btn btn-apply btn-centered">Manage Applicants</a>
-                            <form action="../actions/delete_collaboration_post.php" method="POST" class="flex-none" onsubmit="return confirm('Permanently delete this collaboration request?');">
+                            <form action="../actions/collaboration_messaging/delete_collaboration_post.php" method="POST" class="flex-none" onsubmit="return confirm('Permanently delete this collaboration request?');">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
                                 <button class="btn btn-outline btn-danger-outline" type="submit">
@@ -346,7 +346,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                         </div>
                     <?php else: ?>
                         <div class="flex-gap-sm-full">
-                            <form action="../actions/apply_collaboration.php" method="POST" class="flex-1-display">
+                            <form action="../actions/collaboration_messaging/apply_collaboration.php" method="POST" class="flex-1-display">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
                                 <button class="btn btn-apply w-100" type="submit">Apply to Collaborate</button>
@@ -387,7 +387,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                     <div class="spotlight-actions flex-gap-sm-align-center">
                         <a href="?q=<?php echo urlencode((string)$spotlight['title']); ?>" class="btn btn-primary btn-view-details flex-1">VIEW DETAILS</a>
                         <?php if ((int)$spotlight['user_id'] === (int)$user_id): ?>
-                            <form action="../actions/delete_collaboration_post.php" method="POST" onsubmit="return confirm('Permanently delete this spotlight request?');" class="flex-none">
+                            <form action="../actions/collaboration_messaging/delete_collaboration_post.php" method="POST" onsubmit="return confirm('Permanently delete this spotlight request?');" class="flex-none">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="post_id" value="<?php echo (int)$spotlight['id']; ?>">
                                 <button class="btn btn-outline btn-danger-outline-glass" type="submit">
@@ -444,7 +444,7 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
             <i class="fa-solid fa-xmark modal-close" onclick="closeModal()"></i>
             <h2 class="modal-collab-title">Post New Collaboration</h2>
 
-            <form action="../actions/post_collaboration.php" method="POST">
+            <form action="../actions/collaboration_messaging/post_collaboration.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="form-group">
                     <label>Collaboration Title</label>

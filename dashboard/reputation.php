@@ -1,22 +1,17 @@
 <?php
-// Include authentication check to ensure only signed-in users see the leaderboard
 require_once('../includes/auth_check.php');
 require_once('../includes/layout.php');
 require_once('../includes/csrf.php');
 
-// QUERY: Fetch all researchers (users) from the database sorted by reputation points descending
 $leadRes = db_query("SELECT id, full_name, role, department, points FROM users ORDER BY points DESC LIMIT 100", [], "");
 
-// Store users into a list for easy ranking splits (podium vs list table)
 $ranked_users = [];
 while ($row = $leadRes->fetch_assoc()) {
     $ranked_users[] = $row;
 }
 
-// Fetch reputation rules dynamically
 $reputation_rules = db_query("SELECT title, description, points, icon FROM reputation_rules ORDER BY points DESC", [], "");
 
-// Get the top 3 for the podium blocks
 $top_1 = isset($ranked_users[0]) ? $ranked_users[0] : null;
 $top_2 = isset($ranked_users[1]) ? $ranked_users[1] : null;
 $top_3 = isset($ranked_users[2]) ? $ranked_users[2] : null;
@@ -26,9 +21,7 @@ layout_header("Reputation Leaderboard | UIU ScholarNet", ["../assets/css/reputat
 
     <?php include('../includes/sidebar.php'); ?>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Header -->
         <?php include('../includes/header.php'); ?>
 
         <div class="reputation-container">
@@ -37,9 +30,7 @@ layout_header("Reputation Leaderboard | UIU ScholarNet", ["../assets/css/reputat
                 <h1>Academic Reputation</h1>
             </section>
 
-            <!-- Dynamic Podium for Top 3 Users -->
             <div class="podium-grid">
-                <!-- 2nd Place -->
                 <?php if ($top_2): ?>
                 <div class="podium-card">
                     <div class="medal-badge">🥈</div>
@@ -51,7 +42,6 @@ layout_header("Reputation Leaderboard | UIU ScholarNet", ["../assets/css/reputat
                 </div>
                 <?php endif; ?>
 
-                <!-- 1st Place -->
                 <?php if ($top_1): ?>
                 <div class="podium-card podium-1st">
                     <div class="medal-badge">🥇</div>
@@ -63,7 +53,6 @@ layout_header("Reputation Leaderboard | UIU ScholarNet", ["../assets/css/reputat
                 </div>
                 <?php endif; ?>
 
-                <!-- 3rd Place -->
                 <?php if ($top_3): ?>
                 <div class="podium-card">
                     <div class="medal-badge">🥉</div>
@@ -76,7 +65,6 @@ layout_header("Reputation Leaderboard | UIU ScholarNet", ["../assets/css/reputat
                 <?php endif; ?>
             </div>
 
-            <!-- List Table for Rank 4+ -->
             <div class="leaderboard-section">
                 <h3>Scholar Ranking</h3>
                 <table class="leaderboard-table">
@@ -91,7 +79,6 @@ layout_header("Reputation Leaderboard | UIU ScholarNet", ["../assets/css/reputat
                     </thead>
                     <tbody>
                         <?php 
-                        // Loop through all ranked users starting from rank index 3 (4th place)
                         $count = count($ranked_users);
                         if ($count > 3):
                             for ($i = 3; $i < $count; $i++):
@@ -120,7 +107,6 @@ layout_header("Reputation Leaderboard | UIU ScholarNet", ["../assets/css/reputat
                 </table>
             </div>
 
-            <!-- Guide on how to earn reputation -->
             <h3 class="rep-guide-title">How to Earn Reputation</h3>
             <div class="earning-guide">
                 <?php while ($rule = $reputation_rules->fetch_assoc()): ?>

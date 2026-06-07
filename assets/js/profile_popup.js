@@ -1,12 +1,12 @@
 // assets/js/profile_popup.js
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     const popupContainer = document.getElementById('global-profile-popup');
     
     if (!popupContainer) return;
 
     // Attach click listener to document to handle dynamically added elements
-    document.addEventListener('click', async (e) => {
+    document.addEventListener('click', async function(e) {
         // Find if the clicked element or its parent has the trigger class
         const trigger = e.target.closest('.user-profile-trigger');
         
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let skillsHtml = '';
         if (data.skills && data.skills.length > 0) {
             skillsHtml = '<div class="profile-popup-skills">';
-            data.skills.forEach(skill => {
+            data.skills.forEach(function(skill) {
                 skillsHtml += `<span class="profile-popup-skill">${skill}</span>`;
             });
             skillsHtml += '</div>';

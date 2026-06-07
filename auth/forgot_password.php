@@ -49,7 +49,7 @@ $showResetForm = ($pendingEmail !== '');
                     </div>
                 <?php endif; ?>
 
-                <form action="../actions/forgot_password.php" method="POST" class="password-reset-request-form">
+                <form action="../actions/auth_user/forgot_password.php" method="POST" class="password-reset-request-form">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="action" value="request_code">
                     <div class="form-group">
@@ -63,7 +63,7 @@ $showResetForm = ($pendingEmail !== '');
                 </form>
 
                 <?php if ($showResetForm): ?>
-                    <form action="../actions/forgot_password.php" method="POST">
+                    <form action="../actions/auth_user/forgot_password.php" method="POST">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                         <input type="hidden" name="action" value="reset_password">
                         <input type="hidden" name="email" value="<?php echo htmlspecialchars($pendingEmail, ENT_QUOTES, 'UTF-8'); ?>">

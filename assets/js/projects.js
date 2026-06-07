@@ -23,7 +23,9 @@ window.onclick = function(event) {
     // Close dropdowns if clicking outside the entire options wrapper
     if (!event.target.closest('.options-wrapper')) {
         const dropdowns = document.querySelectorAll('.options-dropdown');
-        dropdowns.forEach(d => d.style.display = 'none');
+        dropdowns.forEach(function(d) {
+            d.style.display = 'none';
+        });
     }
 };
 
@@ -36,7 +38,9 @@ function toggleProjectOptions(event, id) {
     const isCurrentlyVisible = window.getComputedStyle(dropdown).display === 'flex';
     
     // Close all dropdowns first
-    document.querySelectorAll('.options-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.options-dropdown').forEach(function(d) {
+        d.style.display = 'none';
+    });
     
     // Toggle based on previous state
     if (!isCurrentlyVisible) {

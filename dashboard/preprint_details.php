@@ -150,7 +150,7 @@ $comments = db_query("SELECT c.*, u.full_name
                     <?php endif; ?>
                 </div>
                 
-                <form action="../actions/add_preprint_comment.php" method="POST" class="comment-form">
+                <form action="../actions/discussion_preprints/add_preprint_comment.php" method="POST" class="comment-form">
                     <input type="hidden" name="preprint_id" value="<?php echo $preprint['id']; ?>">
                     <textarea name="comment" required placeholder="Suggest improvements, ask questions, or provide a review..."></textarea>
                     <button type="submit" class="btn btn-primary btn-submit">Post Feedback</button>
@@ -167,7 +167,7 @@ $comments = db_query("SELECT c.*, u.full_name
                 <button onclick="closeReportModal()" class="modal-header-actions"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <p class="modal-desc-text">If you believe this content violates our Terms & Copyright Policy, please let us know. The administration will review it.</p>
-            <form action="../actions/report_content.php" method="POST">
+            <form action="../actions/admin_misc/report_content.php" method="POST">
                 <input type="hidden" name="item_id" value="<?php echo $preprint['id']; ?>">
                 <input type="hidden" name="item_type" value="preprint">
                 <input type="hidden" name="redirect_url" value="../dashboard/preprint_details.php?id=<?php echo $preprint['id']; ?>">

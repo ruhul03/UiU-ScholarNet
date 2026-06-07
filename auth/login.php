@@ -59,33 +59,27 @@ require_once('../includes/csrf.php');
                 <h1>Sign In</h1>
                 <p>Enter your credentials to continue</p>
 
-                <!-- Display any error messages -->
                 <?php if (isset($_SESSION['error'])): ?>
                     <div class="alert-error">
                         <i class="fa-solid fa-circle-exclamation"></i> 
                         <?php 
                             echo $_SESSION['error']; 
-                            // Remove the error message from the session so it doesn't show again
                             unset($_SESSION['error']); 
                         ?>
                     </div>
                 <?php endif; ?>
 
-                <!-- Display any success messages -->
                 <?php if (isset($_SESSION['success'])): ?>
                     <div class="alert-success">
                         <i class="fa-solid fa-circle-check"></i> 
                         <?php 
                             echo $_SESSION['success']; 
-                            // Remove the success message from the session so it doesn't show again
                             unset($_SESSION['success']); 
                         ?>
                     </div>
                 <?php endif; ?>
 
-                <!-- Login form -->
-                <form action="../actions/login.php" method="POST">
-                    <!-- CSRF Token to protect against Cross-Site Request Forgery -->
+                <form action="../actions/auth_user/login.php" method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="form-group">
                         <label>Email or Admin Username</label>

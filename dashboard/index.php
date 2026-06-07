@@ -260,7 +260,7 @@ layout_header("Dashboard | UIU ScholarNet");
             <h2 class="modal-title-large">Create New Project</h2>
             <p class="modal-subtitle">INSTITUTIONAL ARCHIVE ENTRY</p>
             
-            <form action="../actions/create_project.php" method="POST">
+            <form action="../actions/project_task_document/create_project.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?php 
                     require_once('../includes/csrf.php');
                     echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8');

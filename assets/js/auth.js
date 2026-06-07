@@ -57,17 +57,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (interestsContainer && interestsHidden && interestInput && addInterestBtn) {
         let interests = interestsHidden.value
             .split(',')
-            .map((item) => item.trim())
+            .map(function(item) { return item.trim(); })
             .filter(Boolean);
 
-        const syncHiddenField = () => {
+        function syncHiddenField() {
             interestsHidden.value = interests.join(',');
-        };
+        }
 
-        const renderInterests = () => {
+        function renderInterests() {
             interestsContainer.innerHTML = '';
 
-            interests.forEach((interest, index) => {
+            interests.forEach(function(interest, index) {
                 const tag = document.createElement('button');
                 tag.type = 'button';
                 tag.className = 'tag tag-button';
@@ -77,31 +77,34 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             syncHiddenField();
-        };
+        }
 
-        const addInterest = () => {
+        function addInterest() {
             const value = interestInput.value.trim();
             if (!value) {
                 return;
             }
 
-            const alreadyExists = interests.some((item) => item.toLowerCase() === value.toLowerCase());
+            const alreadyExists = interests.some(function(item) {
+                return item.toLowerCase() === value.toLowerCase();
+            });
+
             if (!alreadyExists) {
                 interests.push(value);
                 renderInterests();
             }
             interestInput.value = '';
-        };
+        }
 
         addInterestBtn.addEventListener('click', addInterest);
-        interestInput.addEventListener('keydown', (event) => {
+        interestInput.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 addInterest();
             }
         });
 
-        interestsContainer.addEventListener('click', (event) => {
+        interestsContainer.addEventListener('click', function(event) {
             const target = event.target.closest('.tag-button');
             if (!target) {
                 return;

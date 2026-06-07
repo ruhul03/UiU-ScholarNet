@@ -59,37 +59,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (dropZone && fileInput) {
         // Trigger file input when dropZone or select button is clicked
-        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('click', function() {
+            fileInput.click();
+        });
         
         // Find the Select Files button specifically
         const selectBtn = document.querySelector('.upload-btn-primary');
         if (selectBtn) {
-            selectBtn.addEventListener('click', (ev) => {
+            selectBtn.addEventListener('click', function(ev) {
                 ev.stopPropagation(); // Prevent double triggering if it's inside dropZone
                 fileInput.click();
             });
         }
 
         // Show preview when file is selected via dialog
-        fileInput.addEventListener('change', () => showFilePreview(fileInput));
+        fileInput.addEventListener('change', function() {
+            showFilePreview(fileInput);
+        });
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (ev) => {
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+            dropZone.addEventListener(eventName, function(ev) {
                 ev.preventDefault();
                 dropZone.style.borderColor = '#c5a022';
                 dropZone.style.background = '#fffdf5';
             });
         });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (ev) => {
+        ['dragleave', 'drop'].forEach(function(eventName) {
+            dropZone.addEventListener(eventName, function(ev) {
                 ev.preventDefault();
                 dropZone.style.borderColor = '#ddd';
                 dropZone.style.background = '#fdfcf8';
             });
         });
 
-        dropZone.addEventListener('drop', (ev) => {
+        dropZone.addEventListener('drop', function(ev) {
             ev.preventDefault();
             fileInput.files = ev.dataTransfer.files;
             showFilePreview(fileInput);

@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (filterForm) {
         const selects = filterForm.querySelectorAll('select');
-        selects.forEach((select) => {
+        selects.forEach(function(select) {
             select.addEventListener('change', function () {
                 filterForm.submit();
             });
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (viewInput && filterForm && viewButtons.length > 0) {
-        viewButtons.forEach((button) => {
+        viewButtons.forEach(function(button) {
             button.addEventListener('click', function () {
                 const view = button.getAttribute('data-view');
                 if (!view) {
