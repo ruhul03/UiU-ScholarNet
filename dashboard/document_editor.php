@@ -107,7 +107,7 @@ if ($doc['id'] > 0) {
                     </div>
                 <?php endif; ?>
 
-                <form action="../actions/project_task_document/save_document.php" method="POST">
+                <form action="../actions/save_document.php" method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="document_id" value="<?php echo (int)$doc['id']; ?>">
 
@@ -182,7 +182,7 @@ if ($doc['id'] > 0) {
                     <h4>DOCUMENT INFO</h4>
                     <?php if ($doc['id'] > 0 && $doc['project_id'] > 0): ?>
                         <div class="mb-1-5-center">
-                            <form action="../actions/discussion_preprints/publish_preprint.php" method="POST">
+                            <form action="../actions/publish_preprint.php" method="POST">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="document_id" value="<?php echo $doc['id']; ?>">
                                 <button type="submit" class="btn btn-primary btn-black-full"><i class="fa-solid fa-rocket"></i> Publish as Preprint</button>
@@ -266,7 +266,7 @@ if ($doc['id'] > 0) {
         });
 
         // Sync HTML content to hidden input before form submit
-        var form = document.querySelector('form[action="../actions/project_task_document/save_document.php"]');
+        var form = document.querySelector('form[action="../actions/save_document.php"]');
         var hiddenContent = document.querySelector('#hidden-content');
         
         if (form) {

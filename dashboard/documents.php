@@ -73,7 +73,7 @@ $docs_result = db_query("
                             $is_leader = ($doc['creator_id'] == $user_id || $doc['role'] === 'owner');
                             if ($is_leader): 
                             ?>
-                            <form action="../actions/project_task_document/delete_document.php" method="POST" class="absolute-top-right" onsubmit="return confirm('Are you sure you want to delete this document?');">
+                            <form action="../actions/delete_document.php" method="POST" class="absolute-top-right" onsubmit="return confirm('Are you sure you want to delete this document?');">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="document_id" value="<?php echo $doc['id']; ?>">
                                 <button type="submit" class="btn-delete" title="Delete Document"><i class="fa-solid fa-trash"></i></button>

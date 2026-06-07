@@ -182,7 +182,7 @@ $skillTags = array_values(
             <i class="fa-solid fa-xmark modal-close" id="closeProfileEdit"></i>
             <h2 class="modal-title">Edit My Profile</h2>
 
-            <form action="../actions/auth_user/update_profile.php" method="POST" class="profile-edit-form">
+            <form action="../actions/update_profile.php" method="POST" class="profile-edit-form">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
 
                 <div class="form-row">

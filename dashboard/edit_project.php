@@ -92,7 +92,7 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
         </section>
 
         <div class="edit-form-card">
-            <form action="../actions/project_task_document/update_project.php" method="POST">
+            <form action="../actions/update_project.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
 

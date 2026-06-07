@@ -99,13 +99,13 @@ layout_header("Manage Applicants | UIU ScholarNet");
                             <td class="p-1-text-right">
                                 <?php if ($app['status'] === 'pending'): ?>
                                     <div class="flex-end-gap-0-5">
-                                        <form action="../actions/collaboration_messaging/manage_application.php" method="POST">
+                                        <form action="../actions/manage_application.php" method="POST">
                                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                             <input type="hidden" name="application_id" value="<?php echo $app['id']; ?>">
                                             <input type="hidden" name="action_type" value="accept">
                                             <button type="submit" class="btn btn-action-accept">Accept</button>
                                         </form>
-                                        <form action="../actions/collaboration_messaging/manage_application.php" method="POST">
+                                        <form action="../actions/manage_application.php" method="POST">
                                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                             <input type="hidden" name="application_id" value="<?php echo $app['id']; ?>">
                                             <input type="hidden" name="action_type" value="decline">

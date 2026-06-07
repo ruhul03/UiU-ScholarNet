@@ -248,7 +248,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                                 <td class="admin-td-right">
                                     <?php if ($u['role'] !== 'admin'): ?>
                                         <?php if ($u['role'] === 'faculty' && !$u['is_verified'] && $u['account_status'] !== 'banned'): ?>
-                                            <form action="../actions/admin_misc/admin_user_action.php" method="POST" class="d-inline">
+                                            <form action="../actions/admin_user_action.php" method="POST" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                                 <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
                                                 <input type="hidden" name="action_type" value="verify">
@@ -257,14 +257,14 @@ layout_header("Admin Panel | UIU ScholarNet");
                                         <?php endif; ?>
 
                                         <?php if ($u['account_status'] !== 'banned'): ?>
-                                            <form action="../actions/admin_misc/admin_user_action.php" method="POST" class="d-inline">
+                                            <form action="../actions/admin_user_action.php" method="POST" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                                 <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
                                                 <input type="hidden" name="action_type" value="ban">
                                                 <button type="submit" class="btn btn-sm-danger-outline">Ban</button>
                                             </form>
                                         <?php else: ?>
-                                            <form action="../actions/admin_misc/admin_user_action.php" method="POST" class="d-inline">
+                                            <form action="../actions/admin_user_action.php" method="POST" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                                 <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
                                                 <input type="hidden" name="action_type" value="unban">
@@ -272,7 +272,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                                             </form>
                                         <?php endif; ?>
 
-                                        <form action="../actions/admin_misc/admin_user_action.php" method="POST" class="d-inline" onsubmit="return confirm('Delete this user? This cannot be undone.');">
+                                        <form action="../actions/admin_user_action.php" method="POST" class="d-inline" onsubmit="return confirm('Delete this user? This cannot be undone.');">
                                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                             <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
                                             <input type="hidden" name="action_type" value="delete">
@@ -318,7 +318,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                                 <td class="admin-td-muted"><?php echo strtoupper(htmlspecialchars($p['status'])); ?></td>
                                 <td class="admin-td-muted"><?php echo strtoupper(htmlspecialchars($p['visibility'])); ?></td>
                                 <td class="admin-td-right">
-                                    <form action="../actions/admin_misc/admin_project_action.php" method="POST" class="d-inline" onsubmit="return confirm('Delete this project globally?');">
+                                    <form action="../actions/admin_project_action.php" method="POST" class="d-inline" onsubmit="return confirm('Delete this project globally?');">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                         <input type="hidden" name="project_id" value="<?php echo $p['id']; ?>">
                                         <input type="hidden" name="action_type" value="delete">
@@ -336,7 +336,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                     <!-- Departments -->
                     <div class="card admin-card-sub">
                         <h4 class="admin-card-sub-title">Departments</h4>
-                        <form action="../actions/admin_misc/admin_manage_data.php" method="POST" class="admin-form-flex">
+                        <form action="../actions/admin_manage_data.php" method="POST" class="admin-form-flex">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                             <input type="hidden" name="table" value="departments">
                             <input type="text" name="name" placeholder="New Department" required class="admin-input-sm">
@@ -346,7 +346,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                             <?php while($d = $departments->fetch_assoc()): ?>
                                 <div class="admin-list-item">
                                     <span class="admin-list-text"><?php echo htmlspecialchars($d['name']); ?></span>
-                                    <form action="../actions/admin_misc/admin_manage_data.php" method="POST" class="d-inline" onsubmit="return confirm('Remove?');">
+                                    <form action="../actions/admin_manage_data.php" method="POST" class="d-inline" onsubmit="return confirm('Remove?');">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                         <input type="hidden" name="table" value="departments">
                                         <input type="hidden" name="delete_id" value="<?php echo $d['id']; ?>">
@@ -360,7 +360,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                     <!-- Skills -->
                     <div class="card admin-card-sub">
                         <h4 class="admin-card-sub-title">Skills</h4>
-                        <form action="../actions/admin_misc/admin_manage_data.php" method="POST" class="admin-form-flex">
+                        <form action="../actions/admin_manage_data.php" method="POST" class="admin-form-flex">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                             <input type="hidden" name="table" value="skills">
                             <input type="text" name="name" placeholder="New Skill" required class="admin-input-sm">
@@ -370,7 +370,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                             <?php while($s = $skills->fetch_assoc()): ?>
                                 <div class="admin-list-item">
                                     <span class="admin-list-text"><?php echo htmlspecialchars($s['name']); ?></span>
-                                    <form action="../actions/admin_misc/admin_manage_data.php" method="POST" class="d-inline" onsubmit="return confirm('Remove?');">
+                                    <form action="../actions/admin_manage_data.php" method="POST" class="d-inline" onsubmit="return confirm('Remove?');">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                         <input type="hidden" name="table" value="skills">
                                         <input type="hidden" name="delete_id" value="<?php echo $s['id']; ?>">
@@ -384,7 +384,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                     <!-- Opportunity Types -->
                     <div class="card admin-card-sub">
                         <h4 class="admin-card-sub-title">Opportunity Types</h4>
-                        <form action="../actions/admin_misc/admin_manage_data.php" method="POST" class="admin-form-flex">
+                        <form action="../actions/admin_manage_data.php" method="POST" class="admin-form-flex">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                             <input type="hidden" name="table" value="opportunity_types">
                             <input type="text" name="name" placeholder="New Type" required class="admin-input-sm">
@@ -394,7 +394,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                             <?php while($o = $oppTypes->fetch_assoc()): ?>
                                 <div class="admin-list-item">
                                     <span class="admin-list-text"><?php echo htmlspecialchars($o['name']); ?></span>
-                                    <form action="../actions/admin_misc/admin_manage_data.php" method="POST" class="d-inline" onsubmit="return confirm('Remove?');">
+                                    <form action="../actions/admin_manage_data.php" method="POST" class="d-inline" onsubmit="return confirm('Remove?');">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                         <input type="hidden" name="table" value="opportunity_types">
                                         <input type="hidden" name="delete_id" value="<?php echo $o['id']; ?>">

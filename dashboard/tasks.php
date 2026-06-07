@@ -90,7 +90,7 @@ while ($task = $task_result->fetch_assoc()) {
                         <div class="task-meta-footer">
                             <span><i class="fa-regular fa-clock"></i> <?php echo date('M d', strtotime($task['due_date'])); ?></span>
                             <div class="task-actions margin-left-auto">
-                                <form method="POST" action="../actions/project_task_document/update_task_status.php" class="d-inline">
+                                <form method="POST" action="../actions/update_task_status.php" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                     <input type="hidden" name="task_id" value="<?php echo $task['id']; ?>">
                                     <input type="hidden" name="status" value="done">
@@ -114,7 +114,7 @@ while ($task = $task_result->fetch_assoc()) {
                     <div class="done-header">
                         <h3 class="done-title"><span class="column-badge"><i class="fa-solid fa-circle dot-green"></i> Done (<?php echo count($tasks_done); ?>)</span></h3>
                         
-                        <form action="../actions/project_task_document/clear_completed_tasks.php" method="POST" id="clearTasksForm" class="hidden">
+                        <form action="../actions/clear_completed_tasks.php" method="POST" id="clearTasksForm" class="hidden">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                             <?php if ($project_id): ?>
                                 <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
@@ -146,7 +146,7 @@ while ($task = $task_result->fetch_assoc()) {
             <i class="fa-solid fa-xmark modal-close" onclick="closeModal()"></i>
             <h2 class="modal-task-title">Add New Task</h2>
             
-            <form action="../actions/project_task_document/add_task.php" method="POST">
+            <form action="../actions/add_task.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="form-group">
                     <label>TASK TITLE</label>

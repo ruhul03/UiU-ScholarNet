@@ -79,7 +79,7 @@ require_once('../includes/csrf.php');
                     </div>
                 <?php endif; ?>
 
-                <form action="../actions/auth_user/login.php" method="POST">
+                <form action="../actions/login.php" method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="form-group">
                         <label>Email or Admin Username</label>

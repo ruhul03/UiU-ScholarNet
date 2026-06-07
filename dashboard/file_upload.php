@@ -181,7 +181,7 @@ $collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_a
                             <a href="../<?php echo htmlspecialchars($file['file_path']); ?>" class="download-link-sm">
                                 <i class="fa-solid fa-download"></i> Download
                             </a>
-                            <form action="../actions/discussion_preprints/delete_resource.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this resource? This action cannot be undone.');" class="d-inline">
+                            <form action="../actions/delete_resource.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this resource? This action cannot be undone.');" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="resource_id" value="<?php echo $file['id']; ?>">
                                 <button type="submit" class="btn-delete-icon" title="Delete Resource">

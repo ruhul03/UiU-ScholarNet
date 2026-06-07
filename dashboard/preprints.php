@@ -66,7 +66,7 @@ $proj_result = db_query("SELECT id, title FROM projects WHERE creator_id = ? OR 
                             </a>
                             
                             <?php if($row['author_id'] == $user_id): ?>
-                            <form action="../actions/discussion_preprints/delete_preprint.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this preprint?');" class="form-inline">
+                            <form action="../actions/delete_preprint.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this preprint?');" class="form-inline">
                                 <input type="hidden" name="preprint_id" value="<?php echo $row['id']; ?>">
                                 <button type="submit" class="btn btn-outline btn-delete-sm">
                                     <i class="fa-solid fa-trash"></i> Delete
@@ -95,7 +95,7 @@ $proj_result = db_query("SELECT id, title FROM projects WHERE creator_id = ? OR 
                 <h2>Upload Preprint</h2>
                 <button class="close-modal" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form action="../actions/discussion_preprints/upload_preprint.php" method="POST" enctype="multipart/form-data">
+            <form action="../actions/upload_preprint.php" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label>Title</label>
                     <input type="text" name="title" class="form-control" required placeholder="e.g., A Novel Approach to LLM Optimization">

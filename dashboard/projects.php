@@ -198,7 +198,7 @@ $result = db_query("
                                 
                                 <div class="dropdown-divider"></div>
                                 
-                                <form action="../actions/project_task_document/delete_project.php" method="POST" id="delete-form-<?php echo $row['id']; ?>" class="hidden">
+                                <form action="../actions/delete_project.php" method="POST" id="delete-form-<?php echo $row['id']; ?>" class="hidden">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                     <input type="hidden" name="project_id" value="<?php echo $row['id']; ?>">
                                 </form>
@@ -231,7 +231,7 @@ $result = db_query("
             <h2 class="modal-title-large">Create New Project</h2>
             <p class="modal-subtitle">INSTITUTIONAL ARCHIVE ENTRY</p>
             
-            <form action="../actions/project_task_document/create_project.php" method="POST">
+            <form action="../actions/create_project.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="form-group">
                     <label>PROJECT TITLE</label>
