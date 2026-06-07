@@ -154,6 +154,11 @@
     font-size: 0.8rem;
     letter-spacing: 1px;
     padding: 1rem;
+}
+
+.collab-card > .flex-gap-sm-full,
+.collab-card > .owner-actions,
+.collab-card > .spotlight-actions {
     margin-top: auto;
 }
 
