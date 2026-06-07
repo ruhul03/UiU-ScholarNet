@@ -94,6 +94,11 @@
     gap: 3rem;
 }
 
+.feature-block {
+    display: flex;
+    flex-direction: column;
+}
+
 .feature-block h2 {
     font-size: 1.8rem;
     margin-bottom: 1rem;
@@ -103,6 +108,11 @@
     opacity: 0.5;
     font-size: 1.1rem;
     margin-bottom: 2rem;
+}
+
+.feature-block .btn {
+    margin-top: auto;
+    align-self: flex-start;
 }
 
 /* Big Stats */
