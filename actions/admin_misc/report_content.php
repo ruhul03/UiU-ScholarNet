@@ -1,7 +1,9 @@
 <?php
 require_once(__DIR__ . '/../../includes/auth_check.php');
+require_once(__DIR__ . '/../../includes/csrf.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    csrf_validate_or_die();
     $item_id = intval($_POST['item_id']);
     $item_type = $_POST['item_type'];
     $reason = trim($_POST['reason']);

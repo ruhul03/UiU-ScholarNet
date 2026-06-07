@@ -11,32 +11,41 @@ if (!isset($_SESSION['user_id'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate_or_die();
-    $user_id = (int)$_SESSION['user_id'];
+    $current_user_id = (int)$_SESSION['user_id'];
     $resource_id = (int)($_POST['resource_id'] ?? 0);
 
-    if ($resource_id > 0) {
-        // Verify ownership before deleting
-        $resCheck = db_query("SELECT file_path FROM resources WHERE id = ? AND user_id = ? LIMIT 1", [$resource_id, $user_id], "ii");
-        $res = $resCheck ? $resCheck->fetch_assoc() : null;
+    // Early return if invalid resource ID
+    if ($resource_id <= 0) {
+        header("Location: ../dashboard/file_upload.php");
+        exit();
+    }
 
-        if ($res) {
-            $file_path = __DIR__ . '/../../' . $res['file_path'];
-            
-            // Delete record from DB
-            $del = db_query("DELETE FROM resources WHERE id = ? AND user_id = ?", [$resource_id, $user_id], "ii");
-            
-            if ($del) {
-                // Optionally delete physical file
-                if (file_exists($file_path)) {
-                    unlink($file_path);
-                }
-                $_SESSION['success'] = "Resource deleted successfully.";
-            } else {
-                $_SESSION['error'] = "Database error while deleting.";
-            }
-        } else {
-            $_SESSION['error'] = "Resource not found or unauthorized.";
+    // 1. Verify ownership before deleting
+    $verifyOwnershipQuery = "SELECT file_path FROM resources WHERE id = ? AND user_id = ? LIMIT 1";
+    $verifyResult = db_query($verifyOwnershipQuery, [$resource_id, $current_user_id], "ii");
+    $resourceData = $verifyResult ? $verifyResult->fetch_assoc() : null;
+
+    // Early return if unauthorized
+    if (!$resourceData) {
+        $_SESSION['error'] = "Resource not found or unauthorized.";
+        header("Location: ../dashboard/file_upload.php");
+        exit();
+    }
+    
+    $absolute_file_path = __DIR__ . '/../../' . $resourceData['file_path'];
+    
+    // 2. Delete record from DB
+    $deleteQuery = "DELETE FROM resources WHERE id = ? AND user_id = ?";
+    $deleteResult = db_query($deleteQuery, [$resource_id, $current_user_id], "ii");
+    
+    if ($deleteResult) {
+        // 3. Delete physical file
+        if (file_exists($absolute_file_path)) {
+            unlink($absolute_file_path);
         }
+        $_SESSION['success'] = "Resource deleted successfully.";
+    } else {
+        $_SESSION['error'] = "Database error while deleting.";
     }
 }
 

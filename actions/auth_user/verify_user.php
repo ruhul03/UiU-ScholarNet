@@ -12,8 +12,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // Verify user is an admin
-    $adminResult = db_query("SELECT role FROM users WHERE id = ?", [$_SESSION['user_id']], "i");
+    $current_user_id = (int)$_SESSION['user_id'];
+
+    // 1. Verify user is an admin
+    $checkAdminQuery = "SELECT role FROM users WHERE id = ?";
+    $adminResult = db_query($checkAdminQuery, [$current_user_id], "i");
     $adminData = $adminResult ? $adminResult->fetch_assoc() : null;
 
     if (!$adminData || $adminData['role'] !== 'admin') {
@@ -24,15 +27,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $target_user_id = (int)($_POST['user_id'] ?? 0);
 
-    if ($target_user_id > 0) {
-        // Approve the user
-        $update = db_query("UPDATE users SET is_verified = 1 WHERE id = ?", [$target_user_id], "i");
-        
-        if ($update) {
-            $_SESSION['success'] = "User has been successfully verified.";
-        } else {
-            $_SESSION['error'] = "Failed to verify user.";
-        }
+    // Early return if invalid target user
+    if ($target_user_id <= 0) {
+        header("Location: ../dashboard/admin.php");
+        exit();
+    }
+
+    // 2. Approve the user
+    $approveUserQuery = "UPDATE users SET is_verified = 1 WHERE id = ?";
+    $updateResult = db_query($approveUserQuery, [$target_user_id], "i");
+    
+    if ($updateResult) {
+        $_SESSION['success'] = "User has been successfully verified.";
+    } else {
+        $_SESSION['error'] = "Failed to verify user.";
     }
 
     header("Location: ../dashboard/admin.php");

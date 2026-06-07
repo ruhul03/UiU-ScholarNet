@@ -18,6 +18,12 @@ if ($is_logged_in) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UIU ScholarNet | Research Collaboration Platform</title>
+    <meta name="description" content="Connect with researchers, form teams, manage projects, and share knowledge across United International University (UIU).">
+    <meta name="keywords" content="UIU, ScholarNet, Research, Collaboration, University, Preprints, Projects">
+    <meta name="author" content="UIU ScholarNet">
+    <meta property="og:title" content="UIU ScholarNet | Research Collaboration Platform">
+    <meta property="og:description" content="Connect with researchers, form teams, manage projects, and share knowledge across United International University.">
+    <meta property="og:type" content="website">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

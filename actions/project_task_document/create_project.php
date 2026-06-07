@@ -39,6 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $supervisor_id = isset($_POST['supervisor_id']) && (int)$_POST['supervisor_id'] > 0 ? (int)$_POST['supervisor_id'] : null;
 
+    // 5. Handle specific logic for 'student' roles
     if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'student') {
         if (!$supervisor_id) {
             $_SESSION['error'] = "Students must select a faculty supervisor.";
@@ -47,52 +48,84 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         
         // Verify supervisor is a verified faculty member
-        $sup_check = db_query("SELECT id FROM users WHERE id = ? AND role = 'faculty' AND is_verified = 1", [$supervisor_id], "i");
-        if (!$sup_check || $sup_check->num_rows === 0) {
+        $supervisorCheckQuery = "SELECT id FROM users WHERE id = ? AND role = 'faculty' AND is_verified = 1";
+        $supervisorCheckResult = db_query($supervisorCheckQuery, [$supervisor_id], "i");
+        
+        if (!$supervisorCheckResult || $supervisorCheckResult->num_rows === 0) {
             $_SESSION['error'] = "Invalid faculty supervisor selected.";
             header("Location: ../dashboard/projects.php");
             exit();
         }
     }
-    // Insert new project into the database
-    $stmt = db_query("INSERT INTO projects (title, description, department, visibility, status, progress, creator_id, supervisor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [$title, $description, $department, $visibility, $status, $progress, $user_id, $supervisor_id], "sssssiii");
+    
+    // 6. Insert new project into the database
+    $insertProjectQuery = "
+        INSERT INTO projects (title, description, department, visibility, status, progress, creator_id, supervisor_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ";
+    
+    $projectInsertResult = db_query(
+        $insertProjectQuery, 
+        [$title, $description, $department, $visibility, $status, $progress, $user_id, $supervisor_id], 
+        "sssssiii"
+    );
 
-    if ($stmt) {
-        $project_id = $conn->insert_id;
-        
-        // Notify Supervisor
-        if ($supervisor_id) {
-            $user_data = db_query("SELECT full_name FROM users WHERE id = ?", [$user_id], "i")->fetch_assoc();
-            
-            $sup_title = "Supervision Request";
-            $sup_msg = $user_data['full_name'] . " has requested your supervision for the project: " . $title;
-            db_query("INSERT INTO notifications (user_id, title, message, is_read, created_at) VALUES (?, ?, ?, 0, NOW())", [$supervisor_id, $sup_title, $sup_msg], "iss");
-        }
-        
-        // Add creator as owner
-        db_query("INSERT INTO project_members (project_id, user_id, role) VALUES (?, ?, 'owner')", [$project_id, $user_id], "ii");
-        
-        // Handle invited researchers
-        if (isset($_POST['invited_users']) && is_array($_POST['invited_users'])) {
-            foreach ($_POST['invited_users'] as $inv_uid) {
-                $inv_uid = (int)$inv_uid;
-                if ($inv_uid > 0 && $inv_uid !== $user_id) {
-                    // Add pending member
-                    db_query("INSERT IGNORE INTO project_members (project_id, user_id, role, status) VALUES (?, ?, 'editor', 'pending')", [$project_id, $inv_uid], "ii");
-                    
-                    // Send Notification
-                    $msg = "You have been invited to join the project: " . $title;
-                    db_query("INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, 'system', 'Project Invitation', ?, '../dashboard/projects.php')", [$inv_uid, $msg], "is");
-                }
-            }
-        }
-
-        $_SESSION['success'] = "Project created successfully!";
-        header("Location: ../dashboard/projects.php");
-    } else {
+    // Early return on database failure
+    if (!$projectInsertResult) {
         $_SESSION['error'] = "Failed to create project.";
         header("Location: ../dashboard/projects.php");
+        exit();
     }
+
+    $project_id = $conn->insert_id;
+    
+    // 7. Notify Supervisor
+    if ($supervisor_id) {
+        $userDataResult = db_query("SELECT full_name FROM users WHERE id = ?", [$user_id], "i");
+        $user_data = $userDataResult->fetch_assoc();
+        
+        $notificationTitle = "Supervision Request";
+        $notificationMsg = $user_data['full_name'] . " has requested your supervision for the project: " . $title;
+        
+        $insertNotificationQuery = "
+            INSERT INTO notifications (user_id, title, message, is_read, created_at) 
+            VALUES (?, ?, ?, 0, NOW())
+        ";
+        db_query($insertNotificationQuery, [$supervisor_id, $notificationTitle, $notificationMsg], "iss");
+    }
+    
+    // 8. Add creator as the initial 'owner' of the project
+    $addOwnerQuery = "INSERT INTO project_members (project_id, user_id, role) VALUES (?, ?, 'owner')";
+    db_query($addOwnerQuery, [$project_id, $user_id], "ii");
+    
+    // 9. Handle invited researchers
+    if (isset($_POST['invited_users']) && is_array($_POST['invited_users'])) {
+        foreach ($_POST['invited_users'] as $invited_user_id) {
+            $invited_user_id = (int)$invited_user_id;
+            
+            // Do not invite the creator themselves
+            if ($invited_user_id > 0 && $invited_user_id !== $user_id) {
+                // Add member with 'pending' status
+                $inviteMemberQuery = "
+                    INSERT IGNORE INTO project_members (project_id, user_id, role, status) 
+                    VALUES (?, ?, 'editor', 'pending')
+                ";
+                db_query($inviteMemberQuery, [$project_id, $invited_user_id], "ii");
+                
+                // Send Notification to the invited user
+                $inviteMsg = "You have been invited to join the project: " . $title;
+                $inviteNotifQuery = "
+                    INSERT INTO notifications (user_id, type, title, message, link) 
+                    VALUES (?, 'system', 'Project Invitation', ?, '../dashboard/projects.php')
+                ";
+                db_query($inviteNotifQuery, [$invited_user_id, $inviteMsg], "is");
+            }
+        }
+    }
+
+    // 10. Success Return
+    $_SESSION['success'] = "Project created successfully!";
+    header("Location: ../dashboard/projects.php");
     exit();
 }
 ?>

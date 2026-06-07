@@ -12,21 +12,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    $user_id = (int)$_SESSION['user_id'];
+    $current_user_id = (int)$_SESSION['user_id'];
     $message_id = (int)($_POST['message_id'] ?? 0);
 
-    if ($message_id > 0) {
-        // Ensure the user owns this message before allowing deletion
-        $check = db_query("SELECT id FROM messages WHERE id = ? AND sender_id = ?", [$message_id, $user_id], "ii");
-        if ($check && $check->num_rows > 0) {
-            // Delete the message
-            $del = db_query("DELETE FROM messages WHERE id = ?", [$message_id], "i");
-            if ($del) {
-                echo json_encode(['success' => true]);
-                exit();
-            }
-        }
+    // Early return for invalid message ID
+    if ($message_id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Invalid message ID']);
+        exit();
     }
-    echo json_encode(['success' => false, 'message' => 'Permission denied or message not found']);
+
+    // 1. Ensure the user owns this message before allowing deletion
+    $verifyOwnershipQuery = "SELECT id FROM messages WHERE id = ? AND sender_id = ?";
+    $verifyResult = db_query($verifyOwnershipQuery, [$message_id, $current_user_id], "ii");
+    
+    // Early return if not authorized
+    if (!$verifyResult || $verifyResult->num_rows <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Permission denied or message not found']);
+        exit();
+    }
+    
+    // 2. Delete the message
+    $deleteMessageQuery = "DELETE FROM messages WHERE id = ?";
+    $deleteResult = db_query($deleteMessageQuery, [$message_id], "i");
+    
+    if ($deleteResult) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Database error while deleting message']);
+    }
     exit();
 }

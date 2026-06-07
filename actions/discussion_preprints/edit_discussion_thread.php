@@ -11,21 +11,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    $user_id = (int)$_SESSION['user_id'];
+    $current_user_id = (int)$_SESSION['user_id'];
     $thread_id = (int)($_POST['thread_id'] ?? 0);
     $content = trim($_POST['content'] ?? '');
 
-    if ($thread_id > 0 && !empty($content)) {
-        // Verify user owns the thread
-        $check = db_query("SELECT id FROM discussion_threads WHERE id = ? AND user_id = ?", [$thread_id, $user_id], "ii");
-        if ($check && $check->num_rows > 0) {
-            $update = db_query("UPDATE discussion_threads SET content = ? WHERE id = ?", [$content, $thread_id], "si");
-            if ($update) {
-                $_SESSION['success'] = "Discussion thread updated successfully.";
-            }
-        } else {
-            $_SESSION['error'] = "You do not have permission to edit this thread.";
-        }
+    // Early return if thread ID is invalid or content is empty
+    if ($thread_id <= 0 || empty($content)) {
+        header("Location: ../dashboard/discussion_thread.php?id=" . $thread_id);
+        exit();
+    }
+
+    // 1. Verify user owns the thread
+    $verifyThreadQuery = "SELECT id FROM discussion_threads WHERE id = ? AND user_id = ?";
+    $verifyThreadResult = db_query($verifyThreadQuery, [$thread_id, $current_user_id], "ii");
+    
+    // Early return if not authorized
+    if (!$verifyThreadResult || $verifyThreadResult->num_rows <= 0) {
+        $_SESSION['error'] = "You do not have permission to edit this thread.";
+        header("Location: ../dashboard/discussion_thread.php?id=" . $thread_id);
+        exit();
+    }
+    
+    // 2. Update the thread
+    $updateThreadQuery = "UPDATE discussion_threads SET content = ? WHERE id = ?";
+    $updateResult = db_query($updateThreadQuery, [$content, $thread_id], "si");
+    
+    if ($updateResult) {
+        $_SESSION['success'] = "Discussion thread updated successfully.";
+    } else {
+        $_SESSION['error'] = "Database error while updating thread.";
     }
 }
 header("Location: ../dashboard/discussion_thread.php?id=" . $thread_id);

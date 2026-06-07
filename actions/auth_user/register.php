@@ -14,26 +14,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $raw_interests = trim((string)($_POST['interests'] ?? ''));
     $skills = trim((string)($_POST['skills'] ?? ''));
 
+    // Process interests into a comma separated list
     $interests_list = array_filter(array_map('trim', explode(',', $raw_interests)), static function ($value) {
         return $value !== '';
     });
     $interests_list = array_slice(array_values($interests_list), 0, 20);
     $interests = implode(', ', $interests_list);
 
-    // Validate required fields
+    // 1. Validate required fields
     if ($full_name === '' || $email === '' || $raw_password === '' || $department === '') {
         $_SESSION['error'] = "Please fill in all required fields.";
         header("Location: ../auth/register.php");
         exit();
     }
 
+    // 2. Validate email format
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['error'] = "Please provide a valid email address.";
         header("Location: ../auth/register.php");
         exit();
     }
 
-    // Ensure UIU email domain
+    // 3. Ensure UIU email domain
     $atPos = strrpos($email, '@');
     $emailDomain = ($atPos !== false) ? substr($email, $atPos + 1) : '';
     $suffix = "uiu.ac.bd";
@@ -43,16 +45,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
+    // 4. Validate password length
     if (strlen($raw_password) < 8) {
         $_SESSION['error'] = "Password must be at least 8 characters.";
         header("Location: ../auth/register.php");
         exit();
     }
 
-    // Check if email already exists
-    $existing = db_query("SELECT id FROM users WHERE email = ? LIMIT 1", [$email], "s");
+    // 5. Check if email already exists
+    $checkEmailQuery = "SELECT id FROM users WHERE email = ? LIMIT 1";
+    $existingEmailResult = db_query($checkEmailQuery, [$email], "s");
     
-    if ($existing && $existing->num_rows > 0) {
+    if ($existingEmailResult && $existingEmailResult->num_rows > 0) {
         $_SESSION['error'] = "Email already registered!";
         header("Location: ../auth/register.php");
         exit();
@@ -62,14 +66,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = (isset($_POST['role']) && $_POST['role'] === 'faculty') ? 'faculty' : 'student';
     $is_verified = ($role === 'faculty') ? 0 : 1;
 
-    // Insert new user into database
-    $insert = db_query(
-        "INSERT INTO users (full_name, email, password, department, interests, skills, role, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    // 6. Insert new user into database
+    $insertUserQuery = "
+        INSERT INTO users (full_name, email, password, department, interests, skills, role, is_verified) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ";
+    
+    $insertResult = db_query(
+        $insertUserQuery,
         [$full_name, $email, $password, $department, $interests, $skills, $role, $is_verified],
         "sssssssi"
     );
 
-    if ($insert) {
+    if ($insertResult) {
         $_SESSION['success'] = "Registration successful! Please login.";
         header("Location: ../auth/login.php");
         exit();

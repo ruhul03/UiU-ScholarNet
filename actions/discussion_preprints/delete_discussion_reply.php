@@ -11,21 +11,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    $user_id = (int)$_SESSION['user_id'];
+    $current_user_id = (int)$_SESSION['user_id'];
     $reply_id = (int)($_POST['reply_id'] ?? 0);
     $thread_id = (int)($_POST['thread_id'] ?? 0);
 
-    if ($reply_id > 0 && $thread_id > 0) {
-        // Verify user owns the reply
-        $check = db_query("SELECT id FROM discussion_replies WHERE id = ? AND user_id = ?", [$reply_id, $user_id], "ii");
-        if ($check && $check->num_rows > 0) {
-            $del = db_query("DELETE FROM discussion_replies WHERE id = ?", [$reply_id], "i");
-            if ($del) {
-                $_SESSION['success'] = "Reply deleted successfully.";
-            }
-        } else {
-            $_SESSION['error'] = "You do not have permission to delete this reply.";
-        }
+    // Early return if invalid reply or thread ID
+    if ($reply_id <= 0 || $thread_id <= 0) {
+        header("Location: ../dashboard/discussion_thread.php?id=" . $thread_id);
+        exit();
+    }
+
+    // 1. Verify user owns the reply
+    $verifyReplyQuery = "SELECT id FROM discussion_replies WHERE id = ? AND user_id = ?";
+    $verifyReplyResult = db_query($verifyReplyQuery, [$reply_id, $current_user_id], "ii");
+    
+    // Early return if user is not authorized to delete the reply
+    if (!$verifyReplyResult || $verifyReplyResult->num_rows <= 0) {
+        $_SESSION['error'] = "You do not have permission to delete this reply.";
+        header("Location: ../dashboard/discussion_thread.php?id=" . $thread_id);
+        exit();
+    }
+    
+    // 2. Delete the reply
+    $deleteReplyQuery = "DELETE FROM discussion_replies WHERE id = ?";
+    $deleteResult = db_query($deleteReplyQuery, [$reply_id], "i");
+    
+    if ($deleteResult) {
+        $_SESSION['success'] = "Reply deleted successfully.";
+    } else {
+        $_SESSION['error'] = "Database error while deleting reply.";
     }
 }
 header("Location: ../dashboard/discussion_thread.php?id=" . $thread_id);

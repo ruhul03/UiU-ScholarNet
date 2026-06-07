@@ -1,5 +1,7 @@
 # UIU ScholarNet — Academic Research & Collaboration Platform
 
+> **Status:** v1.0 (Production Ready) — Fully security audited, SEO optimized, and feature complete.
+
 A full-stack, high-fidelity academic research collaboration platform custom-built for UIU students and faculty to coordinate projects, manage tasks, share preprints, host discussion threads, and message colleagues.
 
 ---

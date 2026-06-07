@@ -33,32 +33,34 @@ if ($project_id <= 0) {
     exit();
 }
 
-// Ensure project belongs to current user or user is an editor/owner
-$pRes = db_query("
+// 1. Ensure project belongs to current user or user is an editor/owner
+$projectPermissionQuery = "
     SELECT p.id 
     FROM projects p 
     LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? 
     WHERE p.id = ? AND (p.creator_id = ? OR pm.role IN ('owner', 'editor')) 
     LIMIT 1
-", [$user_id, $project_id, $user_id], "iii");
+";
+$projectPermissionResult = db_query($projectPermissionQuery, [$user_id, $project_id, $user_id], "iii");
 
-if (!$pRes || $pRes->num_rows !== 1) {
+if (!$projectPermissionResult || $projectPermissionResult->num_rows !== 1) {
     http_response_code(403);
     die("Forbidden");
 }
 
 if ($document_id > 0) {
-    // Ensure document belongs to one of user's accessible projects
-    $dRes = db_query("
+    // 2. Ensure existing document belongs to one of user's accessible projects
+    $documentPermissionQuery = "
         SELECT d.id
         FROM documents d
         JOIN projects p ON p.id = d.project_id
         LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
         WHERE d.id = ? AND (p.creator_id = ? OR pm.role IN ('owner', 'editor'))
         LIMIT 1
-    ", [$user_id, $document_id, $user_id], "iii");
+    ";
+    $documentPermissionResult = db_query($documentPermissionQuery, [$user_id, $document_id, $user_id], "iii");
 
-    if (!$dRes || $dRes->num_rows !== 1) {
+    if (!$documentPermissionResult || $documentPermissionResult->num_rows !== 1) {
         http_response_code(403);
         die("Forbidden");
     }

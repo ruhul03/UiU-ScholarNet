@@ -10,49 +10,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = strtolower(trim((string)($_POST['email'] ?? '')));
     $password = (string)($_POST['password'] ?? '');
 
-    // Fetch user by email using simplified db_query
-    $result = db_query("SELECT id, full_name, email, password, role, account_status FROM users WHERE email = ? LIMIT 1", [$email], "s");
+    // 1. Fetch user by email
+    $fetchUserQuery = "SELECT id, full_name, email, password, role, account_status FROM users WHERE email = ? LIMIT 1";
+    $fetchUserResult = db_query($fetchUserQuery, [$email], "s");
 
-    if ($result && $result->num_rows === 1) {
-        $user = $result->fetch_assoc();
+    // Early return if user not found
+    if (!$fetchUserResult || $fetchUserResult->num_rows !== 1) {
+        $_SESSION['error'] = "Invalid email or password.";
+        header("Location: ../auth/login.php");
+        exit();
+    }
+    
+    $user = $fetchUserResult->fetch_assoc();
 
-        // Verify password hash
-        if (password_verify($password, $user['password'])) {
-            // Check if user is banned
-            if (isset($user['account_status']) && $user['account_status'] === 'banned') {
-                $_SESSION['error'] = "Your account has been suspended.";
-                header("Location: ../auth/login.php");
-                exit();
-            }
-
-            // Secure session regeneration
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = (int)$user['id'];
-            $_SESSION['user_name'] = $user['full_name'];
-            $_SESSION['user_role'] = $user['role'];
-
-            if (isset($_POST['remember_me'])) {
-                // Set session cookie to last for 30 days
-                $params = session_get_cookie_params();
-                setcookie(
-                    session_name(),
-                    session_id(),
-                    time() + (30 * 24 * 60 * 60), // 30 days
-                    $params["path"],
-                    $params["domain"],
-                    $params["secure"],
-                    $params["httponly"]
-                );
-            }
-
-            $redirect = '../dashboard/index.php';
-            header("Location: " . $redirect);
-            exit();
-        }
+    // 2. Verify password hash
+    if (!password_verify($password, $user['password'])) {
+        $_SESSION['error'] = "Invalid email or password.";
+        header("Location: ../auth/login.php");
+        exit();
     }
 
-    $_SESSION['error'] = "Invalid email or password.";
-    header("Location: ../auth/login.php");
+    // 3. Check if user is banned
+    if (isset($user['account_status']) && $user['account_status'] === 'banned') {
+        $_SESSION['error'] = "Your account has been suspended.";
+        header("Location: ../auth/login.php");
+        exit();
+    }
+
+    // 4. Secure session regeneration
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = (int)$user['id'];
+    $_SESSION['user_name'] = $user['full_name'];
+    $_SESSION['user_role'] = $user['role'];
+
+    // 5. Remember Me functionality
+    if (isset($_POST['remember_me'])) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            session_id(),
+            time() + (30 * 24 * 60 * 60), // 30 days
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
+        );
+    }
+
+    header("Location: ../dashboard/index.php");
     exit();
 }
 ?>
