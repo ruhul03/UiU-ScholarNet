@@ -150,7 +150,7 @@ $dm_users_res = db_query("
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/messages.css">
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page messages-full-page">
 
     <?php include('../includes/sidebar.php'); ?>
 
@@ -177,6 +177,10 @@ $dm_users_res = db_query("
                     <?php endforeach; ?>
 
                     <h4>DIRECT MESSAGES</h4>
+                    <div class="user-search-container">
+                        <input type="text" id="userSearchInput" class="user-search-input" placeholder="Search users to DM..." autocomplete="off">
+                        <div id="userSearchResults" class="user-search-results d-none"></div>
+                    </div>
                     <?php if ($dm_users_res && $dm_users_res->num_rows > 0): ?>
                         <?php while ($dm_user = $dm_users_res->fetch_assoc()): ?>
                             <a href="?user_id=<?php echo $dm_user['id']; ?>" class="dm-item <?php echo ($chat_user_id === (int)$dm_user['id']) ? 'active' : ''; ?>">
@@ -222,6 +226,15 @@ $dm_users_res = db_query("
                     </div>
                 </div>
 
+                <?php 
+                ob_start();
+                include('../includes/alerts.php');
+                $alerts = ob_get_clean();
+                if (trim($alerts)) {
+                    echo '<div style="padding: 1rem 2rem 0 2rem;">' . $alerts . '</div>';
+                }
+                ?>
+
                 <div class="chat-messages" id="chatContainer">
                     <?php if ($messages && $messages->num_rows > 0): ?>
                         <?php while($msg = $messages->fetch_assoc()): 
@@ -236,10 +249,22 @@ $dm_users_res = db_query("
                                     <div class="msg-text">
                                         <?php echo nl2br(htmlspecialchars((string)$msg['message'])); ?>
                                         <?php if (!empty($msg['file_path'])): ?>
-                                            <a href="../<?php echo htmlspecialchars($msg['file_path']); ?>" target="_blank" class="file-attachment">
-                                                <i class="fa-solid fa-paperclip file-icon"></i>
-                                                <span class="file-name-sm-break"><?php echo htmlspecialchars($msg['file_name']); ?></span>
-                                            </a>
+                                            <?php 
+                                                $ext = strtolower(pathinfo($msg['file_name'], PATHINFO_EXTENSION));
+                                                $img_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                                                if (in_array($ext, $img_exts)):
+                                            ?>
+                                                <div class="chat-image-wrapper">
+                                                    <a href="../<?php echo htmlspecialchars($msg['file_path']); ?>" target="_blank">
+                                                        <img src="../<?php echo htmlspecialchars($msg['file_path']); ?>" alt="Attachment" class="chat-image-attachment">
+                                                    </a>
+                                                </div>
+                                            <?php else: ?>
+                                                <a href="../<?php echo htmlspecialchars($msg['file_path']); ?>" target="_blank" class="file-attachment">
+                                                    <i class="fa-solid fa-paperclip file-icon"></i>
+                                                    <span class="file-name-sm-break"><?php echo htmlspecialchars($msg['file_name']); ?></span>
+                                                </a>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
                                     <div class="msg-meta msg-meta-flex <?php echo $is_self ? 'justify-end' : 'justify-start'; ?>">
@@ -288,8 +313,8 @@ $dm_users_res = db_query("
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
-                    <div id="fileAttachmentPreview" class="file-preview-inline">
-                        Attached: <span id="fileNameDisplay"></span>
+                    <div id="fileAttachmentPreview" class="file-preview-inline" style="display: none; margin-top: 0.5rem; font-size: 0.8rem; color: var(--primary-color); font-weight: 500;">
+                        <i class="fa-solid fa-paperclip"></i> <span id="fileNameDisplay"></span>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -445,11 +470,22 @@ $dm_users_res = db_query("
 
                             let attachmentHtml = '';
                             if (msg.file_path && msg.file_name) {
-                                attachmentHtml = `
-                                <a href="../${msg.file_path}" target="_blank" class="file-attachment">
-                                    <i class="fa-solid fa-paperclip file-icon"></i>
-                                    <span class="file-name-sm-break">${msg.file_name}</span>
-                                </a>`;
+                                const ext = msg.file_name.split('.').pop().toLowerCase();
+                                const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                                if (imgExts.includes(ext)) {
+                                    attachmentHtml = `
+                                    <div class="chat-image-wrapper">
+                                        <a href="../${msg.file_path}" target="_blank">
+                                            <img src="../${msg.file_path}" alt="Attachment" class="chat-image-attachment">
+                                        </a>
+                                    </div>`;
+                                } else {
+                                    attachmentHtml = `
+                                    <a href="../${msg.file_path}" target="_blank" class="file-attachment">
+                                        <i class="fa-solid fa-paperclip file-icon"></i>
+                                        <span class="file-name-sm-break">${msg.file_name}</span>
+                                    </a>`;
+                                }
                             }
 
                             html += `
@@ -531,6 +567,55 @@ $dm_users_res = db_query("
                     document.getElementById('chatFileInput').value = '';
                     updateFileLabel(document.getElementById('chatFileInput'));
                 }, 100);
+            });
+        }
+
+        const userSearchInput = document.getElementById('userSearchInput');
+        const userSearchResults = document.getElementById('userSearchResults');
+        let searchTimeout = null;
+
+        if (userSearchInput) {
+            userSearchInput.addEventListener('input', function() {
+                const q = this.value.trim();
+                clearTimeout(searchTimeout);
+                
+                if (q.length < 2) {
+                    userSearchResults.classList.add('d-none');
+                    return;
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    fetch('../actions/search_users.php?q=' + encodeURIComponent(q))
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success && data.users.length > 0) {
+                                let html = '';
+                                data.users.forEach(u => {
+                                    const encodedName = encodeURIComponent(u.name);
+                                    html += `
+                                    <a href="?user_id=${u.id}" class="search-result-item">
+                                        <img src="https://ui-avatars.com/api/?name=${encodedName}&background=f8f7f2&color=0a1128" class="avatar-badge-sm">
+                                        <div>
+                                            <div class="item-name">${u.name}</div>
+                                            <div class="item-preview">${u.role}</div>
+                                        </div>
+                                    </a>`;
+                                });
+                                userSearchResults.innerHTML = html;
+                                userSearchResults.classList.remove('d-none');
+                            } else {
+                                userSearchResults.innerHTML = '<div class="search-result-empty">No users found</div>';
+                                userSearchResults.classList.remove('d-none');
+                            }
+                        });
+                }, 300);
+            });
+
+            // Close search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (userSearchResults && !e.target.closest('.user-search-container')) {
+                    userSearchResults.classList.add('d-none');
+                }
             });
         }
     </script>

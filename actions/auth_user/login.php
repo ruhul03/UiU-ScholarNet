@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
             }
 
-            $redirect = ($user['role'] === 'admin') ? '../dashboard/admin.php' : '../dashboard/index.php';
+            $redirect = '../dashboard/index.php';
             header("Location: " . $redirect);
             exit();
         }

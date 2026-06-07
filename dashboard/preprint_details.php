@@ -52,6 +52,7 @@ $comments = db_query("SELECT c.*, u.full_name
 
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <section class="p-details-section">
             <a href="preprints.php" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Preprints</a>

@@ -46,6 +46,7 @@ $collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_a
     <!-- Main Content -->
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <section class="resources-section">
             <h1 class="resources-title">Resource Hub</h1>

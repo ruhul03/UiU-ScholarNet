@@ -90,6 +90,7 @@ if ($doc['id'] > 0) {
     <!-- Main Content -->
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <div class="editor-layout">
             <!-- Left: Main Editor Area -->

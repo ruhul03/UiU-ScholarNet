@@ -17,6 +17,7 @@ function layout_header(string $title = "UIU ScholarNet", array $extra_css = []):
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <!-- Custom CSS -->
         <link rel="stylesheet" href="../assets/css/style.css">
+        <link rel="stylesheet" href="../assets/css/profile_popup.css">
         <?php foreach ($extra_css as $css): ?>
             <link rel="stylesheet" href="<?php echo htmlspecialchars($css); ?>">
         <?php endforeach; ?>
@@ -30,6 +31,9 @@ function layout_footer(array $extra_js = []): void {
         echo '<script src="' . htmlspecialchars($js) . '"></script>';
     }
     ?>
+    <!-- Global Profile Popup Modal -->
+    <div id="global-profile-popup" class="profile-popup-overlay"></div>
+    <script src="../assets/js/profile_popup.js"></script>
     </body>
     </html>
     <?php

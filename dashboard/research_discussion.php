@@ -67,6 +67,7 @@ layout_header("Research Discussion | UIU ScholarNet");
 
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <div class="discussion-container">
             <div class="discussion-header">

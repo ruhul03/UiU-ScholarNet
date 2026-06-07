@@ -72,6 +72,7 @@ layout_header("Topic: " . htmlspecialchars($thread['title']) . " | UIU ScholarNe
 
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <div class="discussion-container">
             <a href="research_discussion.php" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Discussions</a>

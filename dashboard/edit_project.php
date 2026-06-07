@@ -83,6 +83,7 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
 
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <section class="edit-hero mb-3">
             <div class="section-label">INSTITUTIONAL REPOSITORY / CURATION</div>

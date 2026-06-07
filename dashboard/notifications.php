@@ -32,6 +32,7 @@ $notifications = db_query("SELECT * FROM notifications WHERE user_id = ? ORDER B
     <!-- Main Content -->
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <div class="notifications-container">
             <div class="page-header">

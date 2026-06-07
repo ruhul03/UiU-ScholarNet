@@ -6,8 +6,9 @@ if (!isset($unread_messages_count)) {
     $um_stmt->execute();
     $unread_messages_count = (int)($um_stmt->get_result()->fetch_assoc()['total'] ?? 0);
 }
-$is_admin_sidebar = isset($user_data['role']) && $user_data['role'] === 'admin';
+$is_admin_user = isset($user_data['role']) && $user_data['role'] === 'admin';
 $current_page = basename($_SERVER['PHP_SELF']);
+$is_admin_sidebar = $is_admin_user && $current_page === 'admin.php';
 ?>
 <aside class="sidebar">
     <div class="logo"><?php echo $is_admin_sidebar ? 'Admin Console' : 'UIU ScholarNet'; ?></div>
@@ -15,6 +16,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <nav class="sidebar-menu">
         <?php if ($is_admin_sidebar): ?>
+            <a href="index.php" class="menu-item">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </a>
             <a href="admin.php#admin-overview" class="menu-item <?php echo ($current_page == 'admin.php') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-gauge-high"></i> Overview
             </a>
@@ -24,18 +28,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <a href="admin.php#admin-data" class="menu-item">
                 <i class="fa-solid fa-table-list"></i> Platform Data
             </a>
-            <a href="notifications.php" class="menu-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
-                <i class="fa-solid fa-bell"></i> Notifications
-            </a>
         <?php else: ?>
             <a href="index.php" class="menu-item <?php echo ($current_page == 'index.php') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-house"></i> Dashboard
             </a>
-            <a href="collaboration.php" class="menu-item <?php echo ($current_page == 'collaboration.php') ? 'active' : ''; ?>">
-                <i class="fa-solid fa-magnifying-glass"></i> Collaboration Finder
-            </a>
             <a href="projects.php" class="menu-item <?php echo ($current_page == 'projects.php' || $current_page == 'edit_project.php') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-folder"></i> Projects
+            </a>
+            <a href="collaboration.php" class="menu-item <?php echo ($current_page == 'collaboration.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-magnifying-glass"></i> Collaboration Finder
             </a>
             <a href="tasks.php" class="menu-item <?php echo ($current_page == 'tasks.php') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-square-check"></i> Tasks
@@ -67,29 +68,16 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <a href="profile.php" class="menu-item <?php echo ($current_page == 'profile.php') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-user"></i> My Profile
             </a>
+            <?php if ($is_admin_user): ?>
+            <a href="admin.php" class="menu-item">
+                <i class="fa-solid fa-screwdriver-wrench"></i> Admin Panel
+            </a>
+            <?php endif; ?>
         <?php endif; ?>
     </nav>
 
     <div class="sidebar-footer">
         <a href="../auth/logout.php" class="menu-item logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-        
-        <div class="user-profile-small">
-            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_data['full_name']); ?>&background=0a1128&color=fff" alt="User">
-            <div>
-                <div class="user-name"><?php echo htmlspecialchars($user_data['full_name']); ?></div>
-                <div class="user-role text-0-75rem fw-bold mt-2px">
-                    <?php if ($user_data['role'] === 'admin'): ?>
-                        <span class="color-admin">ADMIN</span>
-                    <?php elseif ($user_data['role'] === 'faculty'): ?>
-                        <span class="<?php echo isset($user_data['is_verified']) && $user_data['is_verified'] ? 'color-faculty-verified' : 'color-faculty-unverified'; ?>">
-                            <?php echo isset($user_data['is_verified']) && $user_data['is_verified'] ? 'VERIFIED FACULTY' : 'UNVERIFIED FACULTY'; ?>
-                        </span>
-                    <?php else: ?>
-                        <span class="color-student">STUDENT</span>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
     </div>
 </aside>
 
@@ -142,6 +130,7 @@ if (!function_exists('getSidebarNotifIcon')) {
     }
 }
 ?>
+<?php if (!isset($is_admin_sidebar) || !$is_admin_sidebar): ?>
 <!-- Notification Popup Container -->
 <div id="notificationPopup" class="popup-container">
     <div class="popup-header">
@@ -201,3 +190,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<?php endif; ?>

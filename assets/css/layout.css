@@ -169,3 +169,7 @@
     font-size: 0.65rem;
     opacity: 0.5;
 }
+
+.main-content.no-sidebar {
+    margin-left: 0;
+}

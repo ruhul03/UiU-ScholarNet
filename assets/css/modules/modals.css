@@ -40,7 +40,8 @@
 .visibility-group {
     display: flex;
     gap: 1rem;
-    margin-bottom: 2rem;
+    align-items: center;
+    height: 48px; /* Standardize height to match typical select/input */
 }
 
 .visibility-item {

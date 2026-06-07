@@ -33,6 +33,7 @@ $proj_result = db_query("SELECT id, title FROM projects WHERE creator_id = ? OR 
 
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <section class="preprints-section">
             <div class="preprints-header">

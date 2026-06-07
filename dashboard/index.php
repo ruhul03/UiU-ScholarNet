@@ -2,11 +2,6 @@
 require_once('../includes/auth_check.php');
 require_once('../includes/layout.php');
 
-if (isset($user_data['role']) && $user_data['role'] === 'admin') {
-    header("Location: admin.php");
-    exit();
-}
-
 // Fetch Home Stats using db_query
 $projects_total = (int)(db_query("SELECT COUNT(DISTINCT p.id) as total FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE p.creator_id = ? OR pm.user_id = ?", [$user_id, $user_id, $user_id])->fetch_assoc()['total'] ?? 0);
 $tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND status = 'done'", [$user_id])->fetch_assoc()['total'] ?? 0);

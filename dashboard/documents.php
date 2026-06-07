@@ -37,6 +37,7 @@ $docs_result = db_query("
     <!-- Main Content -->
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
+        <?php include('../includes/alerts.php'); ?>
 
         <div class="docs-container">
             <div class="page-header">

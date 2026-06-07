@@ -31,7 +31,8 @@ $channel = trim((string)($_POST['channel'] ?? 'general'));
 $message = trim((string)($_POST['message'] ?? ''));
 $receiver_id = isset($_POST['receiver_id']) && $_POST['receiver_id'] !== '' ? (int)$_POST['receiver_id'] : null;
 
-if ($message === '') {
+$has_file = isset($_FILES['chat_file']) && $_FILES['chat_file']['error'] === UPLOAD_ERR_OK;
+if ($message === '' && !$has_file) {
     if ($is_ajax) { echo json_encode(['success' => false, 'error' => 'Empty message']); exit(); }
     $redirect = $receiver_id ? "?user_id=" . $receiver_id : "?channel=" . urlencode($channel);
     header("Location: ../dashboard/messages.php" . $redirect);
