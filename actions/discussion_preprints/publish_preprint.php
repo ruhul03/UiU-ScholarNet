@@ -3,9 +3,11 @@ require_once(__DIR__ . '/../../includes/session.php');
 start_secure_session();
 require_once(__DIR__ . '/../../includes/db_connect.php');
 require_once(__DIR__ . '/../../includes/csrf.php');
+require_once(__DIR__ . '/../../includes/preprint_moderation.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     csrf_validate_or_die();
+    ensure_preprint_moderation_schema();
 
     if (!isset($_SESSION['user_id'])) {
         header("Location: ../auth/login.php");
@@ -68,8 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 4. Insert preprint metadata into the database
     $insertPreprintQuery = "
-        INSERT INTO preprints (title, abstract, keywords, file_path, author_id, project_id, visibility) 
-        VALUES (?, ?, ?, ?, ?, ?, 'public')
+        INSERT INTO preprints (title, abstract, keywords, file_path, author_id, project_id, visibility, moderation_status) 
+        VALUES (?, ?, ?, ?, ?, ?, 'public', 'pending')
     ";
     
     $insertResult = db_query(
@@ -80,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     if ($insertResult) {
         $new_preprint_id = $conn->insert_id;
-        $_SESSION['success'] = "Document successfully published as a preprint!";
+        $_SESSION['success'] = "Document published as a preprint and sent for admin review.";
         
         // 5. Award points for publishing
         $updatePointsQuery = "UPDATE users SET points = points + 100 WHERE id = ?";

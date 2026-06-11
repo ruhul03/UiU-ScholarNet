@@ -1,12 +1,24 @@
 <?php
 require_once('../includes/auth_check.php');
+require_once('../includes/csrf.php');
+require_once('../includes/preprint_moderation.php');
+
+ensure_preprint_moderation_schema();
+$is_admin_user = isset($user_data['role']) && $user_data['role'] === 'admin';
 
 // Fetch Preprints
 $result = db_query("SELECT p.*, u.full_name, pr.title as project_title 
                         FROM preprints p 
                         JOIN users u ON p.author_id = u.id 
                         LEFT JOIN projects pr ON p.project_id = pr.id
-                        ORDER BY p.created_at DESC");
+                        WHERE p.moderation_status = 'approved' OR p.author_id = ? OR ? = 1
+                        ORDER BY 
+                            CASE p.moderation_status
+                                WHEN 'pending' THEN 0
+                                WHEN 'rejected' THEN 1
+                                ELSE 2
+                            END,
+                            p.created_at DESC", [$user_id, $is_admin_user ? 1 : 0], "ii");
 
 // Fetch Projects for the upload modal
 $proj_result = db_query("SELECT id, title FROM projects WHERE creator_id = ? OR id IN (SELECT project_id FROM tasks WHERE assigned_to = ?)", [$user_id, $user_id], "ii");
@@ -57,6 +69,17 @@ $proj_result = db_query("SELECT id, title FROM projects WHERE creator_id = ? OR 
                             <div class="preprint-card-meta">
                                 <span><i class="fa-solid fa-user-circle"></i> <?php echo htmlspecialchars($row['full_name']); ?></span>
                                 <span><i class="fa-regular fa-calendar"></i> <?php echo date('M j, Y', strtotime($row['created_at'])); ?></span>
+                                <?php if ($is_admin_user || $row['author_id'] == $user_id): ?>
+                                    <span>
+                                        <?php if ($row['moderation_status'] === 'approved'): ?>
+                                            <span class="badge-verified">APPROVED</span>
+                                        <?php elseif ($row['moderation_status'] === 'rejected'): ?>
+                                            <span class="badge-banned">REJECTED</span>
+                                        <?php else: ?>
+                                            <span class="badge-pending">PENDING REVIEW</span>
+                                        <?php endif; ?>
+                                    </span>
+                                <?php endif; ?>
                             </div>
                         </div>
                         
@@ -67,6 +90,7 @@ $proj_result = db_query("SELECT id, title FROM projects WHERE creator_id = ? OR 
                             
                             <?php if($row['author_id'] == $user_id): ?>
                             <form action="../actions/delete_preprint.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this preprint?');" class="form-inline">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="preprint_id" value="<?php echo $row['id']; ?>">
                                 <button type="submit" class="btn btn-outline btn-delete-sm">
                                     <i class="fa-solid fa-trash"></i> Delete
@@ -96,6 +120,7 @@ $proj_result = db_query("SELECT id, title FROM projects WHERE creator_id = ? OR 
                 <button class="close-modal" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form action="../actions/upload_preprint.php" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="form-group">
                     <label>Title</label>
                     <input type="text" name="title" class="form-control" required placeholder="e.g., A Novel Approach to LLM Optimization">
