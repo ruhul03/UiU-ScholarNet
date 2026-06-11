@@ -1,9 +1,11 @@
 <?php
 require_once(__DIR__ . '/../../includes/auth_check.php');
 require_once(__DIR__ . '/../../includes/csrf.php');
+require_once(__DIR__ . '/../../includes/preprint_moderation.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     csrf_validate_or_die();
+    ensure_preprint_moderation_schema();
     $title = $_POST['title'];
     $abstract = $_POST['abstract'];
     $keywords = $_POST['keywords'];
@@ -40,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 4. Insert the preprint details into the database
     $insertPreprintQuery = "
         INSERT INTO preprints 
-        (title, abstract, keywords, file_path, author_id, project_id, visibility, license_type, accepted_copyright) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (title, abstract, keywords, file_path, author_id, project_id, visibility, license_type, accepted_copyright, moderation_status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     ";
     
     $insertResult = db_query(
@@ -55,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $updatePointsQuery = "UPDATE users SET points = points + 100 WHERE id = ?";
         db_query($updatePointsQuery, [$user_id], "i");
         
-        $_SESSION['success'] = "Preprint uploaded successfully!";
+        $_SESSION['success'] = "Preprint uploaded successfully and is now pending admin review.";
         header("Location: ../dashboard/preprints.php");
         exit();
     } else {

@@ -258,6 +258,9 @@ CREATE TABLE IF NOT EXISTS preprints (
     views_count INT DEFAULT 0,
     downloads_count INT DEFAULT 0,
     project_id INT NULL,
+    moderation_status ENUM('pending', 'approved', 'rejected') DEFAULT 'approved',
+    moderated_by INT NULL,
+    moderated_at TIMESTAMP NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL

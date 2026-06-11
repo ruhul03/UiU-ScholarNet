@@ -2,6 +2,9 @@
 require_once('../includes/auth_check.php');
 require_once('../includes/layout.php');
 require_once('../includes/csrf.php');
+require_once('../includes/preprint_moderation.php');
+
+ensure_preprint_moderation_schema();
 
 // Ensure only admins can access this page
 if ($user_data['role'] !== 'admin') {
@@ -68,6 +71,30 @@ $projectsRes = db_query("
     FROM projects p
     LEFT JOIN users u ON p.creator_id = u.id
     ORDER BY p.created_at DESC
+    LIMIT 20
+", [], "");
+
+$pendingPreprints = (int)(db_query(
+    "SELECT COUNT(*) as c FROM preprints WHERE moderation_status = 'pending'",
+    [],
+    ""
+)->fetch_assoc()['c'] ?? 0);
+
+$preprintsRes = db_query("
+    SELECT p.id, p.title, p.visibility, p.created_at, p.moderation_status,
+           u.full_name AS author_name,
+           COALESCE(SUM(CASE WHEN rp.status = 'pending' THEN 1 ELSE 0 END), 0) AS pending_reports
+    FROM preprints p
+    JOIN users u ON p.author_id = u.id
+    LEFT JOIN reports rp ON rp.item_type = 'preprint' AND rp.item_id = p.id
+    GROUP BY p.id, p.title, p.visibility, p.created_at, p.moderation_status, u.full_name
+    ORDER BY
+        CASE p.moderation_status
+            WHEN 'pending' THEN 0
+            WHEN 'rejected' THEN 1
+            ELSE 2
+        END,
+        p.created_at DESC
     LIMIT 20
 ", [], "");
 
@@ -329,6 +356,88 @@ layout_header("Admin Panel | UIU ScholarNet");
                             <?php endwhile; ?>
                         </tbody>
                     </table>
+                </div>
+
+                <div class="card admin-card-main" id="admin-preprints" style="margin-bottom: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                        <h3 class="admin-card-title" style="margin-bottom: 0;">Preprint Moderation</h3>
+                        <span class="badge-pending">PENDING REVIEW: <?php echo $pendingPreprints; ?></span>
+                    </div>
+
+                    <?php if ($preprintsRes && $preprintsRes->num_rows > 0): ?>
+                    <table class="leaderboard-table admin-table">
+                        <thead>
+                            <tr class="admin-tr-header">
+                                <th class="admin-th-left">Title</th>
+                                <th class="admin-th-left">Author</th>
+                                <th class="admin-th-left">Visibility</th>
+                                <th class="admin-th-center">Status</th>
+                                <th class="admin-th-center">Reports</th>
+                                <th class="admin-th-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while($pp = $preprintsRes->fetch_assoc()): ?>
+                            <tr class="admin-tr-body">
+                                <td class="admin-td">
+                                    <strong>
+                                        <a href="preprint_details.php?id=<?php echo $pp['id']; ?>" style="color: inherit; text-decoration: none;">
+                                            <?php echo htmlspecialchars($pp['title']); ?>
+                                        </a>
+                                    </strong>
+                                    <div class="admin-td-muted"><?php echo date('M j, Y', strtotime($pp['created_at'])); ?></div>
+                                </td>
+                                <td class="admin-td-muted"><?php echo htmlspecialchars($pp['author_name']); ?></td>
+                                <td class="admin-td-muted"><?php echo strtoupper(htmlspecialchars($pp['visibility'])); ?></td>
+                                <td class="admin-td-center">
+                                    <?php if ($pp['moderation_status'] === 'approved'): ?>
+                                        <span class="badge-verified">APPROVED</span>
+                                    <?php elseif ($pp['moderation_status'] === 'rejected'): ?>
+                                        <span class="badge-banned">REJECTED</span>
+                                    <?php else: ?>
+                                        <span class="badge-pending">PENDING</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="admin-td-center"><?php echo (int)$pp['pending_reports']; ?></td>
+                                <td class="admin-td-right">
+                                    <a href="preprint_details.php?id=<?php echo $pp['id']; ?>" class="btn btn-sm-dark-outline">View</a>
+
+                                    <?php if ($pp['moderation_status'] !== 'approved'): ?>
+                                    <form action="../actions/admin_preprint_action.php" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="preprint_id" value="<?php echo $pp['id']; ?>">
+                                        <input type="hidden" name="action_type" value="approve">
+                                        <button type="submit" class="btn btn-sm-success">Approve</button>
+                                    </form>
+                                    <?php endif; ?>
+
+                                    <?php if ($pp['moderation_status'] !== 'rejected'): ?>
+                                    <form action="../actions/admin_preprint_action.php" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="preprint_id" value="<?php echo $pp['id']; ?>">
+                                        <input type="hidden" name="action_type" value="reject">
+                                        <button type="submit" class="btn btn-sm-danger-outline">Reject</button>
+                                    </form>
+                                    <?php endif; ?>
+
+                                    <form action="../actions/admin_preprint_action.php" method="POST" class="d-inline" onsubmit="return confirm('Delete this preprint permanently?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="preprint_id" value="<?php echo $pp['id']; ?>">
+                                        <input type="hidden" name="action_type" value="delete">
+                                        <button type="submit" class="btn btn-sm-danger"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                    <?php else: ?>
+                    <div class="empty-state">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                        <h3>No Preprints Submitted</h3>
+                        <p>Uploaded and published preprints will appear here for moderation.</p>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Dynamic Data Management -->

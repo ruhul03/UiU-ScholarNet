@@ -1,5 +1,10 @@
 <?php
 require_once(__DIR__ . '/../../includes/auth_check.php');
+require_once(__DIR__ . '/../../includes/preprint_moderation.php');
+
+ensure_preprint_moderation_schema();
+
+$isAdminUser = isset($user_data['role']) && $user_data['role'] === 'admin';
 
 $preprint_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -11,7 +16,7 @@ if ($preprint_id <= 0) {
 }
 
 // 1. Fetch file path
-$fetchPathQuery = "SELECT file_path FROM preprints WHERE id = ?";
+$fetchPathQuery = "SELECT file_path, author_id, moderation_status FROM preprints WHERE id = ?";
 $fetchResult = db_query($fetchPathQuery, [$preprint_id], "i");
 
 if (!$fetchResult || $fetchResult->num_rows <= 0) {
@@ -21,6 +26,13 @@ if (!$fetchResult || $fetchResult->num_rows <= 0) {
 }
 
 $preprintData = $fetchResult->fetch_assoc();
+
+if (!preprint_is_visible_to_user($preprintData, $user_id, $isAdminUser)) {
+    $_SESSION['error'] = "This preprint is not available yet.";
+    header("Location: ../dashboard/preprints.php");
+    exit();
+}
+
 $absolute_file_path = __DIR__ . '/../../' . $preprintData['file_path'];
 
 // 2. Check if file exists on disk

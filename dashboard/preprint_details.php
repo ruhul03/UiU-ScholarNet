@@ -1,5 +1,10 @@
 <?php
 require_once('../includes/auth_check.php');
+require_once('../includes/csrf.php');
+require_once('../includes/preprint_moderation.php');
+
+ensure_preprint_moderation_schema();
+$is_admin_user = isset($user_data['role']) && $user_data['role'] === 'admin';
 
 $preprint_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
@@ -8,9 +13,6 @@ if ($preprint_id == 0) {
     exit();
 }
 
-// Increment views
-$conn->query("UPDATE preprints SET views_count = views_count + 1 WHERE id = $preprint_id");
-
 // Fetch Preprint
 $preprint = db_query("SELECT p.*, u.full_name, u.role, pr.title as project_title 
                         FROM preprints p 
@@ -18,10 +20,14 @@ $preprint = db_query("SELECT p.*, u.full_name, u.role, pr.title as project_title
                         LEFT JOIN projects pr ON p.project_id = pr.id
                         WHERE p.id = ?", [$preprint_id], "i")->fetch_assoc();
 
-if (!$preprint) {
+if (!$preprint || !preprint_is_visible_to_user($preprint, $user_id, $is_admin_user)) {
+    $_SESSION['error'] = "This preprint is not available.";
     header("Location: preprints.php");
     exit();
 }
+
+db_query("UPDATE preprints SET views_count = views_count + 1 WHERE id = ?", [$preprint_id], "i");
+$preprint['views_count']++;
 
 // Fetch Comments
 $comments = db_query("SELECT c.*, u.full_name 
@@ -62,6 +68,17 @@ $comments = db_query("SELECT c.*, u.full_name
                     <span><i class="fa-regular fa-calendar"></i> Uploaded: <?php echo date('M j, Y', strtotime($preprint['created_at'])); ?></span>
                     <span><i class="fa-solid fa-code-branch"></i> Version <?php echo $preprint['version']; ?></span>
                     <span><i class="fa-solid fa-scale-balanced"></i> <?php echo htmlspecialchars($preprint['license_type']); ?></span>
+                    <?php if ($is_admin_user || $preprint['author_id'] == $user_id): ?>
+                        <span>
+                            <?php if ($preprint['moderation_status'] === 'approved'): ?>
+                                <span class="badge-verified">APPROVED</span>
+                            <?php elseif ($preprint['moderation_status'] === 'rejected'): ?>
+                                <span class="badge-banned">REJECTED</span>
+                            <?php else: ?>
+                                <span class="badge-pending">PENDING REVIEW</span>
+                            <?php endif; ?>
+                        </span>
+                    <?php endif; ?>
                     <?php if($preprint['project_title']): ?>
                     <a href="edit_project.php?id=<?php echo $preprint['project_id']; ?>" class="text-success text-deco-none"><i class="fa-solid fa-folder"></i> Project: <?php echo htmlspecialchars($preprint['project_title']); ?></a>
                     <?php endif; ?>
@@ -115,6 +132,16 @@ $comments = db_query("SELECT c.*, u.full_name
                     <?php endif; ?>
                 </div>
             </div>
+
+            <?php if ($preprint['moderation_status'] === 'pending' && ($is_admin_user || $preprint['author_id'] == $user_id)): ?>
+            <div class="bg-success-light">
+                <i class="fa-solid fa-hourglass-half"></i> This preprint is waiting for admin review before it becomes visible to everyone.
+            </div>
+            <?php elseif ($preprint['moderation_status'] === 'rejected' && ($is_admin_user || $preprint['author_id'] == $user_id)): ?>
+            <div class="bg-danger-light">
+                <i class="fa-solid fa-circle-xmark"></i> This preprint was rejected by an admin and is hidden from other users.
+            </div>
+            <?php endif; ?>
             
             <?php if(isset($_GET['reported']) && $_GET['reported'] == 1): ?>
             <div class="bg-success-light">
@@ -151,6 +178,7 @@ $comments = db_query("SELECT c.*, u.full_name
                 </div>
                 
                 <form action="../actions/add_preprint_comment.php" method="POST" class="comment-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="preprint_id" value="<?php echo $preprint['id']; ?>">
                     <textarea name="comment" required placeholder="Suggest improvements, ask questions, or provide a review..."></textarea>
                     <button type="submit" class="btn btn-primary btn-submit">Post Feedback</button>
@@ -168,6 +196,7 @@ $comments = db_query("SELECT c.*, u.full_name
             </div>
             <p class="modal-desc-text">If you believe this content violates our Terms & Copyright Policy, please let us know. The administration will review it.</p>
             <form action="../actions/report_content.php" method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                 <input type="hidden" name="item_id" value="<?php echo $preprint['id']; ?>">
                 <input type="hidden" name="item_type" value="preprint">
                 <input type="hidden" name="redirect_url" value="../dashboard/preprint_details.php?id=<?php echo $preprint['id']; ?>">
