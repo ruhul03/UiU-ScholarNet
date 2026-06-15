@@ -110,6 +110,13 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
             box-shadow: 0 0 0 4px rgba(197, 160, 34, 0.1);
             transform: translateY(-1px);
         }
+        .grid-ecosystem {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 3rem;
+        }
         .ecosystem-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(8px);
@@ -117,10 +124,94 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.03);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
         .ecosystem-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        }
+        .ecosystem-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: 0.75rem;
+        }
+        .ecosystem-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+        }
+        .ecosystem-empty {
+            color: #666;
+            font-size: 0.9rem;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem 0;
+            margin: 0;
+            background: rgba(0,0,0,0.02);
+            border-radius: 8px;
+            border: 1px dashed rgba(0,0,0,0.1);
+        }
+        .ecosystem-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .ecosystem-list-item, .ecosystem-task-item, .ecosystem-preprint-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: background 0.2s;
+        }
+        .ecosystem-list-item:hover, .ecosystem-task-item:hover, .ecosystem-preprint-item:hover {
+            background: #fafafa;
+        }
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .ecosystem-item-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--primary-color);
+        }
+        .ecosystem-item-meta {
+            font-size: 0.8rem;
+            color: #777;
+        }
+        .ecosystem-link-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        .ecosystem-link-title:hover {
+            text-decoration: underline;
+        }
+        .section-heading-ecosystem {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-top: 3rem;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(10, 17, 40, 0.1);
         }
     </style>
 </head>

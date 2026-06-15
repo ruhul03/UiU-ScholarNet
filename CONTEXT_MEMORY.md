@@ -168,4 +168,12 @@ Contains static frontend files.
 
 ---
 
+## 📝 Recent Updates
+
+- **Project Approvals:** Separated the concept of initial faculty supervision acceptance (`supervision_accepted`) from final project approval (`supervisor_approved`) to allow independent state tracking.
+- **Admin Moderation Expansion:** Enhanced the Admin Panel (`dashboard/admin.php`) to allow direct global moderation (deletion) of Resources (`actions/admin_resource_action.php`) and Research Discussions (`actions/admin_discussion_action.php`).
+- **UI Bug Fixes:** Fixed flexbox layout issues in `assets/css/messages.css` to prevent channel item squishing and container overflow.
+
+---
+
 > **Note for AI Agents:** When modifying this project, prioritize reading this file to understand the architecture. **Do not** attempt to install Node packages or React frameworks, as this codebase relies exclusively on a Vanilla PHP/JS/CSS stack.

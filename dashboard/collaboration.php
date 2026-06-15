@@ -153,19 +153,7 @@ $postTypes = 'i' . $whereTypes . 'ii';
 $postValues = array_merge([$user_id], $whereValues, [$perPage, $offset]);
 $postsResult = db_query($postsSql, $postValues, $postTypes);
 
-$spotlight = db_query(
-    "SELECT cp.*, u.full_name, COALESCE(a.total_applicants, 0) AS total_applicants
-     FROM collaboration_posts cp
-     JOIN users u ON cp.user_id = u.id
-     LEFT JOIN (
-        SELECT post_id, COUNT(*) AS total_applicants
-        FROM collaboration_applications
-        GROUP BY post_id
-     ) a ON a.post_id = cp.id
-     WHERE cp.status = 'open'
-     ORDER BY total_applicants DESC, cp.created_at DESC
-     LIMIT 1"
-)->fetch_assoc();
+
 
 $departments = [];
 $depRes = db_query("SELECT name FROM departments ORDER BY name ASC");
@@ -357,49 +345,6 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                 </div>
             <?php endwhile; ?>
 
-            <?php if ($spotlight): ?>
-                <div class="collab-card collab-spotlight">
-                    <div class="spotlight-header">
-                        <span class="spotlight-badge">ACTIVE REQUEST</span>
-                    </div>
-                    <h3 class="spotlight-title"><?php echo htmlspecialchars((string)$spotlight['title']); ?></h3>
-                    <p class="spotlight-desc">
-                        <?php
-                        $spotDesc = (string)($spotlight['description'] ?? '');
-                        echo htmlspecialchars((strlen($spotDesc) > 140) ? substr($spotDesc, 0, 140) . '...' : $spotDesc);
-                        ?>
-                    </p>
-
-                    <div class="spotlight-mb">
-                        <div class="applicants-row">
-                            <span class="applicants-label">Total Applicants</span>
-                            <span class="applicants-count"><?php echo (int)$spotlight['total_applicants']; ?> People</span>
-                        </div>
-                        <div class="progress-bar spotlight-progress">
-                            <?php
-                            $slots = max(1, (int)($spotlight['slots_total'] ?? 10));
-                            $ratio = min(100, (int)round(((int)$spotlight['total_applicants'] / $slots) * 100));
-                            ?>
-                            <div class="progress-fill" style="width: <?php echo $ratio; ?>%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="spotlight-actions flex-gap-sm-align-center">
-                        <a href="?q=<?php echo urlencode((string)$spotlight['title']); ?>" class="btn btn-primary btn-view-details flex-1">VIEW DETAILS</a>
-                        <?php if ((int)$spotlight['user_id'] === (int)$user_id): ?>
-                            <form action="../actions/delete_collaboration_post.php" method="POST" onsubmit="return confirm('Permanently delete this spotlight request?');" class="flex-none">
-                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
-                                <input type="hidden" name="post_id" value="<?php echo (int)$spotlight['id']; ?>">
-                                <button class="btn btn-outline btn-danger-outline-glass" type="submit">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                </button>
-                            </form>
-                        <?php else: ?>
-                            <button class="btn btn-outline btn-edit-white" type="button" disabled><i class="fa-solid fa-pen-nib"></i></button>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            <?php endif; ?>
         </div>
 
         <?php if ($totalRows === 0): ?>

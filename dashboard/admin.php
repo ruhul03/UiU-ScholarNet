@@ -98,6 +98,25 @@ $preprintsRes = db_query("
     LIMIT 20
 ", [], "");
 
+// Fetch resources for moderation
+$resourcesRes = db_query("
+    SELECT r.id, r.title, r.resource_type, r.created_at, u.full_name as uploader_name
+    FROM resources r
+    LEFT JOIN users u ON r.user_id = u.id
+    ORDER BY r.created_at DESC
+    LIMIT 20
+", [], "");
+
+// Fetch discussions for moderation
+$discussionsRes = db_query("
+    SELECT t.id, t.title, t.category, t.created_at, u.full_name as author_name,
+           (SELECT COUNT(*) FROM discussion_replies r WHERE r.thread_id = t.id) as reply_count
+    FROM discussion_threads t
+    JOIN users u ON t.user_id = u.id
+    ORDER BY t.created_at DESC
+    LIMIT 20
+", [], "");
+
 // Global Activity Feed
 $globalActivities = [];
 // Fetch 15 newest users
@@ -438,6 +457,70 @@ layout_header("Admin Panel | UIU ScholarNet");
                         <p>Uploaded and published preprints will appear here for moderation.</p>
                     </div>
                     <?php endif; ?>
+                </div>
+
+                <!-- Resources Moderation -->
+                <div class="card admin-card-main" id="admin-resources" style="margin-bottom: 0;">
+                    <h3 class="admin-card-title">Resources Moderation</h3>
+                    <table class="leaderboard-table admin-table">
+                        <thead>
+                            <tr class="admin-tr-header">
+                                <th class="admin-th-left">Resource Title</th>
+                                <th class="admin-th-left">Uploader</th>
+                                <th class="admin-th-left">Type</th>
+                                <th class="admin-th-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while($r = $resourcesRes->fetch_assoc()): ?>
+                            <tr class="admin-tr-body">
+                                <td class="admin-td"><strong><?php echo htmlspecialchars($r['title']); ?></strong></td>
+                                <td class="admin-td-muted"><?php echo htmlspecialchars($r['uploader_name'] ?? 'Unknown'); ?></td>
+                                <td class="admin-td-muted"><?php echo htmlspecialchars($r['resource_type']); ?></td>
+                                <td class="admin-td-right">
+                                    <form action="../actions/admin_resource_action.php" method="POST" class="d-inline" onsubmit="return confirm('Delete this resource globally?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="resource_id" value="<?php echo $r['id']; ?>">
+                                        <input type="hidden" name="action_type" value="delete">
+                                        <button type="submit" class="btn btn-sm-danger"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Discussions Moderation -->
+                <div class="card admin-card-main" id="admin-discussions" style="margin-bottom: 0;">
+                    <h3 class="admin-card-title">Research Discussions Moderation</h3>
+                    <table class="leaderboard-table admin-table">
+                        <thead>
+                            <tr class="admin-tr-header">
+                                <th class="admin-th-left">Discussion Title</th>
+                                <th class="admin-th-left">Author</th>
+                                <th class="admin-th-left">Category</th>
+                                <th class="admin-th-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while($t = $discussionsRes->fetch_assoc()): ?>
+                            <tr class="admin-tr-body">
+                                <td class="admin-td"><strong><a href="discussion_thread.php?id=<?php echo $t['id']; ?>" target="_blank" style="color: inherit; text-decoration: none;"><?php echo htmlspecialchars($t['title']); ?></a></strong></td>
+                                <td class="admin-td-muted"><?php echo htmlspecialchars($t['author_name']); ?></td>
+                                <td class="admin-td-muted"><?php echo htmlspecialchars($t['category']); ?></td>
+                                <td class="admin-td-right">
+                                    <form action="../actions/admin_discussion_action.php" method="POST" class="d-inline" onsubmit="return confirm('Delete this discussion globally?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="thread_id" value="<?php echo $t['id']; ?>">
+                                        <input type="hidden" name="action_type" value="delete">
+                                        <button type="submit" class="btn btn-sm-danger"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Dynamic Data Management -->

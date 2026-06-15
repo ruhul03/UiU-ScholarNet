@@ -44,7 +44,7 @@ if (isset($user_data['role']) && $user_data['role'] === 'faculty') {
         SELECT p.*, u.full_name as creator_name
         FROM projects p
         JOIN users u ON p.creator_id = u.id
-        WHERE p.supervisor_id = ? AND p.supervisor_approved = 0
+        WHERE p.supervisor_id = ? AND p.supervision_accepted = 0
         ORDER BY p.created_at DESC
     ", [$user_id], "i");
 }

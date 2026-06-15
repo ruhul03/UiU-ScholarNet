@@ -14,13 +14,13 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 
 if ($project_id > 0 && in_array($action, ['accept', 'decline'])) {
     // Check if user is the assigned supervisor
-    $res = db_query("SELECT title, creator_id FROM projects WHERE id = ? AND supervisor_id = ? AND supervisor_approved = 0", [$project_id, $user_id], "ii");
+    $res = db_query("SELECT title, creator_id FROM projects WHERE id = ? AND supervisor_id = ? AND supervision_accepted = 0", [$project_id, $user_id], "ii");
     
     if ($res && $res->num_rows === 1) {
         $project = $res->fetch_assoc();
         
         if ($action === 'accept') {
-            $upd = db_query("UPDATE projects SET supervisor_approved = 1 WHERE id = ?", [$project_id], "i");
+            $upd = db_query("UPDATE projects SET supervision_accepted = 1 WHERE id = ?", [$project_id], "i");
             if ($upd) {
                 $_SESSION['success'] = "Project supervision approved.";
                 
