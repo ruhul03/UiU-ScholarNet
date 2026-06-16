@@ -18,12 +18,13 @@ $collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_a
 
 
 // Recent Activity (Applications)
-$recent_activities = db_query("SELECT ca.created_at, u.full_name, cp.title, cp.id AS post_id 
+$recent_activities = db_query("SELECT ca.created_at, applicant.full_name AS applicant_name, owner.full_name AS owner_name, cp.title, cp.id AS post_id, ca.status, ca.user_id AS applicant_id, cp.user_id AS post_owner_id 
                                FROM collaboration_applications ca 
                                JOIN collaboration_posts cp ON ca.post_id = cp.id 
-                               JOIN users u ON ca.user_id = u.id 
-                               WHERE cp.user_id = ? AND ca.status = 'pending'
-                               ORDER BY ca.created_at DESC LIMIT 2", [$user_id]);
+                               JOIN users applicant ON ca.user_id = applicant.id 
+                               JOIN users owner ON cp.user_id = owner.id 
+                               WHERE cp.user_id = ? OR ca.user_id = ?
+                               ORDER BY ca.created_at DESC LIMIT 4", [$user_id, $user_id]);
 
 // Recent Tasks
 $recent_tasks = db_query("SELECT title, created_at, status FROM tasks WHERE assigned_to = ? ORDER BY created_at DESC LIMIT 2", [$user_id]);
@@ -31,12 +32,25 @@ $recent_tasks = db_query("SELECT title, created_at, status FROM tasks WHERE assi
 // Merge activities
 $activities = [];
 while ($row = $recent_activities->fetch_assoc()) {
+    if ($row['post_owner_id'] == $user_id) {
+        $title = htmlspecialchars($row['applicant_name']) . ' requested to join';
+        if ($row['status'] === 'accepted') $title = 'You accepted ' . htmlspecialchars($row['applicant_name']);
+        if ($row['status'] === 'declined') $title = 'You declined ' . htmlspecialchars($row['applicant_name']);
+        $desc = 'Applied to "' . htmlspecialchars($row['title']) . '"';
+    } else {
+        $title = 'You applied to collaborate';
+        if ($row['status'] === 'accepted') $title = 'Your application was accepted!';
+        if ($row['status'] === 'declined') $title = 'Your application was declined';
+        $desc = 'For "' . htmlspecialchars($row['title']) . '" by ' . htmlspecialchars($row['owner_name']);
+    }
+
     $activities[] = [
         'type' => 'collab',
-        'title' => htmlspecialchars($row['full_name']) . ' requested to join',
-        'desc' => 'Applied to "' . htmlspecialchars($row['title']) . '"',
+        'title' => $title,
+        'desc' => $desc,
         'time' => $row['created_at'],
-        'post_id' => $row['post_id']
+        'post_id' => $row['post_id'],
+        'post_owner_id' => $row['post_owner_id']
     ];
 }
 while ($row = $recent_tasks->fetch_assoc()) {
@@ -172,7 +186,11 @@ layout_header("Dashboard | UIU ScholarNet");
                                 </div>
                                 <?php if ($activity['type'] === 'collab'): ?>
                                 <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                                    <a href="manage_collaboration.php?id=<?php echo $activity['post_id']; ?>" class="btn btn-primary approve-btn" style="text-decoration:none;">View Request</a>
+                                    <?php if ($activity['post_owner_id'] == $user_id): ?>
+                                        <a href="manage_collaboration.php?id=<?php echo $activity['post_id']; ?>" class="btn btn-primary approve-btn" style="text-decoration:none;">Manage</a>
+                                    <?php else: ?>
+                                        <a href="collaboration.php" class="btn btn-outline" style="text-decoration:none;">View Board</a>
+                                    <?php endif; ?>
                                 </div>
                                 <?php endif; ?>
                             </div>
