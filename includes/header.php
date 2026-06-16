@@ -33,7 +33,7 @@ if (!isset($pending_tasks) || !isset($collab_requests)) {
         <?php if ((!isset($is_admin_panel) || !$is_admin_panel) && (!isset($is_admin_sidebar) || !$is_admin_sidebar)): ?>
         <a href="notifications.php" class="notification-icon text-inherit relative flex-center h-36px">
             <i class="fa-regular fa-bell header-icon text-1-2rem"></i>
-            <?php if (($collab_requests ?? 0) > 0 || ($pending_tasks ?? 0) > 0 || ($unread_notifications ?? 0) > 0): ?>
+            <?php if (($unread_notifications ?? 0) > 0): ?>
                 <span class="notification-dot notification-dot-header"></span>
             <?php endif; ?>
         </a>
