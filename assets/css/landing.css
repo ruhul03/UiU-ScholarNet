@@ -199,8 +199,10 @@
 }
 
 .landing-footer {
-    padding: 5rem;
-    border-top: 1px solid #eee;
+    padding: 3rem 5rem;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -208,19 +210,24 @@
 }
 
 .footer-copyright {
-    font-size: 0.8rem;
-    font-weight: 700;
-    opacity: 0.4;
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0.6;
 }
 
 .footer-links {
     display: flex;
     gap: 3rem;
-    font-size: 0.75rem;
-    font-weight: 800;
-    opacity: 0.4;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.8;
     letter-spacing: 1px;
     text-transform: uppercase;
+}
+
+.footer-links a:hover {
+    opacity: 1;
+    color: var(--secondary-color);
 }
 
 /* Header Profile */

@@ -161,7 +161,7 @@ if ($is_logged_in) {
 
     <!-- Footer -->
     <footer class="landing-footer">
-        <div class="footer-copyright">&copy; 2026 UIU ScholarNet. All rights reserved.</div>
+        <div class="footer-copyright">&copy; <?php echo date('Y'); ?> UIU ScholarNet. All rights reserved.</div>
         <div class="footer-links">
             <a href="#">Privacy Policy</a>
             <a href="#">Terms of Service</a>
