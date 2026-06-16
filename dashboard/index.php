@@ -18,11 +18,11 @@ $collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_a
 
 
 // Recent Activity (Applications)
-$recent_activities = db_query("SELECT ca.created_at, u.full_name, cp.title 
+$recent_activities = db_query("SELECT ca.created_at, u.full_name, cp.title, cp.id AS post_id 
                                FROM collaboration_applications ca 
                                JOIN collaboration_posts cp ON ca.post_id = cp.id 
                                JOIN users u ON ca.user_id = u.id 
-                               WHERE cp.user_id = ? 
+                               WHERE cp.user_id = ? AND ca.status = 'pending'
                                ORDER BY ca.created_at DESC LIMIT 2", [$user_id]);
 
 // Recent Tasks
@@ -35,7 +35,8 @@ while ($row = $recent_activities->fetch_assoc()) {
         'type' => 'collab',
         'title' => htmlspecialchars($row['full_name']) . ' requested to join',
         'desc' => 'Applied to "' . htmlspecialchars($row['title']) . '"',
-        'time' => $row['created_at']
+        'time' => $row['created_at'],
+        'post_id' => $row['post_id']
     ];
 }
 while ($row = $recent_tasks->fetch_assoc()) {
@@ -103,7 +104,7 @@ layout_header("Dashboard | UIU ScholarNet");
             }
             ?>
             <h1><?php echo $greeting; ?>, <?php echo htmlspecialchars(explode(' ', $user_data['full_name'])[0]); ?> 👋</h1>
-            <p>You have <?php echo $pending_tasks; ?> pending tasks and <?php echo $collab_requests; ?> new collaboration requests today.</p>
+            <p>You have <?php echo $pending_tasks; ?> pending tasks and <?php echo $collab_requests; ?> pending collaboration requests to review.</p>
 
             <div class="dash-actions">
                 <a href="collaboration.php" class="btn btn-primary btn-collab"><i class="fa-solid fa-plus"></i> Post Collaboration</a>
@@ -171,7 +172,7 @@ layout_header("Dashboard | UIU ScholarNet");
                                 </div>
                                 <?php if ($activity['type'] === 'collab'): ?>
                                 <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                                    <a href="collaboration.php" class="btn btn-primary approve-btn" style="text-decoration:none;">View Request</a>
+                                    <a href="manage_collaboration.php?id=<?php echo $activity['post_id']; ?>" class="btn btn-primary approve-btn" style="text-decoration:none;">View Request</a>
                                 </div>
                                 <?php endif; ?>
                             </div>

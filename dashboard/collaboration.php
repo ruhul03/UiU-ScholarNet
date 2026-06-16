@@ -134,12 +134,17 @@ if ($page > $totalPages) {
 
 $postsSql = "SELECT cp.*, u.full_name, p.title AS linked_project_title,
                     COALESCE(a.total_applicants, 0) AS total_applicants,
+                    COALESCE(a.pending_applicants, 0) AS pending_applicants,
+                    COALESCE(a.accepted_applicants, 0) AS accepted_applicants,
                     ua.id AS user_applied, ua.status AS apply_status
              FROM collaboration_posts cp
              JOIN users u ON cp.user_id = u.id
              LEFT JOIN projects p ON cp.project_id = p.id
              LEFT JOIN (
-                SELECT post_id, COUNT(*) AS total_applicants
+                SELECT post_id, 
+                       COUNT(*) AS total_applicants,
+                       SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_applicants,
+                       SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted_applicants
                 FROM collaboration_applications
                 GROUP BY post_id
              ) a ON a.post_id = cp.id
@@ -297,8 +302,8 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                             <span class="meta-value"><?php echo htmlspecialchars((string)($row['skills_required'] ?: 'Not specified')); ?></span>
                         </div>
                         <div class="meta-block">
-                            <span class="meta-label">Applicants</span>
-                            <span class="meta-value"><?php echo (int)$row['total_applicants']; ?> people</span>
+                            <span class="meta-label">Slots</span>
+                            <span class="meta-value"><?php echo (int)$row['accepted_applicants']; ?> / <?php echo (int)$row['slots_total']; ?> filled</span>
                         </div>
                         <?php if ($row['linked_project_title']): ?>
                         <div class="meta-block col-span-2">
@@ -312,7 +317,12 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
 
                     <?php if ((int)$row['user_id'] === (int)$user_id): ?>
                         <div class="owner-actions flex-gap-sm-full">
-                            <a href="manage_collaboration.php?id=<?php echo $row['id']; ?>" class="btn btn-apply btn-centered">Manage Applicants</a>
+                            <a href="manage_collaboration.php?id=<?php echo $row['id']; ?>" class="btn btn-apply btn-centered" style="position:relative;">
+                                Manage Applicants
+                                <?php if ($row['pending_applicants'] > 0): ?>
+                                    <span class="badge" style="background:var(--danger-color);color:white;padding:2px 6px;border-radius:10px;font-size:0.75rem;margin-left:0.25rem;"><?php echo $row['pending_applicants']; ?></span>
+                                <?php endif; ?>
+                            </a>
                             <form action="../actions/delete_collaboration_post.php" method="POST" class="flex-none" onsubmit="return confirm('Permanently delete this collaboration request?');">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                 <input type="hidden" name="post_id" value="<?php echo (int)$row['id']; ?>">
@@ -330,6 +340,11 @@ sort($skills, SORT_NATURAL | SORT_FLAG_CASE);
                             <?php else: ?>
                                 <button class="btn btn-apply btn-applied flex-1" type="button" disabled><i class="fa-solid fa-clock"></i> Pending Review</button>
                             <?php endif; ?>
+                            <a href="messages.php?user_id=<?php echo (int)$row['user_id']; ?>" class="btn btn-outline btn-icon-secondary" title="Message Poster"><i class="fa-regular fa-comment"></i></a>
+                        </div>
+                    <?php elseif ((int)$row['accepted_applicants'] >= (int)$row['slots_total']): ?>
+                        <div class="flex-gap-sm-full">
+                            <button class="btn btn-apply btn-danger-light w-100" type="button" disabled>Post Full</button>
                             <a href="messages.php?user_id=<?php echo (int)$row['user_id']; ?>" class="btn btn-outline btn-icon-secondary" title="Message Poster"><i class="fa-regular fa-comment"></i></a>
                         </div>
                     <?php else: ?>
