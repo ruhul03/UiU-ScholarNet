@@ -167,6 +167,8 @@ CREATE TABLE IF NOT EXISTS document_versions (
     version_name VARCHAR(100),
     content LONGTEXT,
     created_by INT,
+    commit_message VARCHAR(255) NULL,
+    status ENUM('approved', 'pending', 'rejected') DEFAULT 'approved',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL

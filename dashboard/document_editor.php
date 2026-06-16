@@ -25,7 +25,7 @@ $doc = [
 
 if ($document_id > 0) {
     $dres = db_query("
-        SELECT d.*, p.status as project_status, p.creator_id
+        SELECT d.*, p.status as project_status, p.creator_id, p.supervisor_id
         FROM documents d
         JOIN projects p ON p.id = d.project_id
         LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
@@ -43,8 +43,15 @@ if ($document_id > 0) {
 $is_locked = false;
 $locked_by_name = null;
 $is_archived = false;
+$is_leader = false;
 
 if ($doc['id'] > 0) {
+    if (isset($doc['creator_id']) && $doc['creator_id'] == $user_id) {
+        $is_leader = true;
+    }
+    if (isset($doc['supervisor_id']) && $doc['supervisor_id'] == $user_id) {
+        $is_leader = true;
+    }
     if (isset($doc['project_status']) && $doc['project_status'] === 'completed' && $doc['creator_id'] != $user_id) {
         $is_locked = true;
         $is_archived = true;
@@ -83,11 +90,18 @@ if ($doc['project_id'] > 0) {
     }
 }
 
+$approved_versions = [];
+$pending_proposals = [];
+
 if ($doc['id'] > 0) {
     // Fetch versions
     $vRes = db_query("SELECT v.*, u.full_name FROM document_versions v LEFT JOIN users u ON v.created_by = u.id WHERE v.document_id = ? ORDER BY v.created_at DESC", [$doc['id']], "i");
     while ($vRes && $row = $vRes->fetch_assoc()) {
-        $versions[] = $row;
+        if (isset($row['status']) && $row['status'] === 'pending') {
+            $pending_proposals[] = $row;
+        } else {
+            $approved_versions[] = $row;
+        }
     }
 }
 ?>
@@ -204,7 +218,11 @@ if ($doc['id'] > 0) {
                             </select>
                             <input type="text" name="commit_message" placeholder="Save message (optional)" class="input-editor" style="flex: 1; min-width: 250px; padding: 0.6rem 0.8rem; font-size: 0.9rem; font-weight: 500;" <?php echo $is_locked ? 'disabled' : ''; ?>>
                             <button type="submit" class="btn btn-primary save-btn" <?php echo $is_locked ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
-                                <i class="fa-solid fa-floppy-disk"></i> Save
+                                <?php if (!$is_leader && $doc['id'] > 0): ?>
+                                    <i class="fa-solid fa-code-pull-request"></i> Propose Changes
+                                <?php else: ?>
+                                    <i class="fa-solid fa-floppy-disk"></i> Save
+                                <?php endif; ?>
                             </button>
                         </div>
                     </div>
@@ -270,10 +288,10 @@ if ($doc['id'] > 0) {
 
                 <section class="version-history">
                     <h4>VERSION HISTORY</h4>
-                    <?php if (empty($versions)): ?>
+                    <?php if (empty($approved_versions)): ?>
                         <p class="empty-text-sm">No version history yet.</p>
                     <?php else: ?>
-                        <?php $first = true; foreach($versions as $v): ?>
+                        <?php $first = true; foreach($approved_versions as $v): ?>
                         <div class="version-item <?php echo $first ? 'active' : ''; ?>">
                             <div class="version-info" style="width: 100%;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -296,6 +314,30 @@ if ($doc['id'] > 0) {
                     <?php endif; ?>
                     
                     <button class="btn btn-outline view-all-btn">View All Versions</button>
+                </section>
+
+                <section class="version-history">
+                    <h4>PENDING PROPOSALS</h4>
+                    <?php if (empty($pending_proposals)): ?>
+                        <p class="empty-text-sm">No pending proposals.</p>
+                    <?php else: ?>
+                        <?php foreach($pending_proposals as $p_prop): ?>
+                        <div class="version-item" style="border-left-color: var(--secondary-color);">
+                            <div class="version-info" style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h5 style="color: var(--secondary-color);"><i class="fa-solid fa-code-pull-request"></i> Proposed Draft</h5>
+                                    <?php if ($is_leader): ?>
+                                        <a href="review_proposal.php?version_id=<?php echo $p_prop['id']; ?>&project_id=<?php echo $doc['project_id']; ?>" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> Review</a>
+                                    <?php endif; ?>
+                                </div>
+                                <p><?php echo date('M d, g:i A', strtotime($p_prop['created_at'])); ?> by <?php echo htmlspecialchars($p_prop['full_name'] ?? 'Unknown'); ?></p>
+                                <?php if (!empty($p_prop['commit_message'])): ?>
+                                    <p style="font-style: italic; opacity: 0.8; font-size: 0.8rem; margin-top: 0.3rem;">"<?php echo htmlspecialchars($p_prop['commit_message']); ?>"</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </section>
             </aside>
         </div>

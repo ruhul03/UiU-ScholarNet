@@ -36,7 +36,7 @@ if ($project_id <= 0) {
 
 // 1. Ensure project belongs to current user or user is an editor/owner
 $projectPermissionQuery = "
-    SELECT p.id, p.status, p.creator_id 
+    SELECT p.id, p.status, p.creator_id, p.supervisor_id
     FROM projects p 
     LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? 
     WHERE p.id = ? AND (p.creator_id = ? OR pm.role IN ('owner', 'editor')) 
@@ -50,6 +50,11 @@ if (!$projectPermissionResult || $projectPermissionResult->num_rows !== 1) {
 }
 
 $projectData = $projectPermissionResult->fetch_assoc();
+$is_leader = false;
+if ($projectData['creator_id'] == $user_id || (isset($projectData['supervisor_id']) && $projectData['supervisor_id'] == $user_id)) {
+    $is_leader = true;
+}
+
 if ($projectData['status'] === 'completed' && $projectData['creator_id'] !== $user_id) {
     $_SESSION['error'] = "This project is archived. Only the creator can edit documents.";
     header("Location: ../dashboard/document_editor.php?document_id=" . $document_id . "&project_id=" . $project_id);
@@ -79,20 +84,27 @@ if ($document_id > 0) {
 
     if ($locked_by && $locked_by != $user_id) {
         $lock_time = strtotime($locked_at);
-        if (time() - $lock_time < 300) {
+        if (time() - $lock_time < 300 && $is_leader) {
             $_SESSION['error'] = "Document is currently locked by another user. Your changes were not saved.";
             header("Location: ../dashboard/document_editor.php?document_id=" . $document_id);
             exit();
         }
     }
 
-    // Update existing document, release lock on manual save
-    db_query(
-        "UPDATE documents SET project_id = ?, title = ?, content = ?, visibility = ?, last_edited_by = ?, locked_by = NULL, locked_at = NULL WHERE id = ?",
-        [$project_id, $title, $content, $visibility, $user_id, $document_id],
-        "isssii"
-    );
+    // Update existing document, release lock on manual save (ONLY IF LEADER)
+    if ($is_leader) {
+        db_query(
+            "UPDATE documents SET project_id = ?, title = ?, content = ?, visibility = ?, last_edited_by = ?, locked_by = NULL, locked_at = NULL WHERE id = ?",
+            [$project_id, $title, $content, $visibility, $user_id, $document_id],
+            "isssii"
+        );
+    }
 } else {
+    if (!$is_leader) {
+        $_SESSION['error'] = "Only the project leader can create new documents initially.";
+        header("Location: ../dashboard/document_editor.php?project_id=" . $project_id);
+        exit();
+    }
     // Insert new document
     db_query(
         "INSERT INTO documents (project_id, title, content, visibility, created_by, last_edited_by) VALUES (?, ?, ?, ?, ?, ?)",
@@ -107,15 +119,20 @@ $vcount_res = db_query("SELECT COUNT(*) as c FROM document_versions WHERE docume
 $vcount = ($vcount_res && $vcount_res->num_rows > 0) ? (int)$vcount_res->fetch_assoc()['c'] : 0;
 $version_name = 'v' . ($vcount + 1) . '.0';
 if (empty($commit_msg)) {
-    $commit_msg = "Manual Save";
+    $commit_msg = $is_leader ? "Manual Save" : "Proposed Changes";
 }
+$version_status = $is_leader ? 'approved' : 'pending';
 
 db_query(
-    "INSERT INTO document_versions (document_id, version_name, content, created_by, commit_message) VALUES (?, ?, ?, ?, ?)",
-    [$document_id, $version_name, $content, $user_id, $commit_msg],
-    "issis"
+    "INSERT INTO document_versions (document_id, version_name, content, created_by, commit_message, status) VALUES (?, ?, ?, ?, ?, ?)",
+    [$document_id, $version_name, $content, $user_id, $commit_msg, $version_status],
+    "ississ"
 );
 
-$_SESSION['success'] = "Document saved successfully.";
+if ($is_leader) {
+    $_SESSION['success'] = "Document saved successfully.";
+} else {
+    $_SESSION['success'] = "Changes proposed successfully. Awaiting leader approval.";
+}
 header("Location: ../dashboard/document_editor.php?document_id=" . urlencode((string)$document_id));
 exit();
