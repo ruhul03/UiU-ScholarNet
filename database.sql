@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS projects (
     creator_id INT,
     supervisor_id INT,
     supervisor_approved TINYINT(1) DEFAULT 0,
+    research_phase VARCHAR(50) DEFAULT 'literature_review',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (supervisor_id) REFERENCES users(id) ON DELETE SET NULL

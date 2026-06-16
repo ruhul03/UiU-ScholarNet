@@ -53,7 +53,7 @@ if (isset($user_data['role']) && $user_data['role'] === 'faculty') {
 $result = db_query("
     SELECT p.*, 
            (SELECT COUNT(DISTINCT user_id) FROM project_members WHERE project_id = p.id AND status = 'active') as contributors_count,
-           (SELECT GROUP_CONCAT(u.full_name SEPARATOR ', ') FROM project_members pm2 JOIN users u ON pm2.user_id = u.id WHERE pm2.project_id = p.id AND pm2.status = 'active') as contributor_names,
+           (SELECT GROUP_CONCAT(CONCAT(u.full_name, '::', pm2.role, '::', u.role) SEPARATOR '||') FROM project_members pm2 JOIN users u ON pm2.user_id = u.id WHERE pm2.project_id = p.id AND pm2.status = 'active') as contributor_data,
            (SELECT COUNT(*) FROM collaboration_posts WHERE project_id = p.id AND status = 'open') as active_collabs
     FROM projects p 
     LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
@@ -148,35 +148,52 @@ $result = db_query("
                     <div class="project-main-info">
                         <h3><?php echo htmlspecialchars($row['title']); ?></h3>
                         <div class="project-stats-row">
-                            <span class="status-chip status-<?php echo $row['status']; ?>"><?php echo strtoupper($row['status']); ?></span>
+                            <?php 
+                            $r_phases = [
+                                'literature_review' => 'Literature Review',
+                                'gap_analysis' => 'Gap Analysis',
+                                'methodology' => 'Methodology',
+                                'implementation' => 'Implementation',
+                                'experimentation' => 'Experimentation',
+                                'drafting' => 'Drafting',
+                                'publishing' => 'Publishing'
+                            ];
+                            $disp_phase = $r_phases[$row['research_phase'] ?? 'literature_review'];
+                            ?>
+                            <span class="status-chip" style="background: linear-gradient(90deg, rgba(26, 115, 232, 0.1), rgba(197, 160, 34, 0.1)); border: 1px solid rgba(197, 160, 34, 0.5); color: var(--primary-color);"><i class="fa-solid fa-microscope" style="color: #c5a022;"></i> <?php echo strtoupper($disp_phase); ?></span>
                             <?php if ($row['active_collabs'] > 0): ?>
                                 <span class="status-chip status-chip-blue"><i class="fa-solid fa-users-viewfinder"></i> COLLAB ACTIVE</span>
                             <?php endif; ?>
                             <span class="contributors-count"><i class="fa-solid fa-user-group"></i> <?php echo (int)$row['contributors_count']; ?> Contributors</span>
                         </div>
-                        <div class="project-team-info">
-                            <strong>Team:</strong> <?php echo htmlspecialchars($row['contributor_names'] ?? 'Just you'); ?>
-                        </div>
-                        
-                        <!-- Lifecycle Stepper -->
-                        <?php
-                            $p_stages = ['planning', 'active', 'review', 'completed'];
-                            $p_idx = array_search($row['status'], $p_stages);
-                        ?>
-                        <div class="project-stepper">
-                            <?php foreach ($p_stages as $i => $st): 
-                                $s_cls = '';
-                                $s_icon = 'fa-circle';
-                                if ($i < $p_idx) { $s_cls = 'completed'; $s_icon = 'fa-circle-check'; }
-                                elseif ($i === $p_idx) { $s_cls = 'active'; $s_icon = 'fa-circle-dot'; }
+                        <div class="project-team-info" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
+                            <strong>Team:</strong> 
+                            <?php 
+                            if (!empty($row['contributor_data'])) {
+                                $members = explode('||', $row['contributor_data']);
+                                $member_html = [];
+                                foreach ($members as $m) {
+                                    $parts = explode('::', $m);
+                                    if (count($parts) >= 2) {
+                                        $name = htmlspecialchars($parts[0]);
+                                        $pm_role = $parts[1] ?? '';
+                                        $u_role = $parts[2] ?? '';
+                                        
+                                        $badges = '';
+                                        if ($pm_role === 'owner') {
+                                            $badges .= ' <span class="status-chip status-chip-blue" style="font-size: 0.55rem; padding: 2px 4px; margin-left: 4px;">LEADER</span>';
+                                        }
+                                        if ($u_role === 'faculty') {
+                                            $badges .= ' <span class="status-chip" style="font-size: 0.55rem; padding: 2px 4px; background: #6c5ce7; color: white; border: none; margin-left: 4px;">FACULTY</span>';
+                                        }
+                                        $member_html[] = '<span style="display:inline-flex; align-items: center;">' . $name . $badges . '</span>';
+                                    }
+                                }
+                                echo implode(' <span style="color: #ccc; margin: 0 4px;">&bull;</span> ', $member_html);
+                            } else {
+                                echo '<span>Just you</span>';
+                            }
                             ?>
-                            <div class="step <?php echo $s_cls; ?>">
-                                <i class="fa-solid <?php echo $s_icon; ?>"></i> <?php echo ucfirst($st); ?>
-                            </div>
-                            <?php if ($i < count($p_stages)-1): ?>
-                                <span class="stepper-separator">—</span>
-                            <?php endif; ?>
-                            <?php endforeach; ?>
                         </div>
                     </div>
                     <div class="project-progress-block">

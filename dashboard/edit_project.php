@@ -35,6 +35,12 @@ $tasks = db_query("SELECT t.*, u.full_name AS assignee_name FROM tasks t LEFT JO
 // Fetch preprints
 $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints WHERE project_id = ? ORDER BY created_at DESC", [$project_id], "i");
 
+// Fetch project members
+$members = db_query("SELECT pm.user_id, pm.role, pm.status, u.full_name, u.department, u.role as u_role FROM project_members pm JOIN users u ON pm.user_id = u.id WHERE pm.project_id = ? ORDER BY pm.role = 'owner' DESC, pm.added_at ASC", [$project_id], "i");
+
+// Also fetch all possible users to invite, excluding existing members
+$all_users = db_query("SELECT id, full_name, department, role FROM users WHERE id NOT IN (SELECT user_id FROM project_members WHERE project_id = ?) AND account_status = 'active' ORDER BY full_name ASC", [$project_id], "i");
+
 $is_archived = ($project['status'] === 'completed' && $user_id !== (int)$project['creator_id']);
 $disabled_attr = $is_archived ? 'disabled' : '';
 ?>
@@ -263,90 +269,9 @@ $disabled_attr = $is_archived ? 'disabled' : '';
                     </div>
                 </div>
 
-                <div class="form-section-title mt-3"><i class="fa-solid fa-shield-halved"></i> GOVERNANCE & STATUS</div>
-
-                <!-- Lifecycle Pipeline Component -->
-                <?php
-                    $stages = ['planning', 'active', 'review', 'completed'];
-                    $current_stage_idx = array_search($project['status'], $stages);
-                ?>
-                <div class="lifecycle-pipeline">
-                    <div class="lifecycle-line">
-                        <div class="lifecycle-progress" style="width: <?php echo ($current_stage_idx / (count($stages)-1)) * 100; ?>%;"></div>
-                    </div>
-                    <?php foreach ($stages as $idx => $stage): 
-                        $status_class = '';
-                        if ($idx < $current_stage_idx) $status_class = 'completed';
-                        elseif ($idx === $current_stage_idx) $status_class = 'active';
-                        
-                        $icons = ['planning' => 'fa-lightbulb', 'active' => 'fa-person-digging', 'review' => 'fa-magnifying-glass-chart', 'completed' => 'fa-flag-checkered'];
-                    ?>
-                    <div class="lifecycle-stage <?php echo $status_class; ?>">
-                        <div class="stage-icon"><i class="fa-solid <?php echo $icons[$stage]; ?>"></i></div>
-                        <div class="stage-name"><?php echo $stage; ?></div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-
-                <div class="lifecycle-checklist">
-                    <h4><i class="fa-solid fa-list-check"></i> Stage Progression (Recommended)</h4>
-                    <ul class="checklist-items">
-                        <?php if ($project['status'] === 'planning'): ?>
-                            <li class="done"><i class="fa-solid fa-check"></i> Define project title and abstract</li>
-                            <li class="<?php echo ($tasks->num_rows > 0) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($tasks->num_rows > 0) ? 'check' : 'spinner'; ?>"></i> Create at least 1 task</li>
-                            <p class="stage-hint-text">The project is waiting for the formal proposal to be approved by the supervisor to become ACTIVE.</p>
-                            <?php if ($user_id == $project['supervisor_id']): ?>
-                                <div class="mt-15px">
-                                    <form action="../actions/project_task_document/approve_proposal.php" method="POST" style="display:inline;">
-                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
-                                        <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
-                                        <button type="submit" class="btn btn-approve btn-inline-link">
-                                            <i class="fa-solid fa-file-signature"></i> APPROVE PROPOSAL
-                                        </button>
-                                    </form>
-                                </div>
-                            <?php endif; ?>
-                        <?php elseif ($project['status'] === 'active'): ?>
-                            <li class="<?php echo ($project['progress'] >= 50) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($project['progress'] >= 50) ? 'check' : 'spinner'; ?>"></i> Reach 50%+ completion on tasks</li>
-                            <li class="<?php echo ($documents->num_rows > 0) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($documents->num_rows > 0) ? 'check' : 'spinner'; ?>"></i> Upload at least 1 document or resource</li>
-                            <p class="stage-hint-text">Move to REVIEW to invite faculty or peers to review your work.</p>
-                        <?php elseif ($project['status'] === 'review'): ?>
-                            <?php if (!empty($project['supervisor_id'])): ?>
-                                <li class="<?php echo ($project['supervisor_approved']) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($project['supervisor_approved']) ? 'check' : 'spinner'; ?>"></i> Faculty Supervisor Approval</li>
-                            <?php else: ?>
-                                <li class="done"><i class="fa-solid fa-check"></i> Peer review phase</li>
-                            <?php endif; ?>
-                            <p class="stage-hint-text">Move to COMPLETED when all feedback is addressed.</p>
-                        <?php elseif ($project['status'] === 'completed'): ?>
-                            <li class="done"><i class="fa-solid fa-check"></i> Project finalized</li>
-                            <p class="stage-hint-text">This project is now locked for editing. You can publish it as a preprint.</p>
-                            <div class="mt-15px">
-                                <a href="file_upload.php?project_id=<?php echo $project['id']; ?>&type=preprint" class="btn btn-outline btn-inline-link">
-                                    <i class="fa-solid fa-upload"></i> PUBLISH PREPRINT
-                                </a>
-                            </div>
-                        <?php endif; ?>
-                    </ul>
-                    
-                    <?php if ($project['status'] === 'review' && $user_id == $project['supervisor_id'] && !$project['supervisor_approved']): ?>
-                        <div class="mt-15px">
-                            <a href="../actions/approve_project.php?id=<?php echo $project['id']; ?>&token=<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-approve btn-inline-link">
-                                <i class="fa-solid fa-check-double"></i> APPROVE PROJECT
-                            </a>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
+                <!-- Old Governance Section Removed -->
+                <input type="hidden" name="status" value="<?php echo htmlspecialchars($project['status']); ?>">
                 <div class="form-row form-grid-2col-mb3">
-                    <div class="form-group">
-                        <label class="form-label-bold">OVERRIDE STAGE</label>
-                        <select name="status" class="form-input-light" <?php echo $disabled_attr; ?>>
-                            <option value="planning" <?php echo ($project['status'] === 'planning') ? 'selected' : ''; ?>>PLANNING</option>
-                            <option value="active" <?php echo ($project['status'] === 'active') ? 'selected' : ''; ?>>ACTIVE</option>
-                            <option value="review" <?php echo ($project['status'] === 'review') ? 'selected' : ''; ?>>REVIEW</option>
-                            <option value="completed" <?php echo ($project['status'] === 'completed') ? 'selected' : ''; ?>>COMPLETED</option>
-                        </select>
-                    </div>
                     <div class="form-group">
                         <label class="form-label-bold">VISIBILITY LEVEL</label>
                         <select name="visibility" class="form-input-light" <?php echo $disabled_attr; ?>>
@@ -368,6 +293,72 @@ $disabled_attr = $is_archived ? 'disabled' : '';
                     </div>
                 <?php endif; ?>
             </form>
+        </div>
+
+        <!-- Scientific Research Pipeline Card -->
+        <div class="edit-form-card" style="margin-top: 2rem;">
+            <div class="form-section-title"><i class="fa-solid fa-microscope"></i> SCIENTIFIC RESEARCH PIPELINE</div>
+            
+            <?php
+            $research_phases = [
+                'literature_review' => 'Literature Review',
+                'gap_analysis' => 'Gap Analysis',
+                'methodology' => 'Methodology',
+                'implementation' => 'Implementation',
+                'experimentation' => 'Experimentation',
+                'drafting' => 'Drafting',
+                'publishing' => 'Publishing'
+            ];
+            $current_res_phase = $project['research_phase'] ?? 'literature_review';
+            $res_phase_keys = array_keys($research_phases);
+            $res_current_idx = array_search($current_res_phase, $res_phase_keys);
+            ?>
+            <div class="lifecycle-pipeline" style="margin-bottom: 2rem;">
+                <div class="lifecycle-line">
+                    <div class="lifecycle-progress" style="width: <?php echo ($res_current_idx / (count($res_phase_keys)-1)) * 100; ?>%; background: linear-gradient(90deg, #1a73e8, #c5a022);"></div>
+                </div>
+                <?php foreach ($res_phase_keys as $idx => $r_key): 
+                    $r_status_class = '';
+                    if ($idx < $res_current_idx) $r_status_class = 'completed';
+                    elseif ($idx === $res_current_idx) $r_status_class = 'active';
+                    
+                    $r_icons = [
+                        'literature_review' => 'fa-book-open-reader',
+                        'gap_analysis' => 'fa-magnifying-glass-arrow-right',
+                        'methodology' => 'fa-bezier-curve',
+                        'implementation' => 'fa-laptop-code',
+                        'experimentation' => 'fa-flask',
+                        'drafting' => 'fa-pen-nib',
+                        'publishing' => 'fa-upload'
+                    ];
+                ?>
+                <div class="lifecycle-stage <?php echo $r_status_class; ?>" style="flex: 1; position: relative;">
+                    <div class="stage-icon" style="<?php echo $idx === $res_current_idx ? 'border-color: #c5a022; color: #c5a022; transform: scale(1.1);' : ''; ?>"><i class="fa-solid <?php echo $r_icons[$r_key]; ?>"></i></div>
+                    <div class="stage-name" style="font-size: 0.75rem; white-space: normal; text-align: center; margin-top: 8px;"><?php echo $research_phases[$r_key]; ?></div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if (!$is_archived && $user_id == $project['creator_id']): ?>
+                <form action="../actions/project_task_document/update_research_phase.php" method="POST" style="background: rgba(0,0,0,0.02); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                    
+                    <div style="flex: 1; min-width: 200px;">
+                        <label class="form-label-bold" style="margin-bottom: 0.5rem; display: block;">UPDATE PIPELINE STAGE</label>
+                        <select name="research_phase" class="form-input-light" style="width: 100%;">
+                            <?php foreach ($research_phases as $key => $label): ?>
+                                <option value="<?php echo $key; ?>" <?php echo ($current_res_phase === $key) ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div style="align-self: flex-end;">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem;"><i class="fa-solid fa-arrow-right-arrow-left"></i> UPDATE STAGE</button>
+                    </div>
+                </form>
+            <?php else: ?>
+                <div class="stage-hint-text text-center mt-2">Only the project creator can update the research pipeline stage.</div>
+            <?php endif; ?>
         </div>
 
         <h2 class="section-heading-ecosystem">Project Hub Ecosystem</h2>
@@ -463,6 +454,66 @@ $disabled_attr = $is_archived ? 'disabled' : '';
                     </ul>
                 <?php else: ?>
                     <p class="ecosystem-empty">No preprints published yet.</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- Team Members Section -->
+            <div class="card ecosystem-card">
+                <div class="ecosystem-card-header">
+                    <h3 class="ecosystem-card-title"><i class="fa-solid fa-users text-primary"></i> Team Members</h3>
+                    <?php if (!$is_archived && $user_id == $project['creator_id']): ?>
+                        <button class="btn btn-outline btn-xs" onclick="var form = document.getElementById('add-member-form'); form.style.display = (form.style.display === 'none' ? 'block' : 'none');"><i class="fa-solid fa-user-plus"></i> Add</button>
+                    <?php endif; ?>
+                </div>
+                
+                <?php if (!$is_archived && $user_id == $project['creator_id']): ?>
+                <div id="add-member-form" style="display:none; margin-top:10px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <form action="../actions/project_task_document/add_member.php" method="POST" style="display:flex; gap:10px;">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                        <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                        <select name="invited_users[]" class="form-input-light" style="flex:1; padding: 0.5rem;" required>
+                            <option value="">Select user to add...</option>
+                            <?php while($u = $all_users->fetch_assoc()): ?>
+                                <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['full_name']); ?> (<?php echo htmlspecialchars($u['department']); ?>)</option>
+                            <?php endwhile; ?>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-xs" style="padding: 0.5rem 1rem;">Add</button>
+                    </form>
+                </div>
+                <?php endif; ?>
+
+                <?php if ($members->num_rows > 0): ?>
+                    <ul class="ecosystem-list">
+                        <?php while($m = $members->fetch_assoc()): ?>
+                            <li class="ecosystem-list-item">
+                                <div class="flex-col">
+                                    <span class="ecosystem-item-title">
+                                        <?php echo htmlspecialchars($m['full_name']); ?>
+                                        <?php if ($m['role'] === 'owner'): ?>
+                                            <span class="status-chip status-chip-blue" style="font-size: 0.6rem; padding: 2px 6px; margin-left: 5px;">LEADER</span>
+                                        <?php endif; ?>
+                                        <?php if (isset($m['u_role']) && $m['u_role'] === 'faculty'): ?>
+                                            <span class="status-chip" style="font-size: 0.6rem; padding: 2px 6px; background: #6c5ce7; color: white; border: none; margin-left: 5px;">FACULTY</span>
+                                        <?php endif; ?>
+                                        <?php if ($m['status'] === 'pending'): ?>
+                                            <span class="status-chip" style="font-size: 0.6rem; padding: 2px 6px; background: #f29900; color: white; border: none; margin-left: 5px;">PENDING</span>
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="ecosystem-item-meta"><?php echo htmlspecialchars($m['department']); ?></span>
+                                </div>
+                                <?php if (!$is_archived && $user_id == $project['creator_id'] && $m['role'] !== 'owner'): ?>
+                                    <form action="../actions/project_task_document/remove_member.php" method="POST" style="display:inline;" onsubmit="return confirm('Remove this member?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                                        <input type="hidden" name="member_id" value="<?php echo $m['user_id']; ?>">
+                                        <button type="submit" class="btn btn-outline btn-xs text-danger" style="border-color: #d93025; padding: 4px 8px; color: #d93025;" title="Remove Member"><i class="fa-solid fa-trash-can"></i></button>
+                                    </form>
+                                <?php endif; ?>
+                            </li>
+                        <?php endwhile; ?>
+                    </ul>
+                <?php else: ?>
+                    <p class="ecosystem-empty">No team members.</p>
                 <?php endif; ?>
             </div>
         </div>
