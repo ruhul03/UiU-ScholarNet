@@ -66,9 +66,14 @@ $skillTags = array_values(
     <main class="main-content">
         <?php include('../includes/header.php'); ?>
 
-        <section class="profile-headline">
-            <h1>The Scholar's Profile</h1>
-            <p>Registry Archive</p>
+        <section class="profile-headline" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>The Scholar's Profile</h1>
+                <p>Registry Archive</p>
+            </div>
+            <button class="btn btn-outline" id="openProfileEdit">
+                <i class="fa-solid fa-pen-to-square"></i> EDIT PROFILE
+            </button>
         </section>
 
         <?php include('../includes/alerts.php'); ?>
