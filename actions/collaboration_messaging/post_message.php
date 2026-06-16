@@ -78,16 +78,20 @@ if ($receiver_id && $receiver_id > 0) {
     
     $message_id = $conn->insert_id;
     
-    // Notify the receiver
-    $senderRes = db_query("SELECT full_name FROM users WHERE id = ?", [$current_user_id], "i")->fetch_assoc();
-    $senderName = $senderRes['full_name'] ?? 'Someone';
-    send_notification(
-        $receiver_id,
-        "New Direct Message",
-        "{$senderName} sent you a message.",
-        "../dashboard/messages.php?user_id=" . $current_user_id,
-        "message"
-    );
+    // Notify the receiver (only if they don't already have unread messages from this sender to prevent spam)
+    $unreadCheck = db_query("SELECT COUNT(*) as cnt FROM messages WHERE sender_id = ? AND receiver_id = ? AND is_read = 0 AND id != ?", [$current_user_id, $receiver_id, $message_id], "iii")->fetch_assoc();
+    
+    if ($unreadCheck['cnt'] == 0) {
+        $senderRes = db_query("SELECT full_name FROM users WHERE id = ?", [$current_user_id], "i")->fetch_assoc();
+        $senderName = $senderRes['full_name'] ?? 'Someone';
+        send_notification(
+            $receiver_id,
+            "New Direct Message",
+            "{$senderName} sent you a message.",
+            "../dashboard/messages.php?user_id=" . $current_user_id,
+            "message"
+        );
+    }
     
     if ($is_ajax) { 
         echo json_encode(['success' => true, 'message_id' => $message_id, 'file_path' => $file_path, 'file_name' => $file_name]); 

@@ -11,6 +11,12 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $current_user_id = (int)$_SESSION['user_id'];
+
+// Update last active heartbeat (throttle to once every 60 seconds)
+if (!isset($_SESSION['last_active_update']) || (time() - $_SESSION['last_active_update']) > 60) {
+    db_query("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", [$current_user_id], "i");
+    $_SESSION['last_active_update'] = time();
+}
 $last_message_id = isset($_GET['last_id']) ? (int)$_GET['last_id'] : 0;
 $chat_user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
 $channel = isset($_GET['channel']) ? trim($_GET['channel']) : '';

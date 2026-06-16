@@ -52,11 +52,19 @@ if ($chat_user_id > 0) {
     $chat_user_data = db_query("SELECT * FROM users WHERE id = ?", [$chat_user_id], "i")->fetch_assoc();
     
     if ($chat_user_data) {
+        $is_online = false;
+        if (!empty($chat_user_data['last_active_at'])) {
+            if (time() - strtotime($chat_user_data['last_active_at']) <= 300) {
+                $is_online = true;
+            }
+        }
+        $status_text = $is_online ? '<span style="color: #10b981; font-weight: 600;">Online</span>' : '<span style="color: #6b7280;">Offline</span>';
+
         $chat_target_info = [
             'name' => htmlspecialchars($chat_user_data['full_name']),
             'badge' => strtoupper(substr($chat_user_data['full_name'], 0, 2)),
             'color' => 'bg-orange',
-            'desc' => ucfirst(htmlspecialchars($chat_user_data['role']))
+            'desc' => $status_text . ' • ' . ucfirst(htmlspecialchars($chat_user_data['role']))
         ];
         
         // Mark as read
@@ -94,6 +102,18 @@ if ($chat_user_id === 0) {
             'desc' => 'Custom channel.'
         ];
         
+        if (strpos($channel, 'project_') === 0) {
+            $proj_id = (int)str_replace('project_', '', $channel);
+            $online_res = db_query("
+                SELECT COUNT(DISTINCT pm.user_id) as cnt 
+                FROM project_members pm
+                JOIN users u ON u.id = pm.user_id
+                WHERE pm.project_id = ? AND u.last_active_at > (NOW() - INTERVAL 5 MINUTE)
+            ", [$proj_id], "i")->fetch_assoc();
+            $online_cnt = $online_res['cnt'] ?? 0;
+            $chat_target_info['desc'] = '<span style="color: #10b981; font-weight: 600;">' . $online_cnt . ' Members Online</span> • ' . $chat_target_info['desc'];
+        }
+        
         $messages = db_query("
             SELECT m.*, u.full_name
             FROM messages m
@@ -114,7 +134,7 @@ if ($chat_user_id === 0) {
 
 // Fetch users for the sidebar (Connections from projects OR users you've DM'd)
 $dm_users_res = db_query("
-    SELECT DISTINCT u.id, u.full_name, u.role,
+    SELECT DISTINCT u.id, u.full_name, u.role, u.last_active_at,
            (SELECT COUNT(*) FROM messages m_un WHERE m_un.sender_id = u.id AND m_un.receiver_id = ? AND m_un.is_read = 0) as unread_count
     FROM users u
     WHERE u.id != ? 
@@ -186,7 +206,14 @@ $dm_users_res = db_query("
                                 <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($dm_user['full_name']); ?>&background=<?php echo ($chat_user_id === (int)$dm_user['id']) ? '0a1128' : 'f8f7f2'; ?>&color=<?php echo ($chat_user_id === (int)$dm_user['id']) ? 'fff' : '0a1128'; ?>" class="avatar-badge">
                                 <div class="item-info flex-between-w100">
                                     <div>
-                                        <div class="item-name"><?php echo htmlspecialchars($dm_user['full_name']); ?></div>
+                                        <div class="item-name">
+                                            <?php echo htmlspecialchars($dm_user['full_name']); ?>
+                                            <?php 
+                                            if (!empty($dm_user['last_active_at']) && time() - strtotime($dm_user['last_active_at']) <= 300) {
+                                                echo '<span style="display:inline-block; width:8px; height:8px; background-color:#10b981; border-radius:50%; margin-left:4px;" title="Online"></span>';
+                                            }
+                                            ?>
+                                        </div>
                                         <div class="item-preview"><?php echo htmlspecialchars($dm_user['role']); ?></div>
                                     </div>
                                     <?php if ($dm_user['unread_count'] > 0): ?>
@@ -205,7 +232,7 @@ $dm_users_res = db_query("
                     <div class="avatar-badge <?php echo htmlspecialchars($chat_target_info['color'] ?? 'bg-blue'); ?>"><?php echo htmlspecialchars($chat_target_info['badge']); ?></div>
                     <div class="chat-title-group">
                         <div class="chat-title"><?php echo htmlspecialchars($chat_target_info['name']); ?></div>
-                        <div class="chat-subtitle">Online • <?php echo htmlspecialchars($chat_target_info['desc']); ?></div>
+                        <div class="chat-subtitle"><?php echo $chat_target_info['desc']; ?></div>
                     </div>
                     <div class="chat-actions pos-relative" id="chatActionsMenu">
                         <i class="fa-solid fa-ellipsis-vertical" onclick="document.getElementById('chatDropdown').classList.toggle('show')"></i>

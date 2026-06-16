@@ -21,4 +21,10 @@ if (!$user_data || (isset($user_data['account_status']) && $user_data['account_s
     header("Location: ../auth/login.php");
     exit();
 }
+
+// Update last active heartbeat (throttle to once every 60 seconds to reduce DB load)
+if (!isset($_SESSION['last_active_update']) || (time() - $_SESSION['last_active_update']) > 60) {
+    db_query("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", [$user_id], "i");
+    $_SESSION['last_active_update'] = time();
+}
 ?>

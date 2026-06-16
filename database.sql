@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     skills TEXT,
     points INT DEFAULT 0,
     reputation INT DEFAULT 0,
+    last_active_at TIMESTAMP NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
