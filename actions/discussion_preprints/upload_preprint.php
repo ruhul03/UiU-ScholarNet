@@ -57,6 +57,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $updatePointsQuery = "UPDATE users SET points = points + 100 WHERE id = ?";
         db_query($updatePointsQuery, [$user_id], "i");
         
+        // Notify all admins about the pending preprint
+        $adminsRes = db_query("SELECT id FROM users WHERE role = 'admin'");
+        if ($adminsRes) {
+            while ($admin = $adminsRes->fetch_assoc()) {
+                send_notification(
+                    $admin['id'],
+                    "Preprint Moderation Required",
+                    "A new preprint titled '{$title}' has been submitted and is pending moderation.",
+                    "../dashboard/admin.php",
+                    "system"
+                );
+            }
+        }
+        
         $_SESSION['success'] = "Preprint uploaded successfully and is now pending admin review.";
         header("Location: ../dashboard/preprints.php");
         exit();

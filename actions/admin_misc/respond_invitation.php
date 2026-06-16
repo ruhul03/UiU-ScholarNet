@@ -22,6 +22,15 @@ if ($project_id > 0 && in_array($action, ['accept', 'decline'])) {
         );
         if ($conn->affected_rows > 0) {
             $_SESSION['success'] = "Invitation accepted successfully.";
+            
+            // Notify creator
+            $p_res = db_query("SELECT title, creator_id FROM projects WHERE id = ?", [$project_id], "i");
+            if ($p_res && $proj = $p_res->fetch_assoc()) {
+                $userRes = db_query("SELECT full_name FROM users WHERE id = ?", [$user_id], "i")->fetch_assoc();
+                $userName = $userRes['full_name'] ?? 'A user';
+                $msg = "{$userName} has accepted your invitation to join the project: " . $proj['title'];
+                send_notification($proj['creator_id'], "Invitation Accepted", $msg, "../dashboard/projects.php", "system");
+            }
         } else {
             $_SESSION['error'] = "Invalid or expired invitation.";
         }
@@ -40,12 +49,10 @@ if ($project_id > 0 && in_array($action, ['accept', 'decline'])) {
             $_SESSION['success'] = "Invitation declined.";
             
             if ($proj) {
-                $msg = "A user has declined your invitation to join the project: " . $proj['title'];
-                db_query(
-                    "INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, 'system', 'Invitation Declined', ?, '../dashboard/projects.php')", 
-                    [$proj['creator_id'], $msg], 
-                    "is"
-                );
+                $userRes = db_query("SELECT full_name FROM users WHERE id = ?", [$user_id], "i")->fetch_assoc();
+                $userName = $userRes['full_name'] ?? 'A user';
+                $msg = "{$userName} has declined your invitation to join the project: " . $proj['title'];
+                send_notification($proj['creator_id'], "Invitation Declined", $msg, "../dashboard/projects.php", "system");
             }
         } else {
             $_SESSION['error'] = "Invalid or expired invitation.";

@@ -22,6 +22,7 @@ $document_id = isset($_POST['document_id']) ? (int)$_POST['document_id'] : 0;
 $project_id = isset($_POST['project_id']) ? (int)$_POST['project_id'] : 0;
 $title = trim((string)($_POST['title'] ?? 'Untitled Document'));
 $content = (string)($_POST['content'] ?? '');
+$commit_msg = trim((string)($_POST['commit_message'] ?? ''));
 $visibility = (string)($_POST['visibility'] ?? 'private');
 if (!in_array($visibility, ['public', 'institution', 'private'], true)) {
     $visibility = 'private';
@@ -51,7 +52,7 @@ if (!$projectPermissionResult || $projectPermissionResult->num_rows !== 1) {
 if ($document_id > 0) {
     // 2. Ensure existing document belongs to one of user's accessible projects
     $documentPermissionQuery = "
-        SELECT d.id
+        SELECT d.id, d.locked_by, d.locked_at
         FROM documents d
         JOIN projects p ON p.id = d.project_id
         LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
@@ -65,9 +66,22 @@ if ($document_id > 0) {
         die("Forbidden");
     }
 
-    // Update existing document
+    $doc = $documentPermissionResult->fetch_assoc();
+    $locked_by = $doc['locked_by'];
+    $locked_at = $doc['locked_at'];
+
+    if ($locked_by && $locked_by != $user_id) {
+        $lock_time = strtotime($locked_at);
+        if (time() - $lock_time < 300) {
+            $_SESSION['error'] = "Document is currently locked by another user. Your changes were not saved.";
+            header("Location: ../dashboard/document_editor.php?document_id=" . $document_id);
+            exit();
+        }
+    }
+
+    // Update existing document, release lock on manual save
     db_query(
-        "UPDATE documents SET project_id = ?, title = ?, content = ?, visibility = ?, last_edited_by = ? WHERE id = ?",
+        "UPDATE documents SET project_id = ?, title = ?, content = ?, visibility = ?, last_edited_by = ?, locked_by = NULL, locked_at = NULL WHERE id = ?",
         [$project_id, $title, $content, $visibility, $user_id, $document_id],
         "isssii"
     );
@@ -85,11 +99,14 @@ if ($document_id > 0) {
 $vcount_res = db_query("SELECT COUNT(*) as c FROM document_versions WHERE document_id = ?", [$document_id], "i");
 $vcount = ($vcount_res && $vcount_res->num_rows > 0) ? (int)$vcount_res->fetch_assoc()['c'] : 0;
 $version_name = 'v' . ($vcount + 1) . '.0';
+if (empty($commit_msg)) {
+    $commit_msg = "Manual Save";
+}
 
 db_query(
-    "INSERT INTO document_versions (document_id, version_name, content, created_by) VALUES (?, ?, ?, ?)",
-    [$document_id, $version_name, $content, $user_id],
-    "issi"
+    "INSERT INTO document_versions (document_id, version_name, content, created_by, commit_message) VALUES (?, ?, ?, ?, ?)",
+    [$document_id, $version_name, $content, $user_id, $commit_msg],
+    "issis"
 );
 
 $_SESSION['success'] = "Document saved successfully.";

@@ -16,8 +16,6 @@ $pending_tasks = (int)(db_query("SELECT COUNT(*) as total FROM tasks WHERE assig
 // Collaboration requests
 $collab_requests = (int)(db_query("SELECT COUNT(*) as total FROM collaboration_applications ca JOIN collaboration_posts cp ON ca.post_id = cp.id WHERE cp.user_id = ? AND ca.status = 'pending'", [$user_id])->fetch_assoc()['total'] ?? 0);
 
-// Spotlight project
-$spotlightProject = db_query("SELECT p.* FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE (p.creator_id = ? OR pm.user_id = ?) AND p.status != 'completed' ORDER BY p.progress DESC LIMIT 1", [$user_id, $user_id, $user_id])->fetch_assoc();
 
 // Recent Activity (Applications)
 $recent_activities = db_query("SELECT ca.created_at, u.full_name, cp.title 
@@ -196,19 +194,7 @@ layout_header("Dashboard | UIU ScholarNet");
                     </a>
                 </section>
 
-                <?php if ($spotlightProject): ?>
-                <div class="spotlight-card">
-                        <div class="status"><?php echo strtoupper(htmlspecialchars($spotlightProject['status'])); ?></div>
-                        <h4><?php echo htmlspecialchars($spotlightProject['title']); ?></h4>
-                        <div class="progress-bar spotlight-progress-bar">
-                            <div class="progress-fill spotlight-progress" style="width: <?php echo (int)$spotlightProject['progress']; ?>%;"></div>
-                        </div>
-                        <div class="spotlight-progress-text">
-                            <span><?php echo (int)$spotlightProject['progress']; ?>% Completed</span>
-                        </div>
-                        <a href="tasks.php?project_id=<?php echo $spotlightProject['id']; ?>" class="btn btn-primary spotlight-btn" style="text-decoration:none; display:inline-block; text-align:center;">Open Workspace</a>
-                </div>
-                <?php endif; ?>
+
             </aside>
         </div>
     </main>

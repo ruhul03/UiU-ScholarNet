@@ -58,6 +58,20 @@ $insertResult = db_query($insertApplicationQuery, [$post_id, $current_user_id], 
 
 if ($insertResult && $conn->affected_rows > 0) {
     $_SESSION['success'] = "Application submitted successfully! The project lead will review your profile.";
+    
+    // Notify post owner
+    $post_owner_id = (int)$postData['user_id'];
+    $userDataResult = db_query("SELECT full_name FROM users WHERE id = ?", [$current_user_id], "i");
+    $userData = $userDataResult ? $userDataResult->fetch_assoc() : null;
+    $applicantName = $userData['full_name'] ?? 'Someone';
+    
+    send_notification(
+        $post_owner_id,
+        "New Collaboration Application",
+        "{$applicantName} has applied to your collaboration post.",
+        "../dashboard/collaboration.php",
+        "collaboration"
+    );
 } else {
     $_SESSION['error'] = "You have already applied for this collaboration or an error occurred.";
 }

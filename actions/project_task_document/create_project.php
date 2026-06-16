@@ -86,12 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         $notificationTitle = "Supervision Request";
         $notificationMsg = $user_data['full_name'] . " has requested your supervision for the project: " . $title;
-        
-        $insertNotificationQuery = "
-            INSERT INTO notifications (user_id, title, message, is_read, created_at) 
-            VALUES (?, ?, ?, 0, NOW())
-        ";
-        db_query($insertNotificationQuery, [$supervisor_id, $notificationTitle, $notificationMsg], "iss");
+        send_notification($supervisor_id, $notificationTitle, $notificationMsg, "../dashboard/projects.php", "system");
     }
     
     // 8. Add creator as the initial 'owner' of the project
@@ -114,11 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 // Send Notification to the invited user
                 $inviteMsg = "You have been invited to join the project: " . $title;
-                $inviteNotifQuery = "
-                    INSERT INTO notifications (user_id, type, title, message, link) 
-                    VALUES (?, 'system', 'Project Invitation', ?, '../dashboard/projects.php')
-                ";
-                db_query($inviteNotifQuery, [$invited_user_id, $inviteMsg], "is");
+                send_notification($invited_user_id, "Project Invitation", $inviteMsg, "../dashboard/projects.php", "system");
             }
         }
     }

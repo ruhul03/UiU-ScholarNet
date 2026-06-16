@@ -78,6 +78,17 @@ if ($receiver_id && $receiver_id > 0) {
     
     $message_id = $conn->insert_id;
     
+    // Notify the receiver
+    $senderRes = db_query("SELECT full_name FROM users WHERE id = ?", [$current_user_id], "i")->fetch_assoc();
+    $senderName = $senderRes['full_name'] ?? 'Someone';
+    send_notification(
+        $receiver_id,
+        "New Direct Message",
+        "{$senderName} sent you a message.",
+        "../dashboard/messages.php?user_id=" . $current_user_id,
+        "message"
+    );
+    
     if ($is_ajax) { 
         echo json_encode(['success' => true, 'message_id' => $message_id, 'file_path' => $file_path, 'file_name' => $file_name]); 
         exit(); 

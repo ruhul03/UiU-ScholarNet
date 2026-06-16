@@ -211,6 +211,7 @@ $result = db_query("
                 </div>
                 <?php endwhile; ?>
 
+                <?php if ($result->num_rows === 0): ?>
                 <!-- Create New Project Empty State Box -->
                 <div class="create-project-box" onclick="openModal()">
                     <div class="create-project-icon">
@@ -219,6 +220,7 @@ $result = db_query("
                     <h3 class="create-project-title">Create New Project</h3>
                     <p class="create-project-subtitle">CREATE A NEW RESEARCH DOMAIN</p>
                 </div>
+                <?php endif; ?>
             </div>
         </section>
 

@@ -86,4 +86,19 @@ function db_query($sql, $params = [], $types = "") {
 
     return $result;
 }
+
+/**
+ * Sends a notification to a user.
+ * 
+ * @param int $user_id The ID of the user to receive the notification
+ * @param string $title The notification title
+ * @param string $message The notification message body
+ * @param string|null $link Optional link to redirect the user when clicked
+ * @param string $type The notification type (e.g., 'system', 'message', 'project')
+ * @return bool True if successful, False otherwise
+ */
+function send_notification($user_id, $title, $message, $link = null, $type = 'general') {
+    $query = "INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, ?, ?, ?, ?)";
+    return db_query($query, [$user_id, $type, $title, $message, $link], "issss");
+}
 ?>

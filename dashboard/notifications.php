@@ -48,7 +48,10 @@ $notifications = db_query("SELECT * FROM notifications WHERE user_id = ? ORDER B
                 </div>
             <?php else: ?>
                 <?php while ($notif = $notifications->fetch_assoc()): ?>
-                    <div class="notif-card">
+                    <?php if (!empty($notif['link'])): ?>
+                        <a href="<?php echo htmlspecialchars($notif['link']); ?>" style="text-decoration: none; color: inherit; display: block;">
+                    <?php endif; ?>
+                    <div class="notif-card" style="<?php echo !empty($notif['link']) ? 'transition: transform 0.2s; cursor: pointer;' : ''; ?>" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
                         <div class="notif-icon">
                             <i class="fa-solid fa-circle-info"></i>
                         </div>
@@ -58,6 +61,9 @@ $notifications = db_query("SELECT * FROM notifications WHERE user_id = ? ORDER B
                             <div class="notif-time"><i class="fa-regular fa-clock"></i> <?php echo date('M d, Y g:i A', strtotime($notif['created_at'])); ?></div>
                         </div>
                     </div>
+                    <?php if (!empty($notif['link'])): ?>
+                        </a>
+                    <?php endif; ?>
                 <?php endwhile; ?>
             <?php endif; ?>
         </div>

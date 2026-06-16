@@ -62,6 +62,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     $taskInsertResult = db_query($insertQuery, [$project_id, $title, $description, $assigned_to_user_id, $priority, $due_date], "ississ");
 
+    if ($taskInsertResult && $assigned_to_user_id !== $current_user_id) {
+        $projectDataResult = db_query("SELECT title FROM projects WHERE id = ?", [$project_id], "i");
+        $projectData = $projectDataResult ? $projectDataResult->fetch_assoc() : null;
+        $projectName = $projectData['title'] ?? 'a project';
+        
+        send_notification(
+            $assigned_to_user_id,
+            "New Task Assigned",
+            "You have been assigned a new task: '{$title}' in project '{$projectName}'.",
+            "../dashboard/tasks.php?project_id={$project_id}",
+            "project"
+        );
+    }
+
     // 7. Handle success or failure
     if ($taskInsertResult) {
         header("Location: ../dashboard/tasks.php?project_id=$project_id&success=1");

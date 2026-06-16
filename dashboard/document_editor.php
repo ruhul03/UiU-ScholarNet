@@ -40,6 +40,22 @@ if ($document_id > 0) {
     }
 }
 
+$is_locked = false;
+$locked_by_name = null;
+if ($doc['id'] > 0) {
+    $locked_by = $doc['locked_by'] ?? null;
+    $locked_at = $doc['locked_at'] ?? null;
+    if ($locked_by && $locked_by != $user_id) {
+        if (time() - strtotime($locked_at) < 300) {
+            $is_locked = true;
+            $uRes = db_query("SELECT full_name FROM users WHERE id = ?", [$locked_by], "i");
+            if ($uRes && $u = $uRes->fetch_assoc()) {
+                $locked_by_name = $u['full_name'];
+            }
+        }
+    }
+}
+
 $team_members = [];
 $versions = [];
 
@@ -82,6 +98,15 @@ if ($doc['id'] > 0) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/document_editor.css">
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        .ql-container { font-family: 'Inter', sans-serif; font-size: 16px; border: none !important; }
+        .ql-toolbar { border: none !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; background: rgba(0,0,0,0.2); }
+        .ql-snow .ql-stroke { stroke: #fff; }
+        .ql-snow .ql-fill, .ql-snow .ql-stroke.ql-fill { fill: #fff; }
+        .ql-snow .ql-picker { color: #fff; }
+    </style>
 </head>
 <body class="dashboard-page">
 
@@ -107,7 +132,13 @@ if ($doc['id'] > 0) {
                     </div>
                 <?php endif; ?>
 
-                <form action="../actions/save_document.php" method="POST">
+                <?php if($is_locked): ?>
+                    <div class="alert-error-editor">
+                        <i class="fa-solid fa-lock"></i> <strong>Read-Only Mode:</strong> Document is currently locked by <?php echo htmlspecialchars($locked_by_name); ?>.
+                    </div>
+                <?php endif; ?>
+
+                <form action="../actions/save_document.php" method="POST" id="doc-form">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="document_id" value="<?php echo (int)$doc['id']; ?>">
 
@@ -135,12 +166,13 @@ if ($doc['id'] > 0) {
                             <span>Last saved: <?php echo $doc['updated_at'] ? htmlspecialchars(date('M d, g:i A', strtotime($doc['updated_at']))) : '—'; ?></span>
                         </div>
                         <div class="meta-actions">
-                            <select name="visibility" class="visibility-select">
+                            <select name="visibility" class="visibility-select" <?php echo $is_locked ? 'disabled' : ''; ?>>
                                 <option value="private" <?php echo ($doc['visibility'] === 'private') ? 'selected' : ''; ?>>Private</option>
                                 <option value="institution" <?php echo ($doc['visibility'] === 'institution') ? 'selected' : ''; ?>>Institution</option>
                                 <option value="public" <?php echo ($doc['visibility'] === 'public') ? 'selected' : ''; ?>>Public</option>
                             </select>
-                            <button type="submit" class="btn btn-primary save-btn">
+                            <input type="text" name="commit_message" placeholder="Save message (optional)" class="input-editor" style="width: 200px; padding: 0.3rem;" <?php echo $is_locked ? 'disabled' : ''; ?>>
+                            <button type="submit" class="btn btn-primary save-btn" <?php echo $is_locked ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                                 <i class="fa-solid fa-floppy-disk"></i> Save
                             </button>
                         </div>
@@ -148,28 +180,11 @@ if ($doc['id'] > 0) {
 
                 <!-- Editor Body -->
                 <div class="editor-main editor-main-transparent">
-                    <div class="editor-wrapper">
-                        <!-- Custom Handmade Toolbar -->
-                        <div class="handmade-toolbar">
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('bold')" title="Bold"><i class="fa-solid fa-bold"></i></button>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('italic')" title="Italic"><i class="fa-solid fa-italic"></i></button>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('underline')" title="Underline"><i class="fa-solid fa-underline"></i></button>
-                            <span class="toolbar-divider"></span>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('formatBlock', 'H1')" title="Heading 1"><i class="fa-solid fa-heading"></i>1</button>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('formatBlock', 'H2')" title="Heading 2"><i class="fa-solid fa-heading"></i>2</button>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('formatBlock', 'P')" title="Paragraph"><i class="fa-solid fa-paragraph"></i></button>
-                            <span class="toolbar-divider"></span>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
-                            <span class="toolbar-divider"></span>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('justifyLeft')" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
-                            <button type="button" class="toolbar-btn" onclick="formatDoc('justifyCenter')" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
+                    <div class="editor-wrapper" style="padding: 0;">
+                        <!-- Quill Editor -->
+                        <div id="quill-editor" style="min-height: 500px; padding: 2rem;">
+                            <?php echo $doc['content'] !== '' ? $doc['content'] : "<h1>Introduction</h1><p>Write your research notes, methodology, and draft sections here.</p>"; ?>
                         </div>
-                        
-                        <!-- Contenteditable Canvas -->
-                        <div id="handmade-editor" class="handmade-editor" contenteditable="true"><?php
-                            echo $doc['content'] !== '' ? $doc['content'] : "<h1>Introduction</h1><p>Write your research notes, methodology, and draft sections here.</p>";
-                        ?></div>
                     </div>
                     <input type="hidden" name="content" id="hidden-content">
                 </div>
@@ -229,9 +244,21 @@ if ($doc['id'] > 0) {
                     <?php else: ?>
                         <?php $first = true; foreach($versions as $v): ?>
                         <div class="version-item <?php echo $first ? 'active' : ''; ?>">
-                            <div class="version-info">
-                                <h5><?php echo htmlspecialchars($v['version_name']); ?></h5>
+                            <div class="version-info" style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h5><?php echo htmlspecialchars($v['version_name']); ?></h5>
+                                    <?php if (!$first && !$is_locked): ?>
+                                        <form action="../actions/restore_version.php" method="POST" style="margin:0;">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                            <input type="hidden" name="version_id" value="<?php echo $v['id']; ?>">
+                                            <button type="submit" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;"><i class="fa-solid fa-clock-rotate-left"></i> Restore</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
                                 <p><?php echo date('M d, g:i A', strtotime($v['created_at'])); ?> by <?php echo htmlspecialchars($v['full_name'] ?? 'Unknown'); ?></p>
+                                <?php if (!empty($v['commit_message'])): ?>
+                                    <p style="font-style: italic; opacity: 0.8; font-size: 0.8rem; margin-top: 0.3rem;">"<?php echo htmlspecialchars($v['commit_message']); ?>"</p>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <?php $first = false; endforeach; ?>
@@ -243,22 +270,36 @@ if ($doc['id'] > 0) {
         </div>
     </main>
 
-    <!-- Custom Handmade Editor Logic -->
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
-        function formatDoc(cmd, value=null) {
-            document.execCommand(cmd, false, value);
-            document.getElementById('handmade-editor').focus();
-        }
+        var isLocked = <?php echo $is_locked ? 'true' : 'false'; ?>;
+        var docId = <?php echo (int)$doc['id']; ?>;
+        var csrfToken = "<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>";
+
+        var quill = new Quill('#quill-editor', {
+            theme: 'snow',
+            readOnly: isLocked,
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    [{ 'align': [] }],
+                    ['clean']
+                ]
+            }
+        });
 
         var isDirty = false;
-        var editor = document.getElementById('handmade-editor');
-        
-        editor.addEventListener('input', function() {
-            isDirty = true;
+        quill.on('text-change', function() {
+            if (!isLocked) isDirty = true;
         });
 
         window.addEventListener('beforeunload', function(e) {
-            if (isDirty) {
+            if (isDirty && !isLocked) {
                 var msg = 'You have unsaved changes. Are you sure you want to leave?';
                 e.returnValue = msg;
                 return msg;
@@ -266,14 +307,48 @@ if ($doc['id'] > 0) {
         });
 
         // Sync HTML content to hidden input before form submit
-        var form = document.querySelector('form[action="../actions/save_document.php"]');
+        var form = document.getElementById('doc-form');
         var hiddenContent = document.querySelector('#hidden-content');
         
-        if (form) {
+        if (form && !isLocked) {
             form.addEventListener('submit', function() {
                 isDirty = false;
-                hiddenContent.value = editor.innerHTML;
+                hiddenContent.value = quill.root.innerHTML;
                 return true;
+            });
+        }
+
+        // Lock heartbeat and Auto-save
+        if (docId > 0 && !isLocked) {
+            // Lock heartbeat every 2 minutes
+            setInterval(function() {
+                var fd = new FormData();
+                fd.append('action', 'renew');
+                fd.append('document_id', docId);
+                fetch('../actions/lock_document.php', { method: 'POST', body: fd });
+            }, 120000);
+
+            // Auto-save every 30 seconds if dirty
+            setInterval(function() {
+                if (isDirty) {
+                    var fd = new FormData();
+                    fd.append('document_id', docId);
+                    fd.append('content', quill.root.innerHTML);
+                    fetch('../actions/autosave_document.php', { method: 'POST', body: fd }).then(res => res.json()).then(data => {
+                        if (data.success) {
+                            isDirty = false; // reset dirty since autosave worked
+                            console.log('Autosaved');
+                        }
+                    });
+                }
+            }, 30000);
+
+            // Release lock when closing page
+            window.addEventListener('unload', function() {
+                var fd = new FormData();
+                fd.append('action', 'release');
+                fd.append('document_id', docId);
+                navigator.sendBeacon('../actions/lock_document.php', fd);
             });
         }
     </script>

@@ -50,6 +50,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($updateResult) {
         $_SESSION['success'] = "Application " . $new_status . " successfully.";
         
+        // Notify the applicant
+        $postDataRes = db_query("SELECT title FROM collaboration_posts WHERE id = ?", [$applicationData['post_id']], "i");
+        $postTitle = ($postDataRes && $postDataRes->num_rows > 0) ? $postDataRes->fetch_assoc()['title'] : 'a collaboration post';
+        
+        $notifMsg = "Your application to '{$postTitle}' has been {$new_status}.";
+        send_notification(
+            $applicationData['applicant_id'],
+            "Application {$new_status}",
+            $notifMsg,
+            "../dashboard/collaboration.php",
+            "collaboration"
+        );
+        
         // 3. Auto-add to project if accepted and project linked
         if ($new_status === 'accepted' && !empty($applicationData['project_id'])) {
             $addMemberQuery = "INSERT IGNORE INTO project_members (project_id, user_id, role) VALUES (?, ?, 'member')";

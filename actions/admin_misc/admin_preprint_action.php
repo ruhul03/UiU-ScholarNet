@@ -54,6 +54,14 @@ if ($actionType === 'delete') {
         unlink($absoluteFilePath);
     }
 
+    send_notification(
+        $preprint['author_id'],
+        "Preprint Deleted",
+        "Your preprint titled '{$preprint['title']}' has been deleted by an administrator.",
+        "../dashboard/preprints.php",
+        "system"
+    );
+
     $_SESSION['success'] = "Preprint deleted successfully.";
     header("Location: ../dashboard/admin.php#admin-preprints");
     exit();
@@ -66,6 +74,14 @@ db_query(
     "sii"
 );
 db_query("UPDATE reports SET status = 'resolved' WHERE item_type = 'preprint' AND item_id = ?", [$preprintId], "i");
+
+send_notification(
+    $preprint['author_id'],
+    "Preprint " . ucfirst($newStatus),
+    "Your preprint titled '{$preprint['title']}' has been {$newStatus} by moderation.",
+    "../dashboard/preprints.php",
+    "system"
+);
 
 $_SESSION['success'] = $newStatus === 'approved'
     ? "Preprint approved successfully."

@@ -59,12 +59,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update user's points
             $updatePointsQuery = "UPDATE users SET points = points + ? WHERE id = ?";
             db_query($updatePointsQuery, [$award_points, $assignee_id], "ii");
+            
+            // Notify Project Creator
+            $project_id = $taskData['project_id'];
+            $projectDataRes = db_query("SELECT title, creator_id FROM projects WHERE id = ?", [$project_id], "i");
+            if ($projectDataRes && $projectDataRes->num_rows > 0) {
+                $projInfo = $projectDataRes->fetch_assoc();
+                if ($projInfo['creator_id'] != $current_user_id) {
+                    send_notification(
+                        $projInfo['creator_id'],
+                        "Task Completed",
+                        "A task has been completed in your project '{$projInfo['title']}'.",
+                        "../dashboard/tasks.php?project_id={$project_id}",
+                        "project"
+                    );
+                }
+            }
         }
     }
 }
 
 $redirect = isset($_POST['project_id']) && (int)$_POST['project_id'] > 0 ? '?project_id=' . (int)$_POST['project_id'] : '';
 header("Location: ../dashboard/tasks.php" . $redirect);
-exit();
 exit();
 ?>

@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['content'])) {
                 $owner_id = $thread_owner['user_id'];
                 $notif_title = "New Reply on Your Topic";
                 $notif_msg = "Someone replied to your topic: " . $thread_owner['title'];
-                db_query("INSERT INTO notifications (user_id, type, title, message) VALUES (?, 'collaboration', ?, ?)", [$owner_id, $notif_title, $notif_msg], "iss");
+                send_notification($owner_id, $notif_title, $notif_msg, "../dashboard/discussion_thread.php?id=" . $thread_id, "discussion");
             }
             
             header("Location: discussion_thread.php?id=$thread_id&success=1");

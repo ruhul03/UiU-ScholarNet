@@ -26,11 +26,7 @@ if ($project_id > 0 && in_array($action, ['accept', 'decline'])) {
                 
                 // Notify creator
                 $msg = "Your project '" . $project['title'] . "' has been approved by the supervisor.";
-                db_query(
-                    "INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, 'system', 'Supervision Approved', ?, '../dashboard/projects.php')", 
-                    [$project['creator_id'], $msg], 
-                    "is"
-                );
+                send_notification($project['creator_id'], "Supervision Approved", $msg, "../dashboard/projects.php", "system");
             }
         } else if ($action === 'decline') {
             $upd = db_query("UPDATE projects SET supervisor_id = NULL WHERE id = ?", [$project_id], "i");
@@ -39,11 +35,7 @@ if ($project_id > 0 && in_array($action, ['accept', 'decline'])) {
                 
                 // Notify creator
                 $msg = "Your project '" . $project['title'] . "' was declined by the selected supervisor. Please select a new supervisor.";
-                db_query(
-                    "INSERT INTO notifications (user_id, type, title, message, link) VALUES (?, 'system', 'Supervision Declined', ?, '../dashboard/projects.php')", 
-                    [$project['creator_id'], $msg], 
-                    "is"
-                );
+                send_notification($project['creator_id'], "Supervision Declined", $msg, "../dashboard/projects.php", "system");
             }
         }
     } else {
