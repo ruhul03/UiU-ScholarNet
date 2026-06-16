@@ -97,9 +97,12 @@ erDiagram
         int project_id FK
         varchar title
         int assigned_to FK
+        varchar pipeline_stage
+        int document_id FK
         enum priority
         enum status
         date due_date
+        tinyint is_milestone
     }
     collaboration_posts {
         int id PK
@@ -142,6 +145,10 @@ erDiagram
         int id PK
         int document_id FK
         varchar version_name
+        longtext content
+        int created_by FK
+        varchar commit_message
+        enum status "approved, pending, rejected"
     }
     preprints {
         int id PK
@@ -205,11 +212,12 @@ erDiagram
 ### Core Tables
 
 1. **`users`**: Contains core authentication data (email, password hash), role (`admin`, `faculty`, `student`), and global stats like `points` and `reputation`.
-2. **`projects` & `project_members`**: Handles research projects. Projects have a `status`, `visibility`, and `progress`. The `project_members` table handles many-to-many relationships and permissions.
-3. **`tasks`**: Kanban-style tasks tied to projects. Features `status` (`todo`, `inprogress`, `done`) and `priority`.
-4. **`preprints`**: Academic papers uploaded to the system. Tracks visibility, downloads, and views.
-5. **`collaboration_posts` & `collaboration_applications`**: A job-board style system where researchers can post open slots and users can apply.
-6. **`discussion_threads`**: Community forum for academic discussions.
+2. **`projects` & `project_members`**: Handles research projects. Projects have a `status`, `visibility`, and track the `research_phase` through the **Scientific Research Pipeline**. The `project_members` table handles many-to-many relationships and permissions (`owner`, `editor`, `viewer`).
+3. **`tasks`**: Kanban-style tasks tied to projects. Deeply integrated with the Pipeline; tasks can be tied to a `pipeline_stage` and linked directly to a `document_id`.
+4. **`documents` & `document_versions`**: The core rich-text editor engine. Employs a **Structured Peer Review** system. Project creators/supervisors can "Save" directly, while standard members "Propose Changes" which are stored in `document_versions` as `pending` until reviewed.
+5. **`preprints`**: Academic papers uploaded to the system. Tracks visibility, downloads, and views.
+6. **`collaboration_posts` & `collaboration_applications`**: A job-board style system where researchers can post open slots and users can apply.
+7. **`discussion_threads`**: Community forum for academic discussions.
 
 ---
 
@@ -232,6 +240,17 @@ erDiagram
 - **`actions/collaboration_messaging/`**: Manages the collaboration board and direct messaging logic.
 - **`actions/discussion_preprints/`**: Dedicated to academic discourse and document publishing.
 - **`actions/project_task_document/`**: The core workspace engine. Handles CRUD operations for research projects, Kanban tasks, and documents.
+
+### 3. Scientific Research Pipeline Workflow
+- The platform uses a structured **Scientific Research Pipeline** (`literature_review`, `gap_analysis`, `methodology`, `implementation`, `experimentation`, `drafting`, `publishing`) to track project lifecycles.
+- Project Leaders update the `research_phase` in the project settings.
+- **Kanban Integration**: Tasks (`tasks.php`) can be explicitly assigned to one of these pipeline stages, and linked to specific project documents. Tasks can also be flagged as `is_milestone`.
+
+### 4. Structured Peer Review Workflow (Pull Requests for Docs)
+- Documents are edited in `document_editor.php` using a rich-text Quill.js interface.
+- **Project Leaders** (Creators & Supervisors) bypass reviews; clicking "Save" overwrites the live document and creates an `approved` version in `document_versions`.
+- **Standard Members** (Editors) see a "Propose Changes" button. This inserts their draft into `document_versions` with a `pending` status without affecting the live document.
+- Leaders review pending drafts via `review_proposal.php`, and process them using `actions/handle_proposal.php` (Accept/Reject).
 
 #### Breakdown of the `dashboard/` Directory:
 The `dashboard/` directory contains all the authenticated frontend views.
