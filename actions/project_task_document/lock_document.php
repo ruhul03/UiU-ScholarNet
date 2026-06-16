@@ -27,7 +27,7 @@ if ($document_id <= 0) {
 
 // Ensure the user has permission to view/edit this document
 $documentPermissionQuery = "
-    SELECT d.locked_by, d.locked_at, p.id as project_id, p.creator_id
+    SELECT d.locked_by, d.locked_at, p.id as project_id, p.creator_id, p.status as project_status
     FROM documents d
     JOIN projects p ON p.id = d.project_id
     LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
@@ -42,6 +42,11 @@ if (!$documentPermissionResult || $documentPermissionResult->num_rows !== 1) {
 }
 
 $doc = $documentPermissionResult->fetch_assoc();
+
+if ($doc['project_status'] === 'completed' && $doc['creator_id'] !== $user_id) {
+    echo json_encode(['success' => false, 'error' => 'Project is archived. Only the creator can edit documents.']);
+    exit();
+}
 
 if ($action === 'release') {
     if ($doc['locked_by'] == $user_id) {

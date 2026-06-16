@@ -36,7 +36,7 @@ if ($project_id <= 0) {
 
 // 1. Ensure project belongs to current user or user is an editor/owner
 $projectPermissionQuery = "
-    SELECT p.id 
+    SELECT p.id, p.status, p.creator_id 
     FROM projects p 
     LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? 
     WHERE p.id = ? AND (p.creator_id = ? OR pm.role IN ('owner', 'editor')) 
@@ -47,6 +47,13 @@ $projectPermissionResult = db_query($projectPermissionQuery, [$user_id, $project
 if (!$projectPermissionResult || $projectPermissionResult->num_rows !== 1) {
     http_response_code(403);
     die("Forbidden");
+}
+
+$projectData = $projectPermissionResult->fetch_assoc();
+if ($projectData['status'] === 'completed' && $projectData['creator_id'] !== $user_id) {
+    $_SESSION['error'] = "This project is archived. Only the creator can edit documents.";
+    header("Location: ../dashboard/document_editor.php?document_id=" . $document_id . "&project_id=" . $project_id);
+    exit();
 }
 
 if ($document_id > 0) {

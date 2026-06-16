@@ -42,11 +42,11 @@ if ($project['status'] !== 'review') {
     exit();
 }
 
-// 3. Approve the project
-$updateResult = db_query("UPDATE projects SET supervisor_approved = 1 WHERE id = ?", [$project_id], "i");
+// 3. Approve the project and set status to completed
+$updateResult = db_query("UPDATE projects SET supervisor_approved = 1, status = 'completed' WHERE id = ?", [$project_id], "i");
 
 if ($updateResult) {
-    $_SESSION['success'] = "Project officially approved. The team can now move it to COMPLETED.";
+    $_SESSION['success'] = "Project officially approved and moved to COMPLETED archive.";
 } else {
     $_SESSION['error'] = "Failed to approve the project.";
 }

@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 2. Verify user has permission (project owner, editor, or task assignee)
     $permissionCheckQuery = "
-        SELECT t.id, t.status, t.assigned_to, t.project_id 
+        SELECT t.id, t.status, t.assigned_to, t.project_id, p.status as project_status, p.creator_id 
         FROM tasks t 
         JOIN projects p ON t.project_id = p.id 
         LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ? 
@@ -40,6 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Early return if unauthorized
     if (!$taskData) {
         header("Location: ../dashboard/tasks.php" . $redirect);
+        exit();
+    }
+
+    if ($taskData['project_status'] === 'completed' && $taskData['creator_id'] !== $current_user_id) {
+        header("Location: ../dashboard/tasks.php" . $redirect . "&error=archived");
         exit();
     }
 

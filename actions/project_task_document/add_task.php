@@ -21,6 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $priority = (string)($_POST['priority'] ?? 'medium');
     $due_date = (string)($_POST['due_date'] ?? '');
     $description = trim((string)($_POST['description'] ?? ''));
+    $is_milestone = isset($_POST['is_milestone']) && $_POST['is_milestone'] == '1' ? 1 : 0;
     
     $current_user_id = (int)$_SESSION['user_id'];
     $assigned_to_user_id = isset($_POST['assigned_to']) ? (int)$_POST['assigned_to'] : $current_user_id;
@@ -38,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 5. Check if user has permission to add tasks (Must be owner or editor)
     $permissionCheckQuery = "
-        SELECT p.id 
+        SELECT p.id, p.status, p.creator_id 
         FROM projects p 
         LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? 
         WHERE p.id = ? 
@@ -53,14 +54,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: ../dashboard/tasks.php?error=1");
         exit();
     }
+    
+    $pData = $projectCheckResult->fetch_assoc();
+    if ($pData['status'] === 'completed' && $pData['creator_id'] !== $current_user_id) {
+        header("Location: ../dashboard/tasks.php?error=archived");
+        exit();
+    }
 
     // 6. Insert new task into database
     $insertQuery = "
-        INSERT INTO tasks (project_id, title, description, assigned_to, priority, due_date) 
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO tasks (project_id, title, description, assigned_to, priority, due_date, is_milestone) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ";
     
-    $taskInsertResult = db_query($insertQuery, [$project_id, $title, $description, $assigned_to_user_id, $priority, $due_date], "ississ");
+    $taskInsertResult = db_query($insertQuery, [$project_id, $title, $description, $assigned_to_user_id, $priority, $due_date, $is_milestone], "ississi");
 
     if ($taskInsertResult && $assigned_to_user_id !== $current_user_id) {
         $projectDataResult = db_query("SELECT title FROM projects WHERE id = ?", [$project_id], "i");

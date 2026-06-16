@@ -32,10 +32,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!in_array($visibility, $allowed_visibility, true)) {
         $visibility = 'public';
     }
-    $allowed_status = ['planning', 'active', 'review', 'completed'];
-    if (!in_array($status, $allowed_status, true)) {
-        $status = 'planning';
-    }
+    
+    // Force planning status
+    $status = 'planning';
 
     $supervisor_id = isset($_POST['supervisor_id']) && (int)$_POST['supervisor_id'] > 0 ? (int)$_POST['supervisor_id'] : null;
 

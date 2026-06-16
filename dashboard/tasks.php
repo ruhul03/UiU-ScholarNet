@@ -28,7 +28,7 @@ $projects_result = db_query("
 ", [$user_id, $user_id, $user_id], "iii");
 
 // Fetch all tasks or filter by project_id if specified in the URL
-$task_sql = "SELECT t.*, p.title as project_title FROM tasks t 
+$task_sql = "SELECT t.*, p.title as project_title, p.status as project_status, p.creator_id FROM tasks t 
              JOIN projects p ON t.project_id = p.id 
              LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
              WHERE (p.creator_id = ? OR pm.user_id = ?)";
@@ -90,23 +90,36 @@ while ($task = $task_result->fetch_assoc()) {
                         <div class="task-meta-footer">
                             <span><i class="fa-regular fa-clock"></i> <?php echo date('M d', strtotime($task['due_date'])); ?></span>
                             <div class="task-actions margin-left-auto">
-                                <form method="POST" action="../actions/update_task_status.php" class="d-inline">
+                                <?php if (!($task['project_status'] === 'completed' && $task['creator_id'] != $user_id)): ?>
+                                <form method="POST" action="../actions/project_task_document/update_task_status.php" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                     <input type="hidden" name="task_id" value="<?php echo $task['id']; ?>">
                                     <input type="hidden" name="status" value="done">
                                     <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i> Finish</button>
                                 </form>
+                                <?php endif; ?>
                             </div>
 
                         </div>
                     </div>
                     <?php endforeach; ?>
 
+                    <?php 
+                    $hide_add_button = false;
+                    if ($project_id) {
+                        $p_check = db_query("SELECT status, creator_id FROM projects WHERE id = ?", [$project_id], "i")->fetch_assoc();
+                        if ($p_check && $p_check['status'] === 'completed' && $p_check['creator_id'] != $user_id) {
+                            $hide_add_button = true;
+                        }
+                    }
+                    if (!$hide_add_button):
+                    ?>
                     <div class="create-project-box add-task-box" onclick="openModal()">
                         <div class="add-task-text">
                             <i class="fa-solid fa-plus"></i> ADD ANOTHER TASK
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Done Column -->
@@ -204,6 +217,11 @@ while ($task = $task_result->fetch_assoc()) {
                 <div class="form-group margin-top-md">
                     <label>TASK DESCRIPTION</label>
                     <textarea name="description" rows="5" class="textarea-task" placeholder="Briefly outline the task details..."></textarea>
+                </div>
+
+                <div class="form-group margin-top-md" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" name="is_milestone" id="is_milestone" value="1" style="width: auto;">
+                    <label for="is_milestone" style="margin: 0; color: #d4af37; font-weight: 700;"><i class="fa-solid fa-flag"></i> MARK AS MILESTONE</label>
                 </div>
 
                 <div class="modal-actions">

@@ -25,7 +25,7 @@ $doc = [
 
 if ($document_id > 0) {
     $dres = db_query("
-        SELECT d.*
+        SELECT d.*, p.status as project_status, p.creator_id
         FROM documents d
         JOIN projects p ON p.id = d.project_id
         LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ?
@@ -42,15 +42,23 @@ if ($document_id > 0) {
 
 $is_locked = false;
 $locked_by_name = null;
+$is_archived = false;
+
 if ($doc['id'] > 0) {
-    $locked_by = $doc['locked_by'] ?? null;
-    $locked_at = $doc['locked_at'] ?? null;
-    if ($locked_by && $locked_by != $user_id) {
-        if (time() - strtotime($locked_at) < 300) {
-            $is_locked = true;
-            $uRes = db_query("SELECT full_name FROM users WHERE id = ?", [$locked_by], "i");
-            if ($uRes && $u = $uRes->fetch_assoc()) {
-                $locked_by_name = $u['full_name'];
+    if (isset($doc['project_status']) && $doc['project_status'] === 'completed' && $doc['creator_id'] != $user_id) {
+        $is_locked = true;
+        $is_archived = true;
+        $locked_by_name = "Archive System";
+    } else {
+        $locked_by = $doc['locked_by'] ?? null;
+        $locked_at = $doc['locked_at'] ?? null;
+        if ($locked_by && $locked_by != $user_id) {
+            if (time() - strtotime($locked_at) < 300) {
+                $is_locked = true;
+                $uRes = db_query("SELECT full_name FROM users WHERE id = ?", [$locked_by], "i");
+                if ($uRes && $u = $uRes->fetch_assoc()) {
+                    $locked_by_name = $u['full_name'];
+                }
             }
         }
     }
@@ -97,15 +105,32 @@ if ($doc['id'] > 0) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/editor.css">
     <link rel="stylesheet" href="../assets/css/document_editor.css">
     <!-- Quill CSS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         .ql-container { font-family: 'Inter', sans-serif; font-size: 16px; border: none !important; }
-        .ql-toolbar { border: none !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; background: rgba(0,0,0,0.2); }
-        .ql-snow .ql-stroke { stroke: #fff; }
-        .ql-snow .ql-fill, .ql-snow .ql-stroke.ql-fill { fill: #fff; }
-        .ql-snow .ql-picker { color: #fff; }
+        .ql-toolbar { border: none !important; border-bottom: 1px solid rgba(0,0,0,0.1) !important; background: #fff; }
+        .ql-snow .ql-stroke { stroke: #444; }
+        .ql-snow .ql-fill, .ql-snow .ql-stroke.ql-fill { fill: #444; }
+        .ql-snow .ql-picker { color: #444; }
+        
+        .main-content {
+            max-width: 100% !important;
+            padding-right: 3rem;
+        }
+        
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+        
+        .form-row-meta .meta-actions {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -132,9 +157,15 @@ if ($doc['id'] > 0) {
                     </div>
                 <?php endif; ?>
 
-                <?php if($is_locked): ?>
+                <?php if($is_locked && !$is_archived): ?>
                     <div class="alert-error-editor">
                         <i class="fa-solid fa-lock"></i> <strong>Read-Only Mode:</strong> Document is currently locked by <?php echo htmlspecialchars($locked_by_name); ?>.
+                    </div>
+                <?php endif; ?>
+
+                <?php if($is_archived): ?>
+                    <div class="alert-error-editor">
+                        <i class="fa-solid fa-box-archive"></i> <strong>Archived Project:</strong> This project is completed. Documents are strictly read-only for all members except the team leader.
                     </div>
                 <?php endif; ?>
 
@@ -171,7 +202,7 @@ if ($doc['id'] > 0) {
                                 <option value="institution" <?php echo ($doc['visibility'] === 'institution') ? 'selected' : ''; ?>>Institution</option>
                                 <option value="public" <?php echo ($doc['visibility'] === 'public') ? 'selected' : ''; ?>>Public</option>
                             </select>
-                            <input type="text" name="commit_message" placeholder="Save message (optional)" class="input-editor" style="width: 200px; padding: 0.3rem;" <?php echo $is_locked ? 'disabled' : ''; ?>>
+                            <input type="text" name="commit_message" placeholder="Save message (optional)" class="input-editor" style="flex: 1; min-width: 250px; padding: 0.6rem 0.8rem; font-size: 0.9rem; font-weight: 500;" <?php echo $is_locked ? 'disabled' : ''; ?>>
                             <button type="submit" class="btn btn-primary save-btn" <?php echo $is_locked ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
                                 <i class="fa-solid fa-floppy-disk"></i> Save
                             </button>
@@ -247,7 +278,7 @@ if ($doc['id'] > 0) {
                             <div class="version-info" style="width: 100%;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <h5><?php echo htmlspecialchars($v['version_name']); ?></h5>
-                                    <?php if (!$first && !$is_locked): ?>
+                                    <?php if (!$first && !$is_locked && !$is_archived): ?>
                                         <form action="../actions/restore_version.php" method="POST" style="margin:0;">
                                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
                                             <input type="hidden" name="version_id" value="<?php echo $v['id']; ?>">

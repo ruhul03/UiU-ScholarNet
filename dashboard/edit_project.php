@@ -34,6 +34,9 @@ $tasks = db_query("SELECT t.*, u.full_name AS assignee_name FROM tasks t LEFT JO
 
 // Fetch preprints
 $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints WHERE project_id = ? ORDER BY created_at DESC", [$project_id], "i");
+
+$is_archived = ($project['status'] === 'completed' && $user_id !== (int)$project['creator_id']);
+$disabled_attr = $is_archived ? 'disabled' : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -237,18 +240,18 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
                 
                 <div class="form-group margin-bottom-md">
                     <label class="form-label-bold">PROJECT TITLE</label>
-                    <input type="text" name="title" value="<?php echo htmlspecialchars($project['title']); ?>" class="form-input-light input-lg-bold" placeholder="Enter formal research title..." required>
+                    <input type="text" name="title" value="<?php echo htmlspecialchars($project['title']); ?>" class="form-input-light input-lg-bold" placeholder="Enter formal research title..." required <?php echo $disabled_attr; ?>>
                 </div>
 
                 <div class="form-group margin-bottom-md">
                     <label class="form-label-bold">RESEARCH ABSTRACT / DESCRIPTION</label>
-                    <textarea name="description" rows="4" class="form-input-light resize-none" placeholder="Provide a brief summary of the project goals..."><?php echo htmlspecialchars($project['description'] ?? ''); ?></textarea>
+                    <textarea name="description" rows="4" class="form-input-light resize-none" placeholder="Provide a brief summary of the project goals..." <?php echo $disabled_attr; ?>><?php echo htmlspecialchars($project['description'] ?? ''); ?></textarea>
                 </div>
 
                 <div class="form-row form-grid-2col-mb2">
                     <div class="form-group">
                         <label class="form-label-bold">DEPARTMENT</label>
-                        <select name="department" class="form-input-light" required>
+                        <select name="department" class="form-input-light" required <?php echo $disabled_attr; ?>>
                             <?php foreach ($departments as $dept): ?>
                                 <option value="<?php echo $dept; ?>" <?php echo ($project['department'] === $dept) ? 'selected' : ''; ?>><?php echo $dept; ?></option>
                             <?php endforeach; ?>
@@ -256,7 +259,7 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
                     </div>
                     <div class="form-group">
                         <label class="form-label-bold">PROGRESS (%)</label>
-                        <input type="number" name="progress" value="<?php echo $project['progress']; ?>" min="0" max="100" class="form-input-light" required>
+                        <input type="number" name="progress" value="<?php echo $project['progress']; ?>" min="0" max="100" class="form-input-light" required <?php echo $disabled_attr; ?>>
                     </div>
                 </div>
 
@@ -291,7 +294,18 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
                         <?php if ($project['status'] === 'planning'): ?>
                             <li class="done"><i class="fa-solid fa-check"></i> Define project title and abstract</li>
                             <li class="<?php echo ($tasks->num_rows > 0) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($tasks->num_rows > 0) ? 'check' : 'spinner'; ?>"></i> Create at least 1 task</li>
-                            <p class="stage-hint-text">Move to ACTIVE when you are ready to start executing tasks.</p>
+                            <p class="stage-hint-text">The project is waiting for the formal proposal to be approved by the supervisor to become ACTIVE.</p>
+                            <?php if ($user_id == $project['supervisor_id']): ?>
+                                <div class="mt-15px">
+                                    <form action="../actions/project_task_document/approve_proposal.php" method="POST" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                                        <button type="submit" class="btn btn-approve btn-inline-link">
+                                            <i class="fa-solid fa-file-signature"></i> APPROVE PROPOSAL
+                                        </button>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
                         <?php elseif ($project['status'] === 'active'): ?>
                             <li class="<?php echo ($project['progress'] >= 50) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($project['progress'] >= 50) ? 'check' : 'spinner'; ?>"></i> Reach 50%+ completion on tasks</li>
                             <li class="<?php echo ($documents->num_rows > 0) ? 'done' : 'pending'; ?>"><i class="fa-solid fa-<?php echo ($documents->num_rows > 0) ? 'check' : 'spinner'; ?>"></i> Upload at least 1 document or resource</li>
@@ -326,7 +340,7 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
                 <div class="form-row form-grid-2col-mb3">
                     <div class="form-group">
                         <label class="form-label-bold">OVERRIDE STAGE</label>
-                        <select name="status" class="form-input-light">
+                        <select name="status" class="form-input-light" <?php echo $disabled_attr; ?>>
                             <option value="planning" <?php echo ($project['status'] === 'planning') ? 'selected' : ''; ?>>PLANNING</option>
                             <option value="active" <?php echo ($project['status'] === 'active') ? 'selected' : ''; ?>>ACTIVE</option>
                             <option value="review" <?php echo ($project['status'] === 'review') ? 'selected' : ''; ?>>REVIEW</option>
@@ -335,7 +349,7 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
                     </div>
                     <div class="form-group">
                         <label class="form-label-bold">VISIBILITY LEVEL</label>
-                        <select name="visibility" class="form-input-light">
+                        <select name="visibility" class="form-input-light" <?php echo $disabled_attr; ?>>
                             <option value="public" <?php echo ($project['visibility'] === 'public') ? 'selected' : ''; ?>>PUBLIC (Global Network)</option>
                             <option value="institution" <?php echo ($project['visibility'] === 'institution') ? 'selected' : ''; ?>>INSTITUTION (UIU Only)</option>
                             <option value="private" <?php echo ($project['visibility'] === 'private') ? 'selected' : ''; ?>>PRIVATE (Draft Mode)</option>
@@ -343,10 +357,16 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
                     </div>
                 </div>
 
-                <div class="edit-actions form-actions-footer">
-                    <button type="submit" class="btn btn-primary btn-lg">SAVE CHANGES</button>
-                    <a href="projects.php" class="btn btn-outline btn-cancel-lg">CANCEL</a>
-                </div>
+                <?php if ($is_archived): ?>
+                    <div class="alert-error-editor mt-3" style="background: rgba(217, 48, 37, 0.1); border-left: 4px solid #d93025; padding: 1rem; border-radius: 4px; color: #d93025;">
+                        <i class="fa-solid fa-box-archive"></i> <strong>Archived Project:</strong> This project is completed. Editing is strictly limited to the team leader.
+                    </div>
+                <?php else: ?>
+                    <div class="edit-actions form-actions-footer">
+                        <button type="submit" class="btn btn-primary btn-lg">SAVE CHANGES</button>
+                        <a href="projects.php" class="btn btn-outline btn-cancel-lg">CANCEL</a>
+                    </div>
+                <?php endif; ?>
             </form>
         </div>
 
@@ -357,7 +377,9 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
             <div class="card ecosystem-card">
                 <div class="ecosystem-card-header">
                     <h3 class="ecosystem-card-title"><i class="fa-solid fa-file-lines text-primary"></i> Documents</h3>
+                    <?php if (!$is_archived): ?>
                     <a href="document_editor.php?project_id=<?php echo $project['id']; ?>" class="btn btn-outline btn-xs"><i class="fa-solid fa-plus"></i> New</a>
+                    <?php endif; ?>
                 </div>
                 <?php if ($documents->num_rows > 0): ?>
                     <ul class="ecosystem-list">
@@ -387,14 +409,34 @@ $preprints = db_query("SELECT id, title, created_at, views_count FROM preprints 
                         <?php while($t = $tasks->fetch_assoc()): ?>
                             <li class="ecosystem-task-item" style="border-left: 3px solid <?php echo $t['status']==='done'?'#1e8e3e':($t['priority']==='high'?'#d93025':'#f29900'); ?>;">
                                 <div class="flex-col">
-                                    <span class="ecosystem-item-title"><?php echo htmlspecialchars($t['title']); ?></span>
-                                    <span class="ecosystem-item-meta"><?php echo htmlspecialchars($t['assignee_name'] ?? 'Unassigned'); ?></span>
+                                    <span class="ecosystem-item-title">
+                                        <?php if(isset($t['is_milestone']) && $t['is_milestone']): ?>
+                                            <i class="fa-solid fa-flag text-secondary" title="Milestone"></i> 
+                                        <?php endif; ?>
+                                        <?php echo htmlspecialchars($t['title']); ?>
+                                    </span>
+                                    <span class="ecosystem-item-meta">
+                                        <?php echo htmlspecialchars($t['assignee_name'] ?? 'Unassigned'); ?>
+                                        <?php if(isset($t['is_milestone']) && $t['is_milestone']): ?>
+                                            • <?php echo $t['supervisor_signed_off'] ? '<span class="text-success"><i class="fa-solid fa-check-double"></i> Signed Off</span>' : '<span class="text-muted">Awaiting Sign-Off</span>'; ?>
+                                        <?php endif; ?>
+                                    </span>
                                 </div>
-                                <?php if($t['status']==='done'): ?>
-                                    <i class="fa-solid fa-circle-check text-success"></i>
-                                <?php else: ?>
-                                    <i class="fa-regular fa-circle text-muted-light"></i>
-                                <?php endif; ?>
+                                <div>
+                                    <?php if(isset($t['is_milestone']) && $t['is_milestone'] && !$t['supervisor_signed_off'] && $user_id == $project['supervisor_id']): ?>
+                                        <form action="../actions/project_task_document/signoff_milestone.php" method="POST" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                            <input type="hidden" name="task_id" value="<?php echo $t['id']; ?>">
+                                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                                            <button type="submit" class="btn btn-outline btn-xs" title="Sign Off Milestone"><i class="fa-solid fa-pen-nib"></i> Sign Off</button>
+                                        </form>
+                                    <?php endif; ?>
+                                    <?php if($t['status']==='done'): ?>
+                                        <i class="fa-solid fa-circle-check text-success" style="margin-left:8px;"></i>
+                                    <?php else: ?>
+                                        <i class="fa-regular fa-circle text-muted-light" style="margin-left:8px;"></i>
+                                    <?php endif; ?>
+                                </div>
                             </li>
                         <?php endwhile; ?>
                     </ul>

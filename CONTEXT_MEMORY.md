@@ -170,9 +170,12 @@ Contains static frontend files.
 
 ## 📝 Recent Updates
 
-- **Project Approvals:** Separated the concept of initial faculty supervision acceptance (`supervision_accepted`) from final project approval (`supervisor_approved`) to allow independent state tracking.
+- **Total Project Lifecycle Implementation:** Enforced `planning` as the default status for new projects. Implemented a formal `approve_proposal` workflow for supervisors. Added a milestone tracking system (`is_milestone`) with a dedicated supervisor sign-off mechanism. Implemented strict Read-Only project archiving (`completed` status) which enforces backend locks on tasks, documents, and project details for non-creators.
+- **Document Editor Overhaul:** Upgraded the custom document editor to use **Quill.js** for robust rich-text formatting. Implemented a "Pessimistic Locking" mechanism to prevent concurrent overwrites (users hold a lock for 5 minutes, renewed via heartbeat). Added a background auto-save feature (every 30 seconds). Enhanced version control allowing users to safely restore old versions without permanently deleting history. Made UI layout improvements for wider editor experience.
+- **Notification System Integration:** Fully integrated the dashboard notifications to be universally clickable (via standard anchor tags) seamlessly routing users to the relevant task, message, or project.
+- **Database Maintenance:** Executed deduplication scripts to permanently clean duplicate entries from the Collaboration Finder and the Resources Hub. Added `is_milestone` and `supervisor_signed_off` columns to the `tasks` table.
 - **Admin Moderation Expansion:** Enhanced the Admin Panel (`dashboard/admin.php`) to allow direct global moderation (deletion) of Resources (`actions/admin_resource_action.php`) and Research Discussions (`actions/admin_discussion_action.php`).
-- **UI Bug Fixes:** Fixed flexbox layout issues in `assets/css/messages.css` to prevent channel item squishing and container overflow.
+- **UI Bug Fixes:** Fixed flexbox layout issues in `assets/css/messages.css` to prevent channel item squishing and container overflow. Fixed Document Editor tool visibility issues.
 
 ---
 
