@@ -22,6 +22,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $due_date = (string)($_POST['due_date'] ?? '');
     $description = trim((string)($_POST['description'] ?? ''));
     $is_milestone = isset($_POST['is_milestone']) && $_POST['is_milestone'] == '1' ? 1 : 0;
+    $pipeline_stage = !empty($_POST['pipeline_stage']) ? $_POST['pipeline_stage'] : null;
+    $document_id = !empty($_POST['document_id']) ? (int)$_POST['document_id'] : null;
     
     $current_user_id = (int)$_SESSION['user_id'];
     $assigned_to_user_id = isset($_POST['assigned_to']) ? (int)$_POST['assigned_to'] : $current_user_id;
@@ -63,11 +65,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 6. Insert new task into database
     $insertQuery = "
-        INSERT INTO tasks (project_id, title, description, assigned_to, priority, due_date, is_milestone) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO tasks (project_id, title, description, pipeline_stage, document_id, assigned_to, priority, due_date, is_milestone) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ";
     
-    $taskInsertResult = db_query($insertQuery, [$project_id, $title, $description, $assigned_to_user_id, $priority, $due_date, $is_milestone], "ississi");
+    $taskInsertResult = db_query($insertQuery, [$project_id, $title, $description, $pipeline_stage, $document_id, $assigned_to_user_id, $priority, $due_date, $is_milestone], "isssiissi");
 
     if ($taskInsertResult && $assigned_to_user_id !== $current_user_id) {
         $projectDataResult = db_query("SELECT title FROM projects WHERE id = ?", [$project_id], "i");

@@ -80,13 +80,17 @@ CREATE TABLE IF NOT EXISTS tasks (
     project_id INT,
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    pipeline_stage VARCHAR(50) NULL,
+    document_id INT NULL,
     assigned_to INT,
     priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
     status ENUM('todo', 'inprogress', 'done') DEFAULT 'todo',
     due_date DATE,
+    is_milestone BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE SET NULL
 );
 
 -- 4. Collaboration Posts (Collaboration Finder)

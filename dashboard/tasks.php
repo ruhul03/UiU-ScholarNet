@@ -82,10 +82,28 @@ while ($task = $task_result->fetch_assoc()) {
                     <h3><span class="column-badge"><i class="fa-solid fa-circle dot-gold"></i> To Do (<?php echo count($tasks_todo); ?>)</span> <i class="fa-solid fa-ellipsis column-options"></i></h3>
                     
                     <?php foreach($tasks_todo as $task): ?>
-                    <div class="task-card">
-                        <div class="priority-badge"><?php echo $task['priority']; ?> PRIORITY</div>
-                        <h4><?php echo htmlspecialchars($task['title']); ?></h4>
+                    <div class="task-card <?php echo !empty($task['is_milestone']) ? 'milestone-card' : ''; ?>" <?php echo !empty($task['is_milestone']) ? 'style="border: 1px solid #d4af37;"' : ''; ?>>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div class="priority-badge"><?php echo $task['priority']; ?> PRIORITY</div>
+                            <?php if (!empty($task['is_milestone'])): ?>
+                                <span style="color: #d4af37; font-size: 0.8rem; font-weight: bold;"><i class="fa-solid fa-flag"></i> MILESTONE</span>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <?php if (!empty($task['pipeline_stage'])): ?>
+                            <div style="font-size: 0.75rem; color: #1a73e8; font-weight: 600; margin-bottom: 0.2rem; text-transform: uppercase;">
+                                <i class="fa-solid fa-microscope"></i> <?php echo str_replace('_', ' ', htmlspecialchars($task['pipeline_stage'])); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <h4 style="margin-top: 0.2rem;"><?php echo htmlspecialchars($task['title']); ?></h4>
                         <p class="task-desc"><?php echo htmlspecialchars($task['description']); ?></p>
+                        
+                        <?php if (!empty($task['document_id'])): ?>
+                            <a href="document_editor.php?document_id=<?php echo $task['document_id']; ?>" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; display: inline-block; margin-bottom: 0.8rem; color: var(--primary-color);">
+                                <i class="fa-solid fa-file-lines"></i> Attached Document
+                            </a>
+                        <?php endif; ?>
                         
                         <div class="task-meta-footer">
                             <span><i class="fa-regular fa-clock"></i> <?php echo date('M d', strtotime($task['due_date'])); ?></span>
@@ -217,6 +235,42 @@ while ($task = $task_result->fetch_assoc()) {
                 <div class="form-group margin-top-md">
                     <label>TASK DESCRIPTION</label>
                     <textarea name="description" rows="5" class="textarea-task" placeholder="Briefly outline the task details..."></textarea>
+                </div>
+
+                <div class="form-row margin-top-md">
+                    <div class="form-group flex-1">
+                        <label>PIPELINE STAGE</label>
+                        <select name="pipeline_stage" class="form-input-light">
+                            <option value="">None (General Task)</option>
+                            <option value="literature_review">Literature Review</option>
+                            <option value="gap_analysis">Gap Analysis</option>
+                            <option value="methodology">Methodology</option>
+                            <option value="implementation">Implementation</option>
+                            <option value="experimentation">Experimentation</option>
+                            <option value="drafting">Drafting</option>
+                            <option value="publishing">Publishing</option>
+                        </select>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>LINK DOCUMENT (Optional)</label>
+                        <select name="document_id" class="form-input-light">
+                            <option value="">No Document Attached</option>
+                            <?php 
+                            // Fetch documents the user can access
+                            $docs_result = db_query("
+                                SELECT d.id, d.title, p.title as p_title 
+                                FROM documents d
+                                JOIN projects p ON d.project_id = p.id
+                                LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+                                WHERE p.creator_id = ? OR pm.user_id = ?
+                                ORDER BY d.updated_at DESC
+                            ", [$user_id, $user_id, $user_id], "iii");
+                            while($d = $docs_result->fetch_assoc()): 
+                            ?>
+                                <option value="<?php echo (int)$d['id']; ?>"><?php echo htmlspecialchars($d['p_title'] . ' - ' . $d['title']); ?></option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group margin-top-md" style="display: flex; align-items: center; gap: 10px;">
