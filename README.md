@@ -3,6 +3,15 @@
 > **Status:** v1.0 (Production Ready) — Fully security audited, SEO optimized, and feature complete.
 
 A full-stack, high-fidelity academic research collaboration platform custom-built for UIU students and faculty to coordinate projects, manage tasks, share preprints, host discussion threads, and message colleagues.
+---
+
+## ✨ Core Features
+
+- **Scientific Research Pipeline**: A structured 7-step pipeline (Literature Review ➔ Gap Analysis ➔ Methodology ➔ Implementation ➔ Experimentation ➔ Drafting ➔ Publishing) tracking the exact lifecycle of academic research projects.
+- **Role-based Project Governance**: Distinct roles for Project Leaders, Faculty Supervisors, and Collaborators, ensuring clear delegation and academic oversight.
+- **Real-time Task Management**: Kanban-style task boards to assign, track, and complete granular tasks within projects.
+- **Resource & Preprint Sharing**: Seamless uploads for drafts, datasets, and final papers to democratize access across the campus.
+- **Collaboration & Messaging**: Find researchers with complementary skills and engage in real-time threaded discussions.
 
 ---
 
