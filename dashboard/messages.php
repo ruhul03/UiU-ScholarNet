@@ -352,7 +352,7 @@ $dm_users_res = db_query("
                     <?php echo htmlspecialchars($chat_target_info['badge']); ?>
                 </div>
                 <h3 class="info-title"><?php echo htmlspecialchars($chat_target_info['name']); ?></h3>
-                <p class="info-desc"><?php echo htmlspecialchars($chat_target_info['desc']); ?></p>
+                <p class="info-desc"><?php echo $chat_target_info['desc']; ?></p>
 
                 <h4 class="info-section-title">Shared Media</h4>
                 <div class="media-grid">
