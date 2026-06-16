@@ -53,10 +53,19 @@ if (!$postData || (int)$postData['user_id'] === $current_user_id) {
 }
 
 // 3. Insert the application
-$insertApplicationQuery = "INSERT IGNORE INTO collaboration_applications (post_id, user_id) VALUES (?, ?)";
+$checkAppQuery = "SELECT id FROM collaboration_applications WHERE post_id = ? AND user_id = ?";
+$checkAppResult = db_query($checkAppQuery, [$post_id, $current_user_id], "ii");
+
+if ($checkAppResult && $checkAppResult->num_rows > 0) {
+    $_SESSION['error'] = "You have already applied for this collaboration.";
+    header("Location: ../dashboard/collaboration.php");
+    exit();
+}
+
+$insertApplicationQuery = "INSERT INTO collaboration_applications (post_id, user_id) VALUES (?, ?)";
 $insertResult = db_query($insertApplicationQuery, [$post_id, $current_user_id], "ii");
 
-if ($insertResult && $conn->affected_rows > 0) {
+if ($insertResult) {
     $_SESSION['success'] = "Application submitted successfully! The project lead will review your profile.";
     
     // Notify post owner
