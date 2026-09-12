@@ -317,6 +317,7 @@ Contains static frontend files.
 - **Notification System Integration:** Fully integrated the dashboard notifications to be universally clickable (via standard anchor tags) seamlessly routing users to the relevant task, message, or project.
 - **Database Maintenance:** Executed deduplication scripts to permanently clean duplicate entries from the Collaboration Finder and the Resources Hub. Added `is_milestone` and `supervisor_signed_off` columns to the `tasks` table.
 - **Admin Moderation Expansion:** Enhanced the Admin Panel (`dashboard/admin.php`) to allow direct global moderation (deletion) of Resources (`actions/admin_resource_action.php`) and Research Discussions (`actions/admin_discussion_action.php`).
+- **Faculty/Supervisor Ranking System:** Built a new dedicated dashboard view (`dashboard/supervisors.php`) that queries users with the `faculty` role, sorting them by reputation and points. Integrated this with the global `.user-profile-trigger` modal and added it to the main sidebar navigation.
 - **UI Bug Fixes:** Fixed flexbox layout issues in `assets/css/messages.css` to prevent channel item squishing and container overflow. Fixed Document Editor tool visibility issues.
 
 ---

@@ -192,10 +192,10 @@ layout_header("Admin Panel | UIU ScholarNet");
 
         <!-- Main Dashboard Layout Grid -->
         <div style="display: grid; grid-template-columns: 1fr 350px; gap: 1.5rem; align-items: start;">
-            
+
             <!-- Left Content Column -->
             <div style="display: flex; flex-direction: column; gap: 2rem;">
-                
+
                 <!-- Stats Section -->
                 <section class="dash-stats" style="margin-bottom: 0; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                     <div class="stat-card">
@@ -232,7 +232,7 @@ layout_header("Admin Panel | UIU ScholarNet");
                 <div class="card admin-card-main" id="admin-users" style="margin-bottom: 0;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
                         <h3 class="admin-card-title" style="margin-bottom: 0;">System Users (<?php echo $totalFilteredUsers; ?>)</h3>
-                        
+
                         <form method="GET" action="admin.php" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                             <input type="text" name="search" placeholder="Search name or email..." value="<?php echo htmlspecialchars($search); ?>" class="form-input-light" style="width: 250px; height: 36px; padding: 0 0.8rem; font-size: 0.85rem; border-radius: 6px; border: 1px solid #ddd; box-sizing: border-box;">
                             

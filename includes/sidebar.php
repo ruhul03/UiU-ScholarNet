@@ -59,6 +59,9 @@ $is_admin_sidebar = $is_admin_user && $current_page === 'admin.php';
             <a href="preprints.php" class="menu-item <?php echo ($current_page == 'preprints.php' || $current_page == 'preprint_details.php') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-file-pdf"></i> Preprints
             </a>
+            <a href="supervisors.php" class="menu-item <?php echo ($current_page == 'supervisors.php') ? 'active' : ''; ?>">
+                <i class="fa-solid fa-chalkboard-user"></i> Supervisors
+            </a>
             <a href="reputation.php" class="menu-item <?php echo ($current_page == 'reputation.php') ? 'active' : ''; ?>">
                 <i class="fa-solid fa-award"></i> Reputation
             </a>

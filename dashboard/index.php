@@ -26,8 +26,15 @@ $recent_activities = db_query("SELECT ca.created_at, applicant.full_name AS appl
                                WHERE cp.user_id = ? OR ca.user_id = ?
                                ORDER BY ca.created_at DESC LIMIT 4", [$user_id, $user_id]);
 
-// Recent Tasks
-$recent_tasks = db_query("SELECT title, created_at, status FROM tasks WHERE assigned_to = ? ORDER BY created_at DESC LIMIT 2", [$user_id]);
+// Recent Tasks for Activity (only done recently)
+$recent_tasks = db_query("SELECT title, created_at, status FROM tasks WHERE assigned_to = ? AND status = 'done' ORDER BY created_at DESC LIMIT 2", [$user_id]);
+
+// Pending Tasks List for Sidebar
+$pending_tasks_list = db_query("SELECT id, title, priority, due_date FROM tasks WHERE assigned_to = ? AND status != 'done' ORDER BY due_date ASC LIMIT 3", [$user_id]);
+
+// Spotlight Project
+$spotlight_res = db_query("SELECT p.* FROM projects p LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ? WHERE (p.creator_id = ? OR pm.user_id = ?) AND p.status = 'active' ORDER BY p.progress DESC, p.created_at DESC LIMIT 1", [$user_id, $user_id, $user_id]);
+$spotlight_project = $spotlight_res->fetch_assoc();
 
 // Merge activities
 $activities = [];
@@ -56,8 +63,8 @@ while ($row = $recent_activities->fetch_assoc()) {
 while ($row = $recent_tasks->fetch_assoc()) {
     $activities[] = [
         'type' => 'task',
-        'title' => 'Task Updated',
-        'desc' => htmlspecialchars($row['title']) . ' is now ' . htmlspecialchars($row['status']),
+        'title' => 'Task Completed',
+        'desc' => htmlspecialchars($row['title']) . ' is now done',
         'time' => $row['created_at']
     ];
 }
@@ -203,16 +210,47 @@ layout_header("Dashboard | UIU ScholarNet");
             <aside class="dash-sidebar">
                 <section class="quick-actions">
                     <h3>Quick Actions</h3>
-                    <a href="file_upload.php" class="action-item">
+                    <a href="file_upload.php" class="action-item" style="text-decoration:none;">
                         <span><i class="fa-solid fa-file-arrow-up action-icon"></i> Upload research paper</span>
                         <i class="fa-solid fa-chevron-right chevron-icon"></i>
                     </a>
-                    <a href="collaboration.php" class="action-item">
+                    <a href="collaboration.php" class="action-item" style="text-decoration:none;">
                         <span><i class="fa-solid fa-user-group action-icon"></i> Invite team members</span>
                         <i class="fa-solid fa-chevron-right chevron-icon"></i>
                     </a>
                 </section>
 
+                <?php if ($pending_tasks_list->num_rows > 0): ?>
+                <section class="pending-tasks" style="margin-top: 2rem;">
+                    <h3>Pending Tasks</h3>
+                    <?php while ($t = $pending_tasks_list->fetch_assoc()): ?>
+                        <div class="action-item" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; border-left: 3px solid var(--secondary-color);">
+                            <div style="font-weight: 700; color: var(--primary-color); font-size: 0.95rem;"><?php echo htmlspecialchars($t['title']); ?></div>
+                            <div style="display: flex; justify-content: space-between; width: 100%; font-size: 0.75rem; color: var(--text-light); opacity: 0.8;">
+                                <span><i class="fa-regular fa-clock"></i> Due: <?php echo date('M d, Y', strtotime($t['due_date'])); ?></span>
+                                <span style="text-transform: uppercase; font-weight: 800; color: <?php echo $t['priority'] == 'high' ? '#e74c3c' : ($t['priority'] == 'medium' ? '#f39c12' : '#27ae60'); ?>;"><?php echo $t['priority']; ?></span>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </section>
+                <?php endif; ?>
+
+                <?php if ($spotlight_project): ?>
+                <section class="spotlight-card">
+                    <div class="status">Project Spotlight</div>
+                    <h4><?php echo htmlspecialchars($spotlight_project['title']); ?></h4>
+                    
+                    <div class="spotlight-progress-text">
+                        <span>Progress</span>
+                        <span><?php echo $spotlight_project['progress']; ?>%</span>
+                    </div>
+                    <div class="spotlight-progress-bar" style="margin-bottom: 2rem; background: rgba(255, 255, 255, 0.2); height: 6px; border-radius: 3px;">
+                        <div class="spotlight-progress" style="width: <?php echo $spotlight_project['progress']; ?>%; background: var(--secondary-color); height: 100%; border-radius: 3px;"></div>
+                    </div>
+                    
+                    <a href="tasks.php?project_id=<?php echo $spotlight_project['id']; ?>" class="btn spotlight-btn" style="display: flex; gap: 0.5rem; text-decoration: none;">View Project <i class="fa-solid fa-arrow-right"></i></a>
+                </section>
+                <?php endif; ?>
 
             </aside>
         </div>
